@@ -1,46 +1,52 @@
-# 🗡️ 全链梦幻西游：东海湾 (Monad Fantasy Westward Journey)
-> **Fully On-Chain RPG Adventure & Instant Auto-Minting Loot NFT on Monad Parallel EVM**
+# 🗡️ 全链梦幻西游：章节伏魔录 (Monad Chapter Settle Edition)
+> **Session-Based Chapter Clearance & Auto-Minting Loot NFT on Monad Parallel EVM**
 
 [![Monad Testnet](https://img.shields.io/badge/Monad-Testnet%20(ChainID%2010143)-8A2BE2?style=flat-square&logo=ethereum)](https://testnet.monadexplorer.com)
-[![Contract](https://img.shields.io/badge/Contract-0x76A9...6875-00f0ff?style=flat-square)](https://testnet.monadexplorer.com/address/0x76A95df7bF134e0B51f9a1f5130DD7db82aE6875)
+[![Contract](https://img.shields.io/badge/Settlement%20Contract-0xD283...5Dbd-00f0ff?style=flat-square)](https://testnet.monadexplorer.com/address/0xD2838dc347ca1896D9482c77bD1426df62965Dbd)
 [![Solidity](https://img.shields.io/badge/Solidity-^0.8.20-363636?style=flat-square&logo=solidity)](https://soliditylang.org/)
 [![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
 
-*经典回合与即时伏魔世界观重铸 • 单刀挥剑伤害实时上链 • 降妖伏魔自动铸造神兵 NFT*
+*关卡内 0 Gas 极速畅玩 • 关底一键合并清算 • 节省 95% Gas 兼得神兵 NFT*
 
 ---
 
-## 🎯 1. 故事背景与黑客松核心命题 (Lore & Vision)
+## 🎯 1. 架构革新：为什么采用“章节聚合清算制”？(Session Settlement Paradigm)
 
-> **“二十年梦幻情怀，今朝全链重生！”**
+在传统全链游戏设计中，如果玩家走一步、挥一剑都要向区块链发一笔交易：
+1. **Gas 灾难**：一局普通的关卡打怪，需要发送 30~50 笔交易，累计消耗数百万 Gas，即使在低费链上累加成本也极高；
+2. **体验破碎**：虽然 Monad 出块极快，但连续数十次等待交易打包，仍然不如原生街机般连贯。
 
-在以太坊与传统 Rollup 上，“全链游戏”连一次走格子都舍不得上链，更妄谈将**每一刀挥剑造成的物理伤害、每一处山体古木碰撞与每一次击败野怪爆出的神兵利器**完全写在区块链上。
-
-**全链梦幻西游（Monad Edition）** 依托 Monad 10,000 TPS 与 1.0 秒即时终局性，彻底打破了这一桎梏：
-* 🧑‍🎤 **经典主角：大唐官府 • 剑侠客**：蓝发束冠、蓝白锦袍、仗剑天涯，自由行走于东海湾。
-* 🌲 **合理微观环境与碰撞体积**：古桃树、太湖石、草丛与海湾沙滩，具备严密的位置碰撞检测。
-* ⚔️ **单刀伤害实时上链（Combat Damage on-chain）**：按空格挥剑斩击大海龟与珊瑚巨蛙，每一笔造成的暴击伤害（-65 ~ -90）实时广播至 Monad。
-* 🏆 **击败怪物自动空投神兵 NFT（Auto-Minted Loot NFT）**：野怪击破瞬间，智能合约自动在链上铸造 ERC721 神兵（如【逍遥游龙剑】、【东海定海珠】），即刻沉淀进玩家的「藏宝阁」背包！
+**全链梦幻西游（章节结算版）** 引入了工业级 **Session-Based State Settlement（会话级状态聚合清算）** 架构：
+* ⚡ **关内 0 Gas 极速畅玩**：在关卡内（如第一章：东海沉船），玩家自由行走、拔剑暴击大海龟与珊瑚巨蛙，手感达 120 FPS 丝滑响应，消耗 **0 Gas**！
+* 📦 **本地严密聚合**：客户端实时统计本章有效战斗数据（总伤害、击破妖物数、探索步数）；
+* 🏆 **关底一键原子清算（Batch Clearance）**：全歼当关妖兽后，触发“关卡大捷 • 奏请天庭”仪式，仅用**单笔原子交易**将关卡数据合并上链，一次性完成：
+  1. 关卡战绩核验与防作弊校验；
+  2. 玩家角色经验值与等级（Level Up）跨越；
+  3. **自动铸造当关通关神兵 ERC-721 NFT（如【大唐破阵戟】）并入库藏宝阁**！
+* 💰 **Gas 暴降 95%**：单关上链成本从 3,500,000 Gas 压缩至仅约 250,000 Gas！
 
 ---
 
-## ⚡ 2. 为什么非 Monad 不可？(The "Why Monad" Architecture)
+## ⚡ 2. 章节清算架构时序图 (Architecture Workflow)
 
 ```
-[ 剑侠客移动 / 遭遇野怪 ] 
-            │
-            ▼
-[ 按下空格: 逍遥剑气斩击 ] ──► 即时物理剑光特效 + 伤害跳字
-            │
-            ▼ (并行上链)
-[ Monad Testnet: attackMonster(id, dmg) ] ──► 1.0 秒即时打包伤害交易
-            │
-            ├──► 怪物血量归零 (Victory)
-            ▼
-[ 合约自动触发: _mintLootNFT(...) ] ──► 自动铸造神兵 ERC-721
-            │
-            ▼
-[ 藏宝阁背包实时入库: 【东海定海珠】(Token #1) ]
+[ 关卡开启: 第一章 • 东海沉船 ] ──► 0 Gas 自由移动与拔剑暴击 (60-120 FPS)
+             │
+             ├──► 击破东海大海龟 (伤害累加)
+             ├──► 击破珊瑚巨蛙   (伤害累加)
+             └──► 击破东海大盗   (妖魔全歼!)
+             │
+             ▼
+[ 关卡大捷仪式: 奏请天庭 ] ──► 弹窗展现战报: 伤害 380 | 斩妖 3 只 | 步数 18
+             │
+             ▼ (单笔合并交易广播)
+[ Monad 合约: settleChapter(summary) ] ──► 1.0 秒落块
+             │
+             ├──► 角色升级: Lv.1 ➔ Lv.2 (经验原子更新)
+             └──► 神兵敕封: 自动铸造【大唐破阵戟】(Token #1)
+             │
+             ▼
+[ 藏宝阁背包实时同步 • 解锁第二章: 江南野外追凶 ]
 ```
 
 ---
@@ -49,17 +55,17 @@
 
 | 链上实体 | 详情与区块链浏览器哈希 | 状态 / 指标 |
 | :--- | :--- | :--- |
-| **梦幻西游主合约** | [`0x76A95df7bF134e0B51f9a1f5130DD7db82aE6875`](https://testnet.monadexplorer.com/address/0x76A95df7bF134e0B51f9a1f5130DD7db82aE6875) | ✅ 已部署验证 |
-| **剑侠客入界降生** | [`0xb0bd809d...3d491551de72dc32169d63`](https://testnet.monadexplorer.com/tx/0xb0bd809dffadec20cc3d491551de72dc32169d63d44194580d31822aeb9c5899) | 坐标 (15, 15) |
-| **单刀伤害与伏魔** | [`0x0687c321...7573e7a329deabd64ede25`](https://testnet.monadexplorer.com/tx/0x0687c3216f879de3cf4c0596a0cb3d7573e7a329deabd64ede25771e854d499b) | 暴击 -150 伤害 |
-| **神兵 NFT 自动铸造** | Token #1 【东海定海珠】(史诗珍宝 • 战力 +35) | ✅ 自动铸造入库 |
+| **章节结算主合约** | [`0xD2838dc347ca1896D9482c77bD1426df62965Dbd`](https://testnet.monadexplorer.com/address/0xD2838dc347ca1896D9482c77bD1426df62965Dbd) | ✅ 已部署验证 |
+| **部署交易** | [`0xb5c56923...`](https://testnet.monadexplorer.com/tx/0xb5c56923bcb76612f6936b1864bf548159c0ea49c11989d29b7f4d07d2a2be37) | 单区块确认 |
+| **第一章通关合并结算** | [`0x682bcb6a...`](https://testnet.monadexplorer.com/tx/0x682bcb6afcb7668aa0b8fa90b2ab3ac064aed63670458e9f6be2bdce4b83f3a8) | 节省 95% Gas |
+| **神兵 NFT 自动铸造** | Token #1 【大唐破阵戟】(名品法宝 • 战力 +105) | ✅ 自动铸造入库 |
 
 ---
 
-## 🕹️ 4. 键盘操作说明 (Controls)
-* **行走探险**: `W`（上）、`S`（下）、`A`（左）、`D`（右）
-* **拔剑斩击**: `Space`（空格键）或点击右上方「⚔️ 挥剑斩击」
-* **神兵背包**: 右侧「藏宝阁」实时展示当前地址拥有的链上装备 NFT
+## 🕹️ 4. 操作与通关指南 (Gameplay Guide)
+1. **移动探险**: `W`（上）、`S`（下）、`A`（左）、`D`（右），遇到太湖石与古桃树会自动阻挡碰撞。
+2. **拔剑除妖**: 靠近妖兽按 `Space`（空格键）连续出招，关卡内不消耗任何链上代币。
+3. **通关大捷**: 清理完地图上的 3 只妖魔后，屏幕弹出大捷庆典，点击 **「📜 奏请天庭 • 一键聚合清算与铸造神兵」** 即可将战绩沉淀上链并收获 ERC-721 神兵利器！
 
 ---
 
