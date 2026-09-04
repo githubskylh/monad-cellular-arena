@@ -3,370 +3,352 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>全链梦幻西游 V3 旗舰版：三界三宗与全链寄售行 - Monad High-Speed L1</title>
+    <title>全链梦幻：元气地牢伏魔录 - Monad Soul Knight Edition</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Ethers.js v6 CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.2/ethers.umd.min.js"></script>
-    <!-- Classical Chinese Fonts & Monospace -->
+    <!-- Retro Arcade & Pixel Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=ZCOOL+XiaoWei&family=Plus+Jakarta+Sans:wght@500;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=ZCOOL+XiaoWei&family=VT323&family=Plus+Jakarta+Sans:wght@700;800&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
 
     <style>
         :root {
-            --font-xy: 'ZCOOL XiaoWei', 'STKaiti', 'KaiTi', serif;
+            --font-pixel: 'VT323', monospace;
+            --font-xy: 'ZCOOL XiaoWei', serif;
             --font-ui: 'Plus Jakarta Sans', sans-serif;
             --font-mono: 'JetBrains Mono', monospace;
         }
         body {
-            background: radial-gradient(circle at 50% 6%, #132219 0%, #08110d 45%, #030605 100%);
+            background: #0b0e14;
             color: #e2e8f0;
             font-family: var(--font-ui);
             user-select: none;
             overflow-x: hidden;
         }
+        .font-pixel { font-family: var(--font-pixel); }
         .font-xy { font-family: var(--font-xy); }
         .font-mono { font-family: var(--font-mono); }
-        
-        .mh-panel {
-            background: rgba(13, 23, 18, 0.90);
-            backdrop-filter: blur(14px);
-            -webkit-backdrop-filter: blur(14px);
-            border: 1px solid rgba(234, 179, 8, 0.30);
-            box-shadow: 0 10px 34px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(253, 224, 71, 0.12);
+
+        /* 元气骑士粗粝硬派像素边框与面板 */
+        .sk-panel {
+            background: #161c24;
+            border: 3px solid #2d3748;
+            box-shadow: 4px 4px 0px #0b0e14, inset 2px 2px 0px rgba(255,255,255,0.08);
+            border-radius: 12px;
         }
-        .mh-gold-glow { text-shadow: 0 0 16px rgba(250, 204, 21, 0.8); }
-        .mh-border {
-            border: 2px solid #ca8a04;
-            box-shadow: 0 0 22px rgba(202, 138, 4, 0.45), inset 0 0 14px rgba(0,0,0,0.6);
+        .sk-panel-gold {
+            background: #1a1e1b;
+            border: 3px solid #ca8a04;
+            box-shadow: 4px 4px 0px #000, inset 2px 2px 0px rgba(250, 204, 21, 0.2);
+            border-radius: 12px;
         }
-        .bar-hp {
-            background: linear-gradient(90deg, #b91c1c 0%, #ef4444 60%, #f87171 100%);
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+        .sk-btn {
+            background: #2563eb;
+            border: 2px solid #60a5fa;
+            box-shadow: 0 4px 0 #1d4ed8;
+            border-radius: 8px;
+            transition: all 0.1s ease;
         }
-        .bar-mp {
-            background: linear-gradient(90deg, #1d4ed8 0%, #3b82f6 60%, #60a5fa 100%);
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+        .sk-btn:active {
+            transform: translateY(3px);
+            box-shadow: 0 1px 0 #1d4ed8;
         }
-        @keyframes loot-pulse {
-            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 6px rgba(250, 204, 21, 0.8)); }
-            50% { transform: scale(1.03); filter: drop-shadow(0 0 18px rgba(250, 204, 21, 1)); }
+        .sk-btn-gold {
+            background: #d97706;
+            border: 2px solid #fde047;
+            box-shadow: 0 4px 0 #92400e;
+            border-radius: 8px;
+            transition: all 0.1s ease;
         }
-        .animate-loot { animation: loot-pulse 2.2s ease-in-out infinite; }
-        
-        .cd-mask {
-            background: rgba(0, 0, 0, 0.7);
-            pointer-events: none;
+        .sk-btn-gold:active {
+            transform: translateY(3px);
+            box-shadow: 0 1px 0 #92400e;
         }
 
-        .equip-slot {
-            background: radial-gradient(circle, rgba(202, 138, 4, 0.18) 0%, rgba(0,0,0,0.45) 100%);
-            border: 1px solid rgba(234, 179, 8, 0.45);
-            box-shadow: inset 0 0 8px rgba(202, 138, 4, 0.25);
-            transition: all 0.2s ease;
+        /* 状态血条槽 (元气三槽：生命红、护甲灰蓝、能量蓝) */
+        .bar-sk-hp {
+            background: linear-gradient(180deg, #ef4444 0%, #b91c1c 100%);
+            box-shadow: inset 0 2px 0 rgba(255,255,255,0.4);
         }
-        .equip-slot:hover {
-            border-color: #facc15;
-            box-shadow: 0 0 14px rgba(250, 204, 21, 0.55);
+        .bar-sk-shield {
+            background: linear-gradient(180deg, #38bdf8 0%, #0284c7 100%);
+            box-shadow: inset 0 2px 0 rgba(255,255,255,0.4);
         }
-
-        /* 标签页高亮 */
-        .tab-btn.active {
-            background: rgba(202, 138, 4, 0.25);
-            border-color: #facc15;
-            color: #fef08a;
+        .bar-sk-mp {
+            background: linear-gradient(180deg, #22c55e 0%, #15803d 100%);
+            box-shadow: inset 0 2px 0 rgba(255,255,255,0.4);
         }
 
-        ::-webkit-scrollbar { width: 5px; }
-        ::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.4); }
+        /* 技能按键圆环 */
+        .action-btn {
+            width: 58px;
+            height: 58px;
+            border-radius: 50%;
+            border: 3px solid #eab308;
+            background: radial-gradient(circle, #374151 0%, #111827 100%);
+            box-shadow: 0 4px 0 #000, 0 0 12px rgba(234, 179, 8, 0.4);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.1s ease;
+        }
+        .action-btn:active {
+            transform: scale(0.92) translateY(2px);
+        }
+
+        /* 地牢宝箱掉落微动效 */
+        @keyframes float-orb {
+            0%, 100% { transform: translateY(0px) scale(1); }
+            50% { transform: translateY(-6px) scale(1.08); }
+        }
+        .animate-float { animation: float-orb 1.8s ease-in-out infinite; }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #111827; }
         ::-webkit-scrollbar-thumb { background: #ca8a04; border-radius: 4px; }
     </style>
 </head>
-<body class="min-h-screen flex flex-col items-center justify-between p-2 md:p-4">
+<body class="min-h-screen flex flex-col items-center justify-between p-2 md:p-3">
 
-    <!-- Top Ribbon: 梦幻西游 V3 旗舰版全景总览 -->
-    <header class="w-full max-w-6xl mh-panel rounded-2xl py-2.5 px-5 mb-3 flex flex-wrap items-center justify-between gap-3 border-amber-600/40">
+    <!-- Top Ribbon: 元气骑士街机风顶部信息栏 -->
+    <header class="w-full max-w-6xl sk-panel py-2 px-4 mb-2.5 flex flex-wrap items-center justify-between gap-3 border-amber-600/50">
+        <!-- Brand & Stage -->
         <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 rounded-xl bg-amber-950/90 border border-amber-500/60 flex items-center justify-center text-xl shadow-lg">
-                📜
+            <div class="w-10 h-10 rounded-lg bg-amber-950 border-2 border-yellow-400 flex items-center justify-center text-xl shadow">
+                ⚔️
             </div>
             <div>
                 <div class="flex items-center space-x-2">
-                    <h1 class="text-lg md:text-xl font-bold font-xy tracking-wider text-amber-300 mh-gold-glow flex items-center gap-2">
-                        <span>全链梦幻西游 V3 旗舰版</span>
-                        <span id="chapterTitleBadge" class="text-xs px-2.5 py-0.5 rounded-full bg-amber-950 text-amber-200 border border-amber-500/60 font-sans">第 1 章 • 东海沉船试炼</span>
+                    <h1 class="text-base md:text-lg font-bold font-pixel tracking-wider text-yellow-300 flex items-center gap-2">
+                        <span class="text-xl">SOUL KNIGHT × MONAD</span>
+                        <span id="chapterTitleBadge" class="text-xs px-2 py-0.5 rounded bg-blue-950 text-cyan-300 border border-cyan-500 font-mono">1-1 东海地牢</span>
                     </h1>
                 </div>
-                <p class="text-[11px] text-amber-200/70 font-xy tracking-wide">
-                    三界三宗随时转职 • 藏宝阁全链 C2C 寄售 • 长安擂台比武 • 关内 120 FPS 零 Gas 畅玩
+                <p class="text-[11px] text-slate-400 font-xy tracking-wide">
+                    地牢打怪掉落 NFT 神兵 • 踏入传送门自动认领落块铸造 • 100% 自动 Mint
                 </p>
             </div>
         </div>
-        
-        <!-- Live Telemetry & Quick Switches -->
+
+        <!-- Telemetry & Controls -->
         <div class="flex items-center space-x-2 text-xs font-mono">
-            <!-- Sect Selector Button -->
-            <button id="btnOpenSectModal" class="bg-amber-950/80 hover:bg-amber-900 border border-amber-500/60 px-2.5 py-1.5 rounded-xl flex items-center space-x-1 text-amber-300 transition-colors">
-                <span id="headerSectIcon">🗡️</span>
-                <span id="headerSectName" class="font-xy text-[11px]">大唐官府 (转换)</span>
-            </button>
-            <!-- Audio Toggle -->
-            <button id="btnAudioToggle" class="bg-black/50 hover:bg-black/80 border border-amber-600/50 px-2.5 py-1.5 rounded-xl flex items-center space-x-1 text-amber-300 transition-colors">
+            <button id="btnAudioToggle" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 text-amber-300 flex items-center space-x-1">
                 <span id="audioIcon">🔊</span>
-                <span id="audioText" class="font-xy text-[11px]">原声: 开</span>
+                <span id="audioText" class="text-[11px] font-xy">音效: 开</span>
             </button>
-            <div class="bg-black/50 border border-amber-700/40 px-3 py-1.5 rounded-xl flex items-center space-x-1.5">
-                <span class="text-slate-400">战力:</span>
-                <span id="headerPowerDisplay" class="text-yellow-400 font-bold font-mono">+65</span>
+            <div class="bg-black/60 border border-amber-600/60 px-2.5 py-1.5 rounded-lg flex items-center space-x-1.5">
+                <span class="text-yellow-400 font-bold font-pixel text-sm">🪙 MON:</span>
+                <span id="gasBalanceDisplay" class="text-emerald-400 font-bold">1.08</span>
             </div>
-            <div class="bg-black/50 border border-amber-700/40 px-3 py-1.5 rounded-xl flex items-center space-x-1.5">
-                <span class="text-slate-400">Monad:</span>
-                <span id="blockHeightDisplay" class="text-emerald-400 font-bold">#--</span>
+            <div class="bg-black/60 border border-slate-700 px-2.5 py-1.5 rounded-lg flex items-center space-x-1.5">
+                <span class="text-slate-400">高度:</span>
+                <span id="blockHeightDisplay" class="text-cyan-400 font-bold">#--</span>
             </div>
         </div>
     </header>
 
     <!-- Main Game Area -->
-    <main class="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-4 flex-1 items-start">
+    <main class="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-3 flex-1 items-start">
         
-        <!-- Left: Canvas Map, Battle HUD, Skill Bar (7 cols) -->
-        <div class="lg:col-span-7 flex flex-col items-center mh-panel p-3.5 rounded-2xl relative">
+        <!-- Left: Canvas & Soul Knight HUD (7 cols) -->
+        <div class="lg:col-span-7 flex flex-col items-center sk-panel p-3 relative">
             
-            <!-- Character Status & Paper Doll Quick Slots HUD -->
-            <div class="w-full bg-black/60 p-2.5 rounded-xl border border-amber-900/50 mb-2.5">
-                <div class="flex items-center justify-between">
-                    <!-- Hero Avatar & Status -->
-                    <div class="flex items-center space-x-3">
-                        <div id="heroAvatarBox" class="w-12 h-12 rounded-xl bg-gradient-to-b from-blue-700 to-indigo-950 border-2 border-amber-400/80 flex items-center justify-center text-2xl shadow-md relative">
-                            <span id="heroAvatarIcon">🧑‍🎤</span>
-                            <span id="playerLevelBadge" class="absolute -bottom-1 -right-1 text-[9px] px-1 rounded bg-amber-950 text-amber-300 border border-amber-500 font-mono font-bold">Lv.2</span>
+            <!-- Character Soul Knight Status HUD (生命、护甲、能量) -->
+            <div class="w-full bg-[#111827] p-2 rounded-lg border-2 border-slate-800 mb-2 flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <!-- Avatar -->
+                    <div id="heroAvatarBox" class="w-12 h-12 rounded-lg bg-slate-900 border-2 border-yellow-500 flex items-center justify-center text-2xl shadow relative">
+                        <span id="heroAvatarIcon">🧙‍♂️</span>
+                        <span id="playerLevelBadge" class="absolute -bottom-1 -right-1 text-[9px] px-1 rounded bg-amber-950 text-yellow-300 border border-yellow-500 font-pixel font-bold">Lv.2</span>
+                    </div>
+
+                    <!-- Dual Status Bars -->
+                    <div class="space-y-1 text-[10px] font-mono">
+                        <div class="flex items-center space-x-2">
+                            <span id="heroTitleName" class="font-bold text-xs text-yellow-300 font-xy">游侠剑客 (大唐官府)</span>
+                            <span class="text-slate-400">坐标: <b id="coordDisplay" class="text-cyan-300">15,15</b></span>
                         </div>
-                        <div class="space-y-1">
-                            <div class="flex items-center space-x-2">
-                                <span id="heroTitleName" class="font-bold font-xy text-sm text-amber-200">剑侠客 (大唐官府)</span>
-                                <span class="text-[10px] font-mono text-cyan-300">坐标: (<span id="coordDisplay">15, 15</span>)</span>
+                        <div class="flex items-center space-x-3">
+                            <!-- HP -->
+                            <div class="flex items-center space-x-1">
+                                <span class="text-red-400 font-bold font-pixel text-xs">HP</span>
+                                <div class="w-20 h-2.5 bg-black rounded overflow-hidden border border-red-900">
+                                    <div id="hpBarFill" class="h-full bar-sk-hp w-full transition-all duration-200"></div>
+                                </div>
+                                <span id="hpText" class="w-12 text-right">300/300</span>
                             </div>
-                            <div class="flex items-center space-x-3 text-[10px] font-mono">
-                                <!-- HP -->
-                                <div class="flex items-center space-x-1">
-                                    <span class="text-rose-400 font-bold">气血:</span>
-                                    <div class="w-20 h-2.5 bg-slate-950 rounded-full overflow-hidden border border-rose-900/80">
-                                        <div id="hpBarFill" class="h-full bar-hp w-full transition-all duration-200"></div>
-                                    </div>
-                                    <span id="hpText" class="w-14 text-right">300/300</span>
+                            <!-- Shield -->
+                            <div class="flex items-center space-x-1">
+                                <span class="text-sky-400 font-bold font-pixel text-xs">SHD</span>
+                                <div class="w-14 h-2.5 bg-black rounded overflow-hidden border border-sky-900">
+                                    <div id="shieldBarFill" class="h-full bar-sk-shield w-full transition-all duration-200"></div>
                                 </div>
-                                <!-- MP -->
-                                <div class="flex items-center space-x-1">
-                                    <span class="text-blue-400 font-bold">魔法:</span>
-                                    <div class="w-16 h-2.5 bg-slate-950 rounded-full overflow-hidden border border-blue-900/80">
-                                        <div id="mpBarFill" class="h-full bar-mp w-full transition-all duration-200"></div>
-                                    </div>
-                                    <span id="mpText" class="w-12 text-right">150/150</span>
+                                <span id="shieldText" class="w-8 text-right">80/80</span>
+                            </div>
+                            <!-- Energy -->
+                            <div class="flex items-center space-x-1">
+                                <span class="text-emerald-400 font-bold font-pixel text-xs">ENG</span>
+                                <div class="w-14 h-2.5 bg-black rounded overflow-hidden border border-emerald-900">
+                                    <div id="mpBarFill" class="h-full bar-sk-mp w-full transition-all duration-200"></div>
                                 </div>
+                                <span id="mpText" class="w-10 text-right">150/150</span>
                             </div>
                         </div>
                     </div>
+                </div>
 
-                    <!-- Paper Doll 3 Equipment Slots (武器, 宝甲, 法宝) -->
-                    <div class="flex items-center space-x-2">
-                        <div id="slotWeapon" class="equip-slot w-11 h-12 rounded-lg flex flex-col items-center justify-center cursor-pointer relative" title="武器槽位">
-                            <span class="text-base">🗡️</span>
-                            <span id="slotWeaponName" class="text-[9px] font-xy text-yellow-300 truncate max-w-[42px]">未装备</span>
-                            <span class="absolute -top-1 -right-1 text-[8px] bg-red-950 border border-red-500 rounded px-0.5 text-amber-300">武</span>
-                        </div>
-                        <div id="slotArmor" class="equip-slot w-11 h-12 rounded-lg flex flex-col items-center justify-center cursor-pointer relative" title="宝甲槽位">
-                            <span class="text-base">🛡️</span>
-                            <span id="slotArmorName" class="text-[9px] font-xy text-yellow-300 truncate max-w-[42px]">软猬甲</span>
-                            <span class="absolute -top-1 -right-1 text-[8px] bg-amber-950 border border-amber-500 rounded px-0.5 text-amber-300">甲</span>
-                        </div>
-                        <div id="slotRelic" class="equip-slot w-11 h-12 rounded-lg flex flex-col items-center justify-center cursor-pointer relative" title="法宝槽位">
-                            <span class="text-base">📿</span>
-                            <span id="slotRelicName" class="text-[9px] font-xy text-slate-400 truncate max-w-[42px]">未装备</span>
-                            <span class="absolute -top-1 -right-1 text-[8px] bg-blue-950 border border-blue-500 rounded px-0.5 text-cyan-300">宝</span>
-                        </div>
+                <!-- Current Weapon Quick Slot -->
+                <div class="flex items-center space-x-2">
+                    <div class="w-16 h-12 rounded-lg bg-black/60 border-2 border-yellow-500/70 flex flex-col items-center justify-center relative">
+                        <span id="weaponSlotIcon" class="text-lg">🗡️</span>
+                        <span id="weaponSlotName" class="text-[9px] text-yellow-300 font-xy truncate max-w-[56px]">青锋剑</span>
+                        <span class="absolute -top-1.5 -right-1 text-[8px] bg-red-900 text-amber-200 px-1 rounded border border-red-500 font-mono">武</span>
                     </div>
                 </div>
             </div>
 
             <!-- The Game Map Canvas Container -->
-            <div class="relative rounded-xl overflow-hidden mh-border bg-[#101b14] w-[550px] h-[550px] max-w-full aspect-square flex items-center justify-center">
+            <div class="relative rounded-xl overflow-hidden border-4 border-[#2d3748] bg-[#12151d] w-[550px] h-[550px] max-w-full aspect-square flex items-center justify-center shadow-2xl">
                 <canvas id="gameCanvas" width="550" height="550" class="block cursor-crosshair"></canvas>
                 
-                <!-- Floating NPC Story Dialogue (剧情对话框) -->
-                <div id="npcDialogueBox" class="absolute bottom-3 left-3 right-3 bg-black/90 border border-amber-500/70 rounded-xl p-2.5 flex items-center space-x-3 shadow-2xl backdrop-blur-md transition-opacity duration-300">
-                    <div id="npcAvatar" class="w-10 h-10 rounded-lg bg-amber-950 border border-amber-400 flex items-center justify-center text-xl shrink-0">
-                        👴
-                    </div>
-                    <div class="flex-1">
-                        <div class="text-[11px] font-bold font-xy text-amber-300" id="npcName">建邺城老村长:</div>
-                        <div class="text-[11px] text-amber-100/90 font-xy leading-tight" id="npcText">
-                            少侠留步！东海沉船被水妖侵扰，请持神兵速荡妖魔！按 1 普攻，按 2/Q、3/E 施展门派神技！
-                        </div>
-                    </div>
-                    <button id="btnDismissNpc" class="px-2 py-1 bg-amber-900/70 hover:bg-amber-800 text-amber-200 rounded text-[10px] font-xy border border-amber-600/60">
-                        知晓
-                    </button>
+                <!-- Floating Toast Notification -->
+                <div id="itemToast" class="pointer-events-none absolute top-4 left-1/2 transform -translate-x-1/2 opacity-0 transition-opacity duration-300 bg-amber-950/95 border-2 border-yellow-400 text-yellow-200 px-4 py-1.5 rounded-full text-xs font-xy font-bold shadow-2xl flex items-center space-x-1.5">
+                    <span>✨</span>
+                    <span id="itemToastText">已拾取地牢掉落物！</span>
                 </div>
 
-                <!-- STAGE CLEARANCE BANNER (关卡大捷弹窗) -->
-                <div id="clearanceOverlay" class="absolute inset-0 bg-black/85 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center transition-all duration-300" style="display: none;">
-                    <div class="w-16 h-16 rounded-2xl bg-amber-900/80 border-2 border-yellow-400 flex items-center justify-center text-3xl shadow-2xl animate-loot mb-3">
-                        🏆
+                <!-- AUTO-MINT CLAIMING CELEBRATION MODAL (传送门自动认领与铸造弹窗) -->
+                <div id="clearanceOverlay" class="absolute inset-0 bg-black/90 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center transition-all duration-300 z-30" style="display: none;">
+                    <div class="w-20 h-20 rounded-2xl bg-gradient-to-b from-amber-500 to-yellow-600 border-4 border-yellow-300 flex items-center justify-center text-4xl shadow-2xl animate-float mb-3">
+                        🔮
                     </div>
-                    <h2 id="clearanceTitle" class="text-xl font-bold font-xy text-yellow-300 mb-1 mh-gold-glow">第一章 • 东海沉船大捷！</h2>
-                    <p id="clearanceSubtext" class="text-xs text-amber-200/80 max-w-sm mb-4 leading-relaxed font-xy">
-                        少侠神勇无双，关内数据已在本地严密聚合！点击一键合并上链，铸造高阶神兵 NFT 并落入藏宝阁！
+                    <h2 id="clearanceTitle" class="text-2xl font-bold font-pixel tracking-wider text-yellow-300 mb-1">
+                        STAGE 1-1 CLEARED!
+                    </h2>
+                    <p class="text-xs text-amber-200/90 font-xy max-w-sm mb-3">
+                        少侠已肃清地牢妖兽并踏入传送门！系统正在 Monad 区块链上<b>自动认领并铸造</b>掉落神兵 NFT！
                     </p>
-                    
-                    <!-- Chapter Summary Stats -->
-                    <div class="grid grid-cols-4 gap-2 w-full max-w-sm bg-black/60 p-3 rounded-xl border border-amber-800/60 mb-4 text-xs font-mono">
-                        <div>
-                            <div class="text-slate-400 text-[10px]">累计伤害</div>
-                            <div id="summaryDamage" class="text-red-400 font-bold text-sm">450</div>
-                        </div>
-                        <div>
-                            <div class="text-slate-400 text-[10px]">斩灭妖魔</div>
-                            <div id="summaryKills" class="text-yellow-400 font-bold text-sm">3</div>
-                        </div>
-                        <div>
-                            <div class="text-slate-400 text-[10px]">门派绝技</div>
-                            <div id="summarySkills" class="text-blue-400 font-bold text-sm">2 次</div>
-                        </div>
-                        <div>
-                            <div class="text-slate-400 text-[10px]">探索步数</div>
-                            <div id="summarySteps" class="text-cyan-400 font-bold text-sm">22 步</div>
+
+                    <!-- Dropped Loot NFT Card -->
+                    <div id="mintCard" class="w-full max-w-xs bg-[#161c24] p-3 rounded-xl border-2 border-yellow-500/80 mb-4 shadow-xl">
+                        <div class="text-[10px] text-yellow-400 font-pixel uppercase tracking-wider mb-1">⚡ MINTING NFT ITEM...</div>
+                        <div class="flex items-center space-x-3">
+                            <div class="w-12 h-12 rounded-lg bg-amber-950 border border-yellow-400 flex items-center justify-center text-2xl shadow" id="mintLootIcon">
+                                🔱
+                            </div>
+                            <div class="text-left">
+                                <div class="font-bold font-xy text-sm text-yellow-300" id="mintLootName">【大唐青锋剑】</div>
+                                <div class="text-[10px] text-slate-400 font-mono" id="mintLootDesc">战力 +65 • 名品法宝</div>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Settlement Action Button -->
-                    <button id="btnSettleOnChain" class="px-6 py-3 bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-bold font-xy text-sm rounded-xl shadow-xl shadow-amber-500/25 border border-yellow-300 flex items-center space-x-2 transition-transform transform active:scale-95">
-                        <span>📜 奏请天庭 • 一键聚合清算与铸造神兵 (Monad)</span>
-                    </button>
-                    <div id="settlingSpinner" class="hidden mt-2 text-xs text-amber-300 font-mono animate-pulse">
-                        ⏳ 正在广播原子清算交易至 Monad (落块约 1.0 秒)...
+                    <!-- Auto Minting Status Spinner -->
+                    <div id="mintStatusText" class="text-xs text-cyan-300 font-mono mb-3 animate-pulse">
+                        ⏳ 正在广播单笔原子清算与自动 Mint 交易 (落块约 1.0 秒)...
                     </div>
+
+                    <!-- Next Level Button (Enabled after Auto-Mint is complete) -->
+                    <button id="btnNextLevel" class="px-6 py-3 sk-btn-gold text-slate-950 font-bold font-xy text-sm rounded-xl shadow-lg border border-yellow-200 flex items-center space-x-2 transition-transform transform active:scale-95 hidden">
+                        <span>🚀 踏入下一层地牢 (Next Dungeon)</span>
+                    </button>
                 </div>
             </div>
 
-            <!-- Active Martial Art Skill Bar (门派自适应快捷技能栏) -->
-            <div class="w-full mt-3 bg-black/60 p-2 rounded-xl border border-amber-900/50 flex items-center justify-between gap-2">
-                <div class="flex items-center space-x-2">
-                    <!-- Skill 1 -->
-                    <button id="btnSkill1" class="relative group p-2 rounded-xl bg-gradient-to-b from-stone-800 to-stone-950 border border-amber-600/60 hover:border-amber-400 flex items-center space-x-2 transition-all active:scale-95">
-                        <span id="skill1Icon" class="text-xl">🗡️</span>
-                        <div class="text-left font-xy">
-                            <div id="skill1Title" class="text-xs font-bold text-amber-200">普攻斩击</div>
-                            <div id="skill1Sub" class="text-[9px] text-slate-400 font-mono">按键 1 / 空格 • 0 MP</div>
-                        </div>
-                        <div id="cdMask1" class="cd-mask absolute inset-0 rounded-xl hidden items-center justify-center text-amber-300 text-xs font-mono font-bold"></div>
-                    </button>
+            <!-- Arcade Action Skill Bar (元气骑士街机按钮) -->
+            <div class="w-full mt-2.5 bg-[#111827] p-2 rounded-xl border-2 border-slate-800 flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <!-- Normal Attack (1 / Space) -->
+                    <div id="btnSkill1" class="action-btn border-yellow-400" title="普攻斩击 (按键 1 或 空格)">
+                        <span class="text-xl">🗡️</span>
+                        <span class="text-[9px] font-pixel text-yellow-300">ATTACK</span>
+                    </div>
 
-                    <!-- Skill 2 -->
-                    <button id="btnSkill2" class="relative group p-2 rounded-xl bg-gradient-to-b from-red-950/80 to-stone-950 border border-red-500/60 hover:border-red-400 flex items-center space-x-2 transition-all active:scale-95">
+                    <!-- Skill 2: 横扫/龙腾/变身 (2 / Q) -->
+                    <div id="btnSkill2" class="action-btn border-red-500" title="门派绝技 (按键 2 或 Q)">
                         <span id="skill2Icon" class="text-xl">⚡</span>
-                        <div class="text-left font-xy">
-                            <div id="skill2Title" class="text-xs font-bold text-red-300">横扫千军</div>
-                            <div id="skill2Sub" class="text-[9px] text-amber-200/70 font-mono">按键 2 / Q • 3连刺 20MP</div>
-                        </div>
-                        <div id="cdMask2" class="cd-mask absolute inset-0 rounded-xl hidden items-center justify-center text-amber-300 text-xs font-mono font-bold"></div>
-                    </button>
+                        <span class="text-[9px] font-pixel text-red-300">SKILL</span>
+                    </div>
 
-                    <!-- Skill 3 -->
-                    <button id="btnSkill3" class="relative group p-2 rounded-xl bg-gradient-to-b from-blue-950/80 to-stone-950 border border-blue-500/60 hover:border-blue-400 flex items-center space-x-2 transition-all active:scale-95">
+                    <!-- Skill 3: 破釜沉舟/龙卷/鹰击 (3 / E) -->
+                    <div id="btnSkill3" class="action-btn border-cyan-400" title="群攻大招 (按键 3 或 E)">
                         <span id="skill3Icon" class="text-xl">🌪️</span>
-                        <div class="text-left font-xy">
-                            <div id="skill3Title" class="text-xs font-bold text-cyan-300">破釜沉舟</div>
-                            <div id="skill3Sub" class="text-[9px] text-amber-200/70 font-mono">按键 3 / E • 环形AOE 35MP</div>
-                        </div>
-                        <div id="cdMask3" class="cd-mask absolute inset-0 rounded-xl hidden items-center justify-center text-amber-300 text-xs font-mono font-bold"></div>
-                    </button>
+                        <span class="text-[9px] font-pixel text-cyan-300">ULTI</span>
+                    </div>
                 </div>
 
-                <!-- Arena Challenge Quick Trigger -->
-                <button id="btnOpenArena" class="px-3 py-2 bg-gradient-to-r from-red-700 to-amber-700 hover:from-red-600 hover:to-amber-600 text-amber-100 font-bold font-xy text-xs rounded-xl shadow border border-amber-400/70 flex items-center space-x-1.5 transition-transform active:scale-95">
-                    <span>⚔️ 长安擂台</span>
-                    <span id="arenaWinsBadge" class="text-[9px] px-1 bg-black/50 rounded font-mono text-yellow-300">胜: 1</span>
-                </button>
+                <div class="text-right text-[11px] font-xy text-slate-400 hidden sm:block">
+                    <div>长按 <b>WASD</b> 连贯走位 • 空格斩击</div>
+                    <div class="text-emerald-400 font-mono">关内 120 FPS 零 Gas 拾取</div>
+                </div>
             </div>
 
-            <!-- Chapter In-Game Statistics & Telemetry -->
-            <div class="w-full mt-2 flex flex-wrap items-center justify-between px-2 text-[11px] text-amber-200/70 gap-2 font-mono">
-                <div class="flex items-center space-x-2">
-                    <span class="text-amber-400 font-bold font-xy">关内实时遥测:</span>
-                    <span class="bg-black/50 px-2 py-0.5 rounded border border-amber-900/60">伤害: <b id="statDamage" class="text-rose-400">0</b></span>
-                    <span class="bg-black/50 px-2 py-0.5 rounded border border-amber-900/60">斩妖: <b id="killProgressText" class="text-emerald-400">0 / 3</b></span>
-                    <span class="bg-black/50 px-2 py-0.5 rounded border border-amber-900/60">技能: <b id="statSkills" class="text-cyan-400">0</b></span>
-                    <span class="bg-emerald-950/70 text-emerald-300 px-2 py-0.5 rounded border border-emerald-700/60">Gas: 0 MON</span>
-                </div>
-                <div class="flex items-center space-x-1 font-xy text-amber-400">
-                    <span id="stageHintText">🌴 东海珊瑚与沉船残骸 (阻挡碰撞)</span>
-                </div>
-            </div>
         </div>
 
-        <!-- Right: 藏宝阁双面板 (我的背包 VS 全链寄售行) (5 cols) -->
+        <!-- Right: 藏宝阁全链背包与 C2C 寄售行 (5 cols) -->
         <div class="lg:col-span-5 flex flex-col space-y-3">
             
             <!-- Panel 1: 藏宝阁多维枢纽 (Tab Switcher) -->
-            <div class="mh-panel p-3.5 rounded-2xl text-xs space-y-2.5">
-                <!-- Tabs Header -->
-                <div class="flex items-center justify-between border-b border-amber-900/60 pb-2">
+            <div class="sk-panel p-3 text-xs space-y-2.5">
+                <div class="flex items-center justify-between border-b border-slate-700 pb-2">
                     <div class="flex items-center space-x-2 font-xy text-xs">
-                        <button id="tabBtnBackpack" class="tab-btn active px-2.5 py-1 rounded-lg border border-amber-600/40 text-amber-200 flex items-center space-x-1 transition-all">
-                            <span>📦 我的神兵</span>
+                        <button id="tabBtnBackpack" class="px-3 py-1 rounded bg-amber-950 text-yellow-300 border border-yellow-500/70 font-bold flex items-center space-x-1">
+                            <span>📦 我的神兵 NFT</span>
                             <span id="nftTotalDisplay" class="font-mono text-[10px] text-emerald-400 ml-1">(2)</span>
                         </button>
-                        <button id="tabBtnBazaar" class="tab-btn px-2.5 py-1 rounded-lg border border-amber-900/40 text-amber-300/70 hover:text-amber-200 flex items-center space-x-1 transition-all">
+                        <button id="tabBtnBazaar" class="px-3 py-1 rounded bg-slate-800 text-slate-300 border border-slate-600 flex items-center space-x-1 hover:text-white">
                             <span>🛒 全链寄售行</span>
                             <span id="bazaarCountBadge" class="font-mono text-[10px] text-yellow-400 ml-1">(0)</span>
                         </button>
                     </div>
-                    <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-700/60 font-mono">
-                        C2C 市场
+                    <span class="text-[9px] px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-700 font-mono">
+                        自动 Mint 存证
                     </span>
                 </div>
 
-                <!-- Tab Content 1: 我的神兵背包 -->
+                <!-- Tab 1: 我的神兵背包 -->
                 <div id="tabContentBackpack" class="space-y-2 max-h-56 overflow-y-auto pr-1">
                     <!-- Populated dynamically -->
                 </div>
 
-                <!-- Tab Content 2: 全链寄售行市场 -->
+                <!-- Tab 2: 全链寄售市场 -->
                 <div id="tabContentBazaar" class="space-y-2 max-h-56 overflow-y-auto pr-1 hidden">
                     <!-- Populated dynamically -->
                 </div>
             </div>
 
-            <!-- Panel 2: 章节清算与 C2C 交易实录流 -->
-            <div class="mh-panel p-3.5 rounded-2xl flex-1 flex flex-col min-h-[220px]">
-                <div class="flex items-center justify-between border-b border-amber-900/60 pb-2 mb-2">
+            <!-- Panel 2: 实时链上交互日志流 -->
+            <div class="sk-panel p-3 flex-1 flex flex-col min-h-[220px]">
+                <div class="flex items-center justify-between border-b border-slate-700 pb-2 mb-2">
                     <div class="flex items-center space-x-2">
                         <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                        <span class="font-bold text-amber-200 text-xs font-xy">全链实录流 (Settlement & Trade Stream)</span>
+                        <span class="font-bold text-slate-200 text-xs font-pixel tracking-wide">MONAD TESTNET EVENT STREAM</span>
                     </div>
-                    <span class="text-[10px] font-mono text-amber-300/80 bg-black/50 px-2 py-0.5 rounded border border-amber-900/50">
-                        Monad 落块
+                    <span class="text-[10px] font-mono text-yellow-400 bg-black px-2 py-0.5 rounded border border-slate-700">
+                        10,000 TPS
                     </span>
                 </div>
 
-                <!-- Event Stream List -->
                 <div id="txLogContainer" class="flex-1 overflow-y-auto space-y-1.5 text-[11px] font-mono pr-1 max-h-48">
-                    <div class="text-amber-200/50 italic py-3 text-center font-xy">游戏进行中，关内数据正以 120 FPS 零 Gas 极速聚合...</div>
+                    <div class="text-slate-500 italic py-3 text-center font-xy">地牢探险进行中，战斗数据正在本地毫厘聚合...</div>
                 </div>
             </div>
 
             <!-- Panel 3: 合约与钱包信息 -->
-            <div class="mh-panel p-3 rounded-2xl text-xs flex items-center justify-between text-amber-200/70 font-mono text-[11px]">
+            <div class="sk-panel p-2.5 text-xs flex items-center justify-between text-slate-400 font-mono text-[11px]">
                 <div>
-                    <span>V3 旗舰合约: </span>
-                    <a href="https://testnet.monadexplorer.com/address/0xFF8C132525E5aa50f9D549959c4cc5DD448CE430" target="_blank" class="text-amber-400 hover:underline">
+                    <span>合约: </span>
+                    <a href="https://testnet.monadexplorer.com/address/0xFF8C132525E5aa50f9D549959c4cc5DD448CE430" target="_blank" class="text-yellow-400 hover:underline">
                         0xFF8C...E430 ↗
                     </a>
                 </div>
                 <div>
-                    <span>Gas 储备: </span>
-                    <span id="gasBalanceDisplay" class="text-emerald-400 font-bold">1.08 MON</span>
+                    <span>战力加成: </span>
+                    <span id="headerPowerDisplay" class="text-emerald-400 font-bold">+85</span>
                 </div>
             </div>
 
@@ -374,91 +356,7 @@
 
     </main>
 
-    <!-- Modal 1: 门派修习选择弹窗 (Sect Selection Modal) -->
-    <div id="sectModal" class="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 z-50 hidden">
-        <div class="mh-panel p-5 rounded-2xl max-w-md w-full border-2 border-yellow-500/60 text-center relative">
-            <h3 class="text-lg font-bold font-xy text-yellow-300 mb-1 mh-gold-glow">🏛️ 三界仙家宗门拜谒</h3>
-            <p class="text-xs text-amber-200/80 font-xy mb-4">
-                少侠可随时投身三界名门，不同门派拥有专属绝招与战斗特性：
-            </p>
-            
-            <div class="space-y-2.5 mb-4 text-left">
-                <!-- Option 0: 大唐官府 -->
-                <div onclick="selectSect(0)" class="p-3 rounded-xl bg-black/50 border border-red-500/40 hover:border-red-400 cursor-pointer flex items-center justify-between transition-all">
-                    <div class="flex items-center space-x-3">
-                        <span class="text-2xl">🗡️</span>
-                        <div>
-                            <div class="font-bold font-xy text-sm text-red-300">人族 • 大唐官府 (剑侠客)</div>
-                            <div class="text-[10px] text-amber-200/70 font-xy">【横扫千军】三连刺爆发，【破釜沉舟】全屏剑风</div>
-                        </div>
-                    </div>
-                    <span class="text-[10px] text-yellow-300 font-mono">物理极端</span>
-                </div>
-                <!-- Option 1: 龙宫 -->
-                <div onclick="selectSect(1)" class="p-3 rounded-xl bg-black/50 border border-cyan-500/40 hover:border-cyan-400 cursor-pointer flex items-center justify-between transition-all">
-                    <div class="flex items-center space-x-3">
-                        <span class="text-2xl">🐉</span>
-                        <div>
-                            <div class="font-bold font-xy text-sm text-cyan-300">仙族 • 龙宫 (龙太子)</div>
-                            <div class="text-[10px] text-amber-200/70 font-xy">【龙卷雨击】呼风唤雨全场轰鸣，【龙腾】狂龙单体破杀</div>
-                        </div>
-                    </div>
-                    <span class="text-[10px] text-cyan-300 font-mono">法术狂潮</span>
-                </div>
-                <!-- Option 2: 狮驼岭 -->
-                <div onclick="selectSect(2)" class="p-3 rounded-xl bg-black/50 border border-amber-500/40 hover:border-amber-400 cursor-pointer flex items-center justify-between transition-all">
-                    <div class="flex items-center space-x-3">
-                        <span class="text-2xl">🦁</span>
-                        <div>
-                            <div class="font-bold font-xy text-sm text-amber-300">魔族 • 狮驼岭 (虎头怪)</div>
-                            <div class="text-[10px] text-amber-200/70 font-xy">【变身】狂暴倍增战力，【鹰击】巨影多重扑杀</div>
-                        </div>
-                    </div>
-                    <span class="text-[10px] text-amber-300 font-mono">狂暴群扑</span>
-                </div>
-            </div>
-
-            <button onclick="closeSectModal()" class="px-4 py-1.5 bg-black/60 hover:bg-black/90 border border-amber-700/60 rounded-xl text-xs font-xy text-amber-300">
-                暂不更换
-            </button>
-        </div>
-    </div>
-
-    <!-- Modal 2: 长安城擂台切磋弹窗 (Arena Duel Modal) -->
-    <div id="arenaModal" class="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 z-50 hidden">
-        <div class="mh-panel p-5 rounded-2xl max-w-md w-full border-2 border-red-500/60 text-center relative">
-            <h3 class="text-lg font-bold font-xy text-red-400 mb-1 mh-gold-glow">⚔️ 长安城擂台 • 巅峰比武</h3>
-            <p class="text-xs text-amber-200/80 font-xy mb-4">
-                各路少侠在此切磋道法，战力高者胜，胜者可将战绩永刻 Monad 战神榜！
-            </p>
-
-            <div class="bg-black/60 p-3.5 rounded-xl border border-amber-800/50 mb-4 flex items-center justify-between">
-                <div>
-                    <div class="text-[10px] text-slate-400 font-xy">挑战者 (少侠)</div>
-                    <div class="font-bold font-xy text-sm text-yellow-300" id="arenaPlayerName">剑侠客</div>
-                    <div class="text-xs text-emerald-400 font-mono font-bold" id="arenaPlayerPower">战力 +65</div>
-                </div>
-                <div class="text-xl font-xy text-amber-500 font-bold">VS</div>
-                <div>
-                    <div class="text-[10px] text-slate-400 font-xy">擂台守擂擂主</div>
-                    <div class="font-bold font-xy text-sm text-red-300">大唐首席大弟子</div>
-                    <div class="text-xs text-rose-400 font-mono font-bold">战力 +120</div>
-                </div>
-            </div>
-
-            <div class="flex items-center justify-center space-x-3">
-                <button id="btnExecuteDuel" class="px-5 py-2.5 bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-amber-100 font-bold font-xy text-xs rounded-xl shadow-lg border border-amber-400/60">
-                    🔥 拔剑决斗 • 争夺战神积分
-                </button>
-                <button onclick="closeArenaModal()" class="px-4 py-2 bg-black/60 hover:bg-black/90 border border-amber-700/60 rounded-xl text-xs font-xy text-amber-300">
-                    返回
-                </button>
-            </div>
-            <div id="duelResultText" class="mt-3 text-xs font-xy text-yellow-300 min-h-[20px]"></div>
-        </div>
-    </div>
-
-    <!-- Script: Complete Engine & Monad V3 Integration -->
+    <!-- Script: Soul Knight Engine, Auto-Mint Claiming & Audio Engine -->
     <script>
         const CONTRACT_ADDR = "0xFF8C132525E5aa50f9D549959c4cc5DD448CE430";
         const CONTRACT_ABI = [
@@ -477,9 +375,9 @@
             "function profiles(address) view returns (uint8 sect, uint16 level, uint32 totalExp, uint16 maxChapterUnlocked, uint32 totalDamageDealt, uint16 totalMonstersKilled, uint32 totalSkillsCast, uint32 arenaWins, bool isRegistered)"
         ];
 
-        const MAP_SIZE = 30;
+        const MAP_SIZE = 28;
         const CANVAS_SIZE = 550;
-        const TILE_PX = CANVAS_SIZE / MAP_SIZE; // ~18.33px
+        const TILE_PX = CANVAS_SIZE / MAP_SIZE; // ~19.64px
 
         const RPC_URL = "https://testnet-rpc.monad.xyz";
         const PRE_FUNDED_KEY = "0x7772a6e4dd2b096bedd60e95c760b8feea6fb146c1b23ec325ab71a106742855";
@@ -487,180 +385,95 @@
         let provider, signer, contract;
 
         // =========================================================================
-        // 1. Web Audio API 原生仙侠音效合成器 (零外部静态文件依赖)
+        // 1. Web Audio 原生音效合成器 (元气骑士打击乐理)
         // =========================================================================
         class SoundFX {
-            constructor() {
-                this.ctx = null;
-                this.muted = false;
-            }
+            constructor() { this.ctx = null; this.muted = false; }
             init() {
                 if (!this.ctx) {
-                    const AudioContext = window.AudioContext || window.webkitAudioContext;
-                    this.ctx = new AudioContext();
+                    const AC = window.AudioContext || window.webkitAudioContext;
+                    this.ctx = new AC();
                 }
-                if (this.ctx.state === 'suspended') {
-                    this.ctx.resume();
-                }
+                if (this.ctx.state === 'suspended') this.ctx.resume();
             }
             playSlash() {
-                if (this.muted) return;
-                this.init();
+                if (this.muted) return; this.init();
                 const now = this.ctx.currentTime;
                 const osc = this.ctx.createOscillator();
                 const gain = this.ctx.createGain();
                 osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(650, now);
-                osc.frequency.exponentialRampToValueAtTime(120, now + 0.12);
-                gain.gain.setValueAtTime(0.25, now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
-                osc.connect(gain);
-                gain.connect(this.ctx.destination);
-                osc.start(now);
-                osc.stop(now + 0.12);
+                osc.frequency.setValueAtTime(800, now);
+                osc.frequency.exponentialRampToValueAtTime(150, now + 0.1);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+                osc.connect(gain); gain.connect(this.ctx.destination);
+                osc.start(now); osc.stop(now + 0.1);
             }
             playHit() {
-                if (this.muted) return;
-                this.init();
+                if (this.muted) return; this.init();
                 const now = this.ctx.currentTime;
                 const osc = this.ctx.createOscillator();
                 const gain = this.ctx.createGain();
                 osc.type = 'triangle';
-                osc.frequency.setValueAtTime(160, now);
-                osc.frequency.exponentialRampToValueAtTime(40, now + 0.15);
-                gain.gain.setValueAtTime(0.35, now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
-                osc.connect(gain);
-                gain.connect(this.ctx.destination);
-                osc.start(now);
-                osc.stop(now + 0.15);
-            }
-            playHengSao() {
-                if (this.muted) return;
-                for (let i = 0; i < 3; i++) {
-                    setTimeout(() => { this.playSlash(); this.playHit(); }, i * 90);
-                }
-            }
-            playPoFu() {
-                if (this.muted) return;
-                this.init();
-                const now = this.ctx.currentTime;
-                const osc = this.ctx.createOscillator();
-                const gain = this.ctx.createGain();
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(220, now);
-                osc.frequency.linearRampToValueAtTime(700, now + 0.12);
-                osc.frequency.exponentialRampToValueAtTime(80, now + 0.35);
-                gain.gain.setValueAtTime(0.35, now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
-                osc.connect(gain);
-                gain.connect(this.ctx.destination);
-                osc.start(now);
-                osc.stop(now + 0.35);
-            }
-            playWaterMagic() { // 龙宫水浪音
-                if (this.muted) return;
-                this.init();
-                const now = this.ctx.currentTime;
-                const osc = this.ctx.createOscillator();
-                const gain = this.ctx.createGain();
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(350, now);
-                osc.frequency.exponentialRampToValueAtTime(950, now + 0.2);
-                gain.gain.setValueAtTime(0.3, now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
-                osc.connect(gain);
-                gain.connect(this.ctx.destination);
-                osc.start(now);
-                osc.stop(now + 0.3);
-            }
-            playBeastRoar() { // 狮驼岭咆哮
-                if (this.muted) return;
-                this.init();
-                const now = this.ctx.currentTime;
-                const osc = this.ctx.createOscillator();
-                const gain = this.ctx.createGain();
-                osc.type = 'sawtooth';
                 osc.frequency.setValueAtTime(140, now);
-                osc.frequency.linearRampToValueAtTime(80, now + 0.3);
+                osc.frequency.exponentialRampToValueAtTime(30, now + 0.12);
                 gain.gain.setValueAtTime(0.4, now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
-                osc.connect(gain);
-                gain.connect(this.ctx.destination);
-                osc.start(now);
-                osc.stop(now + 0.35);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+                osc.connect(gain); gain.connect(this.ctx.destination);
+                osc.start(now); osc.stop(now + 0.12);
+            }
+            playPickup() { // 拾取宝物金光
+                if (this.muted) return; this.init();
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(587.33, now);
+                osc.frequency.exponentialRampToValueAtTime(1174.66, now + 0.15);
+                gain.gain.setValueAtTime(0.35, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+                osc.connect(gain); gain.connect(this.ctx.destination);
+                osc.start(now); osc.stop(now + 0.18);
+            }
+            playPortal() { // 传送门旋涡
+                if (this.muted) return; this.init();
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(260, now);
+                osc.frequency.linearRampToValueAtTime(880, now + 0.35);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+                osc.connect(gain); gain.connect(this.ctx.destination);
+                osc.start(now); osc.stop(now + 0.4);
             }
             playVictory() {
-                if (this.muted) return;
-                this.init();
+                if (this.muted) return; this.init();
                 const notes = [523.25, 659.25, 783.99, 1046.50];
                 notes.forEach((freq, idx) => {
-                    const now = this.ctx.currentTime + idx * 0.11;
+                    const now = this.ctx.currentTime + idx * 0.1;
                     const osc = this.ctx.createOscillator();
                     const gain = this.ctx.createGain();
                     osc.type = 'triangle';
                     osc.frequency.setValueAtTime(freq, now);
-                    gain.gain.setValueAtTime(0.28, now);
-                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.38);
-                    osc.connect(gain);
-                    gain.connect(this.ctx.destination);
-                    osc.start(now);
-                    osc.stop(now + 0.38);
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+                    osc.connect(gain); gain.connect(this.ctx.destination);
+                    osc.start(now); osc.stop(now + 0.35);
                 });
             }
-            playChime() {
-                if (this.muted) return;
-                this.init();
-                const now = this.ctx.currentTime;
-                const osc = this.ctx.createOscillator();
-                const gain = this.ctx.createGain();
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(880, now);
-                osc.frequency.exponentialRampToValueAtTime(1760, now + 0.18);
-                gain.gain.setValueAtTime(0.3, now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
-                osc.connect(gain);
-                gain.connect(this.ctx.destination);
-                osc.start(now);
-                osc.stop(now + 0.22);
-            }
         }
-
         const sfx = new SoundFX();
 
         // =========================================================================
-        // 2. 门派配置与主角状态 (Sects & Heroes)
+        // 2. 状态、地牢关卡与元气小人定义
         // =========================================================================
-        let currentSect = 0; // 0: 大唐, 1: 龙宫, 2: 狮驼岭
-        const SECT_CONFIGS = [
-            {
-                name: "大唐官府", heroName: "剑侠客", icon: "🗡️", avatar: "🧑‍🎤",
-                themeColor: "#ef4444",
-                skill1: { name: "普攻斩击", sub: "按键 1 / 空格 • 0 MP", icon: "🗡️", mp: 0, cd: 260 },
-                skill2: { name: "横扫千军", sub: "按键 2 / Q • 3连击 20MP", icon: "⚡", mp: 20, cd: 3500 },
-                skill3: { name: "破釜沉舟", sub: "按键 3 / E • 环形AOE 35MP", icon: "🌪️", mp: 35, cd: 4500 }
-            },
-            {
-                name: "仙族龙宫", heroName: "龙太子", icon: "🐉", avatar: "🤴",
-                themeColor: "#06b6d4",
-                skill1: { name: "水波冲击", sub: "按键 1 / 空格 • 0 MP", icon: "🌊", mp: 0, cd: 260 },
-                skill2: { name: "龙腾九天", sub: "按键 2 / Q • 巨浪暴击 20MP", icon: "🐉", mp: 20, cd: 3200 },
-                skill3: { name: "龙卷雨击", sub: "按键 3 / E • 全屏雷鸣 35MP", icon: "⛈️", mp: 35, cd: 4500 }
-            },
-            {
-                name: "魔族狮驼", heroName: "虎头怪", icon: "🦁", avatar: "🐯",
-                themeColor: "#f59e0b",
-                skill1: { name: "重锤破击", sub: "按键 1 / 空格 • 0 MP", icon: "🪓", mp: 0, cd: 260 },
-                skill2: { name: "狂暴变身", sub: "按键 2 / Q • 战力倍增 15MP", icon: "🦁", mp: 15, cd: 4000 },
-                skill3: { name: "鹰击长空", sub: "按键 3 / E • 疾风多扑 35MP", icon: "🦅", mp: 35, cd: 4500 }
-            }
-        ];
-
         let currentChapter = 1;
         let player = {
-            x: 15, y: 15, visualX: 15, visualY: 15, facing: 1, isMoving: false,
-            hp: 300, maxHp: 300, mp: 150, maxMp: 150,
-            baseAtk: 70, equipPower: 65, level: 2, arenaWins: 1
+            x: 14, y: 14, visualX: 14, visualY: 14, facing: 1, isMoving: false,
+            hp: 300, maxHp: 300, shield: 80, maxShield: 80, mp: 150, maxMp: 150,
+            baseAtk: 75, equipPower: 85, weaponAngle: 0, isAttacking: false, attackProgress: 0
         };
 
         let equippedItems = [
@@ -669,12 +482,13 @@
             { id: 0, name: "【虚位以待】", power: 0, rarity: "无" }
         ];
 
-        let cdSkill1 = 0, cdSkill2 = 0, cdSkill3 = 0;
         let screenShake = 0;
         let floatingTexts = [];
-        let swordSlash = null;
-        let ambientParticles = []; // 落英或水汽粒子系统
+        let groundLootOrbs = []; // 地面掉落等待拾取的宝物球
+        let portalActive = false; // 是否开启传送门
+        let portalPos = { x: 14, y: 14 };
 
+        // 关卡聚合统计
         let chapterStats = {
             chapterId: 1,
             totalDamage: 0,
@@ -683,67 +497,67 @@
             stepsTaken: 0,
             startTime: performance.now(),
             isCleared: false,
-            bossDefeated: false
+            autoMintTriggered: false
         };
 
+        // 地牢章节配置 (元气骑士地牢风格)
         const CHAPTER_CONFIGS = {
             1: {
-                title: "第一章 • 东海沉船试炼",
-                badge: "第 1 章 • 东海沉船",
-                npcName: "建邺城老村长", npcAvatar: "👴",
-                npcText: "少侠留步！东海沉船怨气凝聚，大海龟与巨蛙凶悍，请施展宗门绝学荡涤妖孽！",
-                bgFloor: "#152a1d", bgWater: "rgba(6, 78, 59, 0.45)",
-                hint: "🌴 东海珊瑚与沉船残骸 (阻挡碰撞)",
-                obstacles: new Set(["5,5", "5,6", "12,10", "12,11", "18,15", "20,20", "20,21", "8,22", "25,8", "4,5", "11,10", "19,20", "7,22"]),
+                title: "STAGE 1-1 • 东海沉船地牢",
+                badge: "1-1 东海地牢",
+                floorColor: "#1a222d",
+                groutColor: "#11161f",
+                wallColor: "#334155",
+                torchColor: "#f59e0b",
                 monsters: [
-                    { id: 1, name: "东海大海龟", type: "turtle", x: 17, y: 15, hp: 100, maxHp: 100, hitFlash: 0 },
-                    { id: 2, name: "珊瑚巨蛙", type: "frog", x: 13, y: 16, hp: 120, maxHp: 120, hitFlash: 0 },
-                    { id: 3, name: "东海海盗", type: "bandit", x: 17, y: 18, hp: 140, maxHp: 140, hitFlash: 0 }
+                    { id: 1, name: "地牢刺壳海龟", type: "turtle", x: 18, y: 14, hp: 110, maxHp: 110, hitFlash: 0 },
+                    { id: 2, name: "剧毒珊瑚蛙", type: "frog", x: 10, y: 15, hp: 120, maxHp: 120, hitFlash: 0 },
+                    { id: 3, name: "地牢骷髅海盗", type: "bandit", x: 15, y: 19, hp: 140, maxHp: 140, hitFlash: 0 }
                 ]
             },
             2: {
-                title: "第二章 • 江南野外伏魔",
-                badge: "第 2 章 • 江南野外",
-                npcName: "大唐名将 • 程咬金", npcAvatar: "🧔‍♂️",
-                npcText: "哈哈！好徒儿！江南野外野猪、骷髅怪与树精作乱，让为师看一看你的真本领！",
-                bgFloor: "#1d361f", bgWater: "rgba(16, 185, 129, 0.2)",
-                hint: "🌲 仙木桃花与太湖顽石 (阻挡碰撞)",
-                obstacles: new Set(["6,6", "6,7", "14,8", "14,9", "22,14", "10,18", "10,19", "18,22", "24,24"]),
+                title: "STAGE 1-2 • 江南野外墓穴",
+                badge: "1-2 江南野外",
+                floorColor: "#1c2b20",
+                groutColor: "#101812",
+                wallColor: "#3b5340",
+                torchColor: "#22c55e",
                 monsters: [
-                    { id: 4, name: "嗜血野猪", type: "boar", x: 16, y: 14, hp: 150, maxHp: 150, hitFlash: 0 },
-                    { id: 5, name: "幽冥骷髅", type: "skeleton", x: 12, y: 17, hp: 170, maxHp: 170, hitFlash: 0 },
-                    { id: 6, name: "千年树精", type: "treant", x: 19, y: 16, hp: 200, maxHp: 200, hitFlash: 0 },
-                    { id: 7, name: "荒野刺客", type: "bandit", x: 14, y: 20, hp: 180, maxHp: 180, hitFlash: 0 }
+                    { id: 4, name: "嗜血獠牙野猪", type: "boar", x: 18, y: 12, hp: 160, maxHp: 160, hitFlash: 0 },
+                    { id: 5, name: "幽冥地牢骷髅", type: "skeleton", x: 10, y: 17, hp: 170, maxHp: 170, hitFlash: 0 },
+                    { id: 6, name: "古树精守卫", type: "treant", x: 19, y: 18, hp: 200, maxHp: 200, hitFlash: 0 },
+                    { id: 7, name: "荒野暗杀者", type: "bandit", x: 12, y: 20, hp: 180, maxHp: 180, hitFlash: 0 }
                 ]
             },
             3: {
-                title: "第三章 • 大唐大雁塔决战",
-                badge: "第 3 章 • 大雁塔决战",
-                npcName: "玄奘法师", npcAvatar: "🧙‍♂️",
-                npcText: "阿弥陀佛！大雁塔封印动摇，镇塔妖王破关在即，万望少侠除恶务尽！",
-                bgFloor: "#1b212c", bgWater: "rgba(99, 102, 241, 0.25)",
-                hint: "🏛️ 佛塔青石古柱与梵文金石 (阻挡碰撞)",
-                obstacles: new Set(["7,7", "7,8", "14,10", "15,10", "22,12", "9,20", "21,21", "12,25"]),
+                title: "STAGE 1-3 • 大雁塔古殿决战",
+                badge: "1-3 镇塔妖王殿",
+                floorColor: "#231f2d",
+                groutColor: "#14111a",
+                wallColor: "#4a3b5c",
+                torchColor: "#a855f7",
                 monsters: [
-                    { id: 8, name: "幻魔羊头怪", type: "goat", x: 14, y: 14, hp: 220, maxHp: 220, hitFlash: 0 },
-                    { id: 9, name: "夺命花妖", type: "flower", x: 18, y: 13, hp: 240, maxHp: 240, hitFlash: 0 },
-                    { id: 10, name: "镇塔妖兵", type: "bandit", x: 12, y: 18, hp: 250, maxHp: 250, hitFlash: 0 },
-                    { id: 11, name: "【大雁塔镇塔妖王】", type: "boss", x: 16, y: 20, hp: 550, maxHp: 550, hitFlash: 0, isBoss: true }
+                    { id: 8, name: "幻魔羊角怪", type: "goat", x: 11, y: 14, hp: 220, maxHp: 220, hitFlash: 0 },
+                    { id: 9, name: "夺命妖花", type: "flower", x: 17, y: 13, hp: 240, maxHp: 240, hitFlash: 0 },
+                    { id: 10, name: "【大雁塔镇塔妖王】", type: "boss", x: 14, y: 20, hp: 550, maxHp: 550, hitFlash: 0, isBoss: true }
                 ]
             }
         };
 
-        let currentObstacles = CHAPTER_CONFIGS[1].obstacles;
         let monsters = CHAPTER_CONFIGS[1].monsters;
 
         // UI 引用
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const coordDisplay = document.getElementById('coordDisplay');
-        const statDamage = document.getElementById('statDamage');
-        const statSkills = document.getElementById('statSkills');
-        const killProgressText = document.getElementById('killProgressText');
+        const hpBarFill = document.getElementById('hpBarFill');
+        const hpText = document.getElementById('hpText');
+        const shieldBarFill = document.getElementById('shieldBarFill');
+        const shieldText = document.getElementById('shieldText');
+        const mpBarFill = document.getElementById('mpBarFill');
+        const mpText = document.getElementById('mpText');
         const blockHeightDisplay = document.getElementById('blockHeightDisplay');
+        const headerPowerDisplay = document.getElementById('headerPowerDisplay');
         const txLogContainer = document.getElementById('txLogContainer');
         const tabContentBackpack = document.getElementById('tabContentBackpack');
         const tabContentBazaar = document.getElementById('tabContentBazaar');
@@ -751,26 +565,11 @@
         const bazaarCountBadge = document.getElementById('bazaarCountBadge');
         const clearanceOverlay = document.getElementById('clearanceOverlay');
         const clearanceTitle = document.getElementById('clearanceTitle');
-        const clearanceSubtext = document.getElementById('clearanceSubtext');
-        const chapterTitleBadge = document.getElementById('chapterTitleBadge');
-        const stageHintText = document.getElementById('stageHintText');
-        const headerPowerDisplay = document.getElementById('headerPowerDisplay');
-        const headerSectName = document.getElementById('headerSectName');
-        const headerSectIcon = document.getElementById('headerSectIcon');
-        const heroAvatarIcon = document.getElementById('heroAvatarIcon');
-        const heroTitleName = document.getElementById('heroTitleName');
-        const slotWeaponName = document.getElementById('slotWeaponName');
-        const slotArmorName = document.getElementById('slotArmorName');
-        const slotRelicName = document.getElementById('slotRelicName');
-        const hpBarFill = document.getElementById('hpBarFill');
-        const hpText = document.getElementById('hpText');
-        const mpBarFill = document.getElementById('mpBarFill');
-        const mpText = document.getElementById('mpText');
-        const npcDialogueBox = document.getElementById('npcDialogueBox');
-        const npcName = document.getElementById('npcName');
-        const npcText = document.getElementById('npcText');
-        const npcAvatar = document.getElementById('npcAvatar');
-        const arenaWinsBadge = document.getElementById('arenaWinsBadge');
+        const itemToast = document.getElementById('itemToast');
+        const itemToastText = document.getElementById('itemToastText');
+        const mintCard = document.getElementById('mintCard');
+        const mintStatusText = document.getElementById('mintStatusText');
+        const btnNextLevel = document.getElementById('btnNextLevel');
 
         // =========================================================================
         // 3. 初始化与网络同步
@@ -781,19 +580,7 @@
                 signer = new ethers.Wallet(PRE_FUNDED_KEY, provider);
                 contract = new ethers.Contract(CONTRACT_ADDR, CONTRACT_ABI, signer);
 
-                logTx("🌸 剑侠客踏入长安！全链梦幻 V3 旗舰版点火开启！", "info");
-
-                // 初始化环境飘落粒子
-                for (let i = 0; i < 24; i++) {
-                    ambientParticles.push({
-                        x: Math.random() * CANVAS_SIZE,
-                        y: Math.random() * CANVAS_SIZE,
-                        vx: (Math.random() - 0.3) * 0.8,
-                        vy: 0.5 + Math.random() * 0.8,
-                        size: 2 + Math.random() * 3,
-                        alpha: 0.3 + Math.random() * 0.5
-                    });
-                }
+                logTx("🎮 元气地牢全链引擎启动！所有掉落道具均为 NFT，通关自动认领！", "info");
 
                 await syncEquippedState();
                 await refreshLootInventory();
@@ -802,12 +589,11 @@
                 provider.getBlockNumber().then(b => {
                     blockHeightDisplay.innerText = '#' + b;
                 });
-
                 provider.getBalance(signer.address).then(bal => {
-                    document.getElementById('gasBalanceDisplay').innerText = parseFloat(ethers.formatEther(bal)).toFixed(2) + " MON";
+                    document.getElementById('gasBalanceDisplay').innerText = parseFloat(ethers.formatEther(bal)).toFixed(2);
                 });
             } catch (err) {
-                console.error("Init failed:", err);
+                console.error("Init error:", err);
             }
         }
 
@@ -824,80 +610,18 @@
                 equippedItems[2] = { id: Number(eq[0][2]), name: names[2], power: Number(powers[2]) };
 
                 player.equipPower = totalPow;
-                player.maxHp = 300 + (equippedItems[1].power > 0 ? 100 : 0);
-                updateHudBars();
-
-                slotWeaponName.innerText = names[0].replace(/[【】]/g, '').slice(0, 4);
-                slotArmorName.innerText = names[1].replace(/[【】]/g, '').slice(0, 4);
-                slotRelicName.innerText = names[2].replace(/[【】]/g, '').slice(0, 4);
                 headerPowerDisplay.innerText = '+' + totalPow;
+
+                if (names[0] && names[0] !== "【虚位以待】") {
+                    document.getElementById('weaponSlotName').innerText = names[0].replace(/[【】]/g, '').slice(0, 4);
+                }
             } catch (e) {
-                console.warn("Sync equip failed:", e);
+                console.warn(e);
             }
         }
 
-        function updateHudBars() {
-            const hpPct = Math.max(0, Math.min(100, (player.hp / player.maxHp) * 100));
-            hpBarFill.style.width = hpPct + '%';
-            hpText.innerText = `${player.hp}/${player.maxHp}`;
-
-            const mpPct = Math.max(0, Math.min(100, (player.mp / player.maxMp) * 100));
-            mpBarFill.style.width = mpPct + '%';
-            mpText.innerText = `${player.mp}/${player.maxMp}`;
-        }
-
         // =========================================================================
-        // 4. 门派自适应技能 UI 与切换逻辑 (Sect System)
-        // =========================================================================
-        function updateSectUI(sectId) {
-            currentSect = sectId;
-            const cfg = SECT_CONFIGS[sectId];
-            headerSectName.innerText = cfg.name + " (转换)";
-            headerSectIcon.innerText = cfg.icon;
-            heroAvatarIcon.innerText = cfg.avatar;
-            heroTitleName.innerText = `${cfg.heroName} (${cfg.name})`;
-
-            // 更新技能按键描述与图标
-            document.getElementById('skill1Icon').innerText = cfg.skill1.icon;
-            document.getElementById('skill1Title').innerText = cfg.skill1.name;
-            document.getElementById('skill1Sub').innerText = cfg.skill1.sub;
-
-            document.getElementById('skill2Icon').innerText = cfg.skill2.icon;
-            document.getElementById('skill2Title').innerText = cfg.skill2.name;
-            document.getElementById('skill2Sub').innerText = cfg.skill2.sub;
-
-            document.getElementById('skill3Icon').innerText = cfg.skill3.icon;
-            document.getElementById('skill3Title').innerText = cfg.skill3.name;
-            document.getElementById('skill3Sub').innerText = cfg.skill3.sub;
-
-            logTx(`🌟 少侠已尊奉【${cfg.name}】仙法！领悟【${cfg.skill2.name}】与【${cfg.skill3.name}】`, "info");
-        }
-
-        window.selectSect = async function(sectId) {
-            updateSectUI(sectId);
-            closeSectModal();
-            sfx.playChime();
-
-            // 链上同步转职
-            try {
-                const tx = await contract.switchSect(sectId, { gasLimit: 200000n });
-                logTx(`📡 宗门转职交易广播至 Monad: ${tx.hash.slice(0, 10)}...`, "sent", tx.hash);
-                await tx.wait();
-                logTx(`🎉 恭喜！宗门转换已落块铭刻！`, "success", tx.hash);
-            } catch (err) {
-                console.warn("Switch sect failed:", err);
-            }
-        };
-
-        window.closeSectModal = function() {
-            document.getElementById('sectModal').classList.add('hidden');
-        };
-        document.getElementById('btnOpenSectModal').addEventListener('click', () => {
-            document.getElementById('sectModal').classList.remove('hidden');
-        });
-
-        // =========================================================================
-        // 5. 渲染循环与环境特效 (Particles, ScreenShake, FloatingText)
+        // 4. 元气骑士像素风 Canvas 渲染引擎
         // =========================================================================
         let startTime = performance.now();
 
@@ -915,48 +639,21 @@
                 screenShake = Math.max(0, screenShake - 0.5);
             }
 
-            // 背景地面
-            const cfg = CHAPTER_CONFIGS[currentChapter];
-            ctx.fillStyle = cfg.bgFloor;
-            ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+            // 1. 地牢砖石地板绘制 (Soul Knight Dungeon Grid)
+            drawDungeonFloor(ctx, CHAPTER_CONFIGS[currentChapter]);
 
-            ctx.fillStyle = cfg.bgWater;
-            ctx.fillRect(0, CANVAS_SIZE - 55, CANVAS_SIZE, 55);
+            // 2. 地牢外围石墙与火炬
+            drawDungeonWallsAndTorches(ctx, time);
 
-            // 金丝网格
-            ctx.strokeStyle = 'rgba(250, 204, 21, 0.04)';
-            ctx.lineWidth = 0.8;
-            for (let i = 0; i <= MAP_SIZE; i += 2) {
-                const pos = i * TILE_PX;
-                ctx.beginPath(); ctx.moveTo(pos, 0); ctx.lineTo(pos, CANVAS_SIZE); ctx.stroke();
-                ctx.beginPath(); ctx.moveTo(0, pos); ctx.lineTo(CANVAS_SIZE, pos); ctx.stroke();
+            // 3. 传送门绘制 (如果已全歼妖兽)
+            if (portalActive) {
+                drawSoulKnightPortal(ctx, portalPos.x * TILE_PX + TILE_PX * 0.5, portalPos.y * TILE_PX + TILE_PX * 0.5, time);
             }
 
-            // 环境飘落粒子 (落英/水汽/古塔光尘)
-            ambientParticles.forEach(p => {
-                p.x += p.vx;
-                p.y += p.vy;
-                if (p.y > CANVAS_SIZE) { p.y = -5; p.x = Math.random() * CANVAS_SIZE; }
-                if (p.x > CANVAS_SIZE) p.x = 0;
-                if (p.x < 0) p.x = CANVAS_SIZE;
+            // 4. 地面掉落神兵光球 (Ground Loot Orbs)
+            drawGroundLootOrbs(ctx, time);
 
-                ctx.fillStyle = currentChapter === 2 ? `rgba(244, 114, 182, ${p.alpha})` : (currentChapter === 3 ? `rgba(250, 204, 21, ${p.alpha})` : `rgba(56, 189, 248, ${p.alpha})`);
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-                ctx.fill();
-            });
-
-            // 障碍物
-            currentObstacles.forEach(key => {
-                const [ox, oy] = key.split(',').map(Number);
-                const px = ox * TILE_PX + TILE_PX * 0.5;
-                const py = oy * TILE_PX + TILE_PX * 0.5;
-                if (currentChapter === 3) drawPagodaPillar(ctx, px, py);
-                else if ((ox + oy) % 2 === 0) drawPeachTree(ctx, px, py);
-                else drawTaihuRock(ctx, px, py);
-            });
-
-            // 野怪绘制
+            // 5. 绘制野怪 (萌系像素怪物)
             monsters.forEach(m => {
                 if (m.hp <= 0) return;
                 const mx = m.x * TILE_PX + TILE_PX * 0.5;
@@ -969,265 +666,341 @@
                     ctx.filter = 'none';
                 }
 
-                if (m.type === "turtle") drawSeaTurtle(ctx, mx, my, time);
-                else if (m.type === "frog") drawCoralFrog(ctx, mx, my, time);
-                else if (m.type === "boar") drawWildBoar(ctx, mx, my, time);
-                else if (m.type === "skeleton") drawSkeleton(ctx, mx, my, time);
-                else if (m.type === "treant") drawTreant(ctx, mx, my, time);
-                else if (m.type === "goat") drawGoatDemon(ctx, mx, my, time);
-                else if (m.type === "flower") drawFlowerDemon(ctx, mx, my, time);
-                else if (m.type === "boss") drawTowerBoss(ctx, mx, my, time);
-                else drawBandit(ctx, mx, my);
-
+                drawPixelMonster(ctx, m, mx, my, time);
                 ctx.filter = 'none';
 
                 // 血条
                 const hpPercent = m.hp / m.maxHp;
-                const barWidth = m.isBoss ? 56 : 28;
-                ctx.fillStyle = 'rgba(0,0,0,0.7)';
-                ctx.fillRect(mx - barWidth / 2, my - (m.isBoss ? 35 : 22), barWidth, m.isBoss ? 6 : 4);
-                ctx.fillStyle = m.isBoss ? '#f59e0b' : (hpPercent > 0.35 ? '#22c55e' : '#ef4444');
-                ctx.fillRect(mx - barWidth / 2, my - (m.isBoss ? 35 : 22), barWidth * hpPercent, m.isBoss ? 6 : 4);
+                const barWidth = m.isBoss ? 52 : 24;
+                ctx.fillStyle = '#000';
+                ctx.fillRect(mx - barWidth / 2, my - (m.isBoss ? 32 : 20), barWidth, 4);
+                ctx.fillStyle = m.isBoss ? '#f59e0b' : (hpPercent > 0.3 ? '#22c55e' : '#ef4444');
+                ctx.fillRect(mx - barWidth / 2, my - (m.isBoss ? 32 : 20), barWidth * hpPercent, 4);
 
                 ctx.fillStyle = '#fef08a';
-                ctx.font = `${m.isBoss ? 'bold 12px' : '10px'} ZCOOL XiaoWei, sans-serif`;
+                ctx.font = `${m.isBoss ? 'bold 11px' : '9px'} VT323, monospace`;
                 ctx.textAlign = 'center';
-                ctx.fillText(m.name, mx, my - (m.isBoss ? 40 : 25));
+                ctx.fillText(m.name, mx, my - (m.isBoss ? 36 : 24));
             });
 
-            // 角色平滑插值移动与多门派手绘
+            // 6. 剑侠客平滑插值移动与元气像素小人手绘
             player.visualX += (player.x - player.visualX) * 0.38;
             player.visualY += (player.y - player.visualY) * 0.38;
 
             const heroPx = player.visualX * TILE_PX + TILE_PX * 0.5;
             const heroPy = player.visualY * TILE_PX + TILE_PX * 0.5;
-            drawHeroSprite(ctx, heroPx, heroPy, player.facing, time, player.isMoving, currentSect);
+            drawSoulKnightHero(ctx, heroPx, heroPy, player.facing, time, player.isMoving, player.isAttacking, player.attackProgress);
 
-            // 绝技与道法特效
-            if (swordSlash && now - swordSlash.time < 420) {
-                drawMartialEffects(ctx, swordSlash, now - swordSlash.time);
-            }
-
-            // 伤害跳字
+            // 7. 伤害数字与浮字跳跃
             drawFloatingTexts(ctx);
 
             ctx.restore();
 
-            updateCooldownUI();
             requestAnimationFrame(render);
         }
 
         // =========================================================================
-        // 6. 三大主角自适应绘制 (剑侠客/龙太子/虎头怪)
+        // 5. 元气地牢地砖、墙面与传送门手绘函数
         // =========================================================================
-        function drawHeroSprite(ctx, x, y, facing, time, isMoving, sect) {
+        function drawDungeonFloor(ctx, cfg) {
+            ctx.fillStyle = cfg.floorColor;
+            ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+
+            // 石块拼缝线与阴影
+            ctx.strokeStyle = cfg.groutColor;
+            ctx.lineWidth = 1.5;
+            for (let i = 0; i <= MAP_SIZE; i += 2) {
+                const pos = i * TILE_PX;
+                ctx.beginPath(); ctx.moveTo(pos, 0); ctx.lineTo(pos, CANVAS_SIZE); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(0, pos); ctx.lineTo(CANVAS_SIZE, pos); ctx.stroke();
+            }
+
+            // 散落的古地砖微纹理
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
+            ctx.fillRect(4 * TILE_PX, 6 * TILE_PX, 2 * TILE_PX, 2 * TILE_PX);
+            ctx.fillRect(18 * TILE_PX, 10 * TILE_PX, 2 * TILE_PX, 2 * TILE_PX);
+            ctx.fillRect(8 * TILE_PX, 20 * TILE_PX, 2 * TILE_PX, 2 * TILE_PX);
+        }
+
+        function drawDungeonWallsAndTorches(ctx, time) {
+            const wallThick = TILE_PX;
+            ctx.fillStyle = '#0f172a';
+            ctx.fillRect(0, 0, CANVAS_SIZE, wallThick);
+            ctx.fillRect(0, CANVAS_SIZE - wallThick, CANVAS_SIZE, wallThick);
+            ctx.fillRect(0, 0, wallThick, CANVAS_SIZE);
+            ctx.fillRect(CANVAS_SIZE - wallThick, 0, wallThick, CANVAS_SIZE);
+
+            // 墙面火把 (Flickering Torches)
+            const torchLocations = [
+                { x: 5 * TILE_PX, y: wallThick },
+                { x: 14 * TILE_PX, y: wallThick },
+                { x: 23 * TILE_PX, y: wallThick },
+                { x: 5 * TILE_PX, y: CANVAS_SIZE - wallThick },
+                { x: 23 * TILE_PX, y: CANVAS_SIZE - wallThick }
+            ];
+
+            torchLocations.forEach(t => {
+                const flicker = Math.sin(time * 12 + t.x) * 2;
+                // 火把基座
+                ctx.fillStyle = '#78350f';
+                ctx.fillRect(t.x - 2, t.y - 4, 4, 6);
+                // 摇曳火焰
+                ctx.fillStyle = '#f59e0b';
+                ctx.beginPath();
+                ctx.arc(t.x, t.y - 6 + flicker, 4, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#ef4444';
+                ctx.beginPath();
+                ctx.arc(t.x, t.y - 7 + flicker, 2, 0, Math.PI * 2);
+                ctx.fill();
+            });
+        }
+
+        function drawSoulKnightPortal(ctx, x, y, time) {
             ctx.save();
             ctx.translate(x, y);
 
-            // 战力流光光圈
-            if (player.equipPower >= 80) {
-                ctx.strokeStyle = sect === 1 ? 'rgba(6, 182, 212, 0.6)' : (sect === 2 ? 'rgba(245, 158, 11, 0.6)' : 'rgba(250, 204, 21, 0.6)');
-                ctx.lineWidth = 1.6;
+            // 传送门外环光芒
+            const spin = time * 3;
+            ctx.strokeStyle = 'rgba(56, 189, 248, 0.8)';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(0, 0, 18 + Math.sin(time * 6) * 2, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // 内部旋转星河符文
+            ctx.strokeStyle = '#facc15';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(0, 0, 12, spin, spin + Math.PI * 1.4);
+            ctx.stroke();
+
+            ctx.fillStyle = '#38bdf8';
+            ctx.font = 'bold 9px VT323, monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText("PORTAL (AUTO-MINT)", 0, -24);
+
+            ctx.restore();
+        }
+
+        // =========================================================================
+        // 6. 元气骑士萌系像素小人 (Jian Xiake in Soul Knight Chibi Style)
+        // =========================================================================
+        function drawSoulKnightHero(ctx, x, y, facing, time, isMoving, isAttacking, attackProg) {
+            ctx.save();
+            ctx.translate(x, y);
+
+            // 移动上下弹跳 (Soul Knight Iconic Bobbing)
+            const bob = isMoving ? Math.abs(Math.sin(time * 14)) * 3 : Math.sin(time * 3) * 0.8;
+
+            // 影子 (Compact Pixel Shadow)
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+            ctx.beginPath();
+            ctx.ellipse(0, 12, 10, 4, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 躯干与战袍
+            ctx.fillStyle = '#1e3a8a';
+            ctx.fillRect(-6, -2 - bob, 12, 10);
+            ctx.fillStyle = '#f8fafc';
+            ctx.fillRect(-2, -2 - bob, 4, 8);
+            ctx.fillStyle = '#eab308';
+            ctx.fillRect(-6, 4 - bob, 12, 2);
+
+            // 双腿步伐
+            const legWalk = isMoving ? Math.sin(time * 14) * 3 : 0;
+            ctx.fillStyle = '#0f172a';
+            ctx.fillRect(-5, 8 - bob, 4, 4 + legWalk);
+            ctx.fillRect(1, 8 - bob, 4, 4 - legWalk);
+
+            // 萌系大头 (Chibi Head)
+            ctx.fillStyle = '#fed7aa';
+            ctx.beginPath();
+            ctx.arc(0, -9 - bob, 7, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 剑侠客标志性发型与额前蓝色束发带
+            ctx.fillStyle = '#0284c7';
+            ctx.fillRect(-7, -15 - bob, 14, 4);
+            ctx.beginPath();
+            ctx.moveTo(-3, -15 - bob);
+            ctx.lineTo(-9 * facing, -18 - bob + Math.sin(time * 6) * 2);
+            ctx.lineTo(-2, -13 - bob);
+            ctx.fill();
+
+            // 大眼萌系瞳孔 (Soul Knight Big Sclera Eyes)
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(facing > 0 ? 0 : -5, -11 - bob, 3.5, 4);
+            ctx.fillRect(facing > 0 ? 4 : -1, -11 - bob, 3.5, 4);
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(facing > 0 ? 2 : -3, -10 - bob, 2, 2.5);
+            ctx.fillRect(facing > 0 ? 6 : 1, -10 - bob, 2, 2.5);
+
+            // 悬浮武器与挥击斩击动画 (Soul Knight Weapon Swing)
+            const weaponAngle = isAttacking ? (facing > 0 ? (attackProg * 1.6 - 0.8) : (-attackProg * 1.6 + 0.8)) : 0;
+            ctx.save();
+            ctx.translate(6 * facing, 1 - bob);
+            ctx.rotate(weaponAngle);
+
+            // 青锋剑
+            ctx.strokeStyle = player.equipPower >= 80 ? '#facc15' : '#e2e8f0';
+            ctx.lineWidth = 2.4;
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(14 * facing, -10);
+            ctx.stroke();
+
+            // 挥剑弧光特效 (Sword Slash Arc Trail)
+            if (isAttacking) {
+                ctx.strokeStyle = 'rgba(56, 189, 248, 0.85)';
+                ctx.lineWidth = 3;
+                ctx.shadowColor = '#38bdf8';
+                ctx.shadowBlur = 12;
                 ctx.beginPath();
-                ctx.ellipse(0, 15, 14, 6, 0, 0, Math.PI * 2);
+                ctx.arc(0, 0, 18, -Math.PI * 0.4, Math.PI * 0.4);
                 ctx.stroke();
             }
-
-            const legOffset = isMoving ? Math.sin(time * 16) * 3.5 : 0;
-
-            if (sect === 1) {
-                // 龙太子 (白衣银甲，头戴龙角，手握晶玉枪)
-                ctx.fillStyle = '#f8fafc';
-                ctx.fillRect(-6, -4, 12, 13);
-                ctx.fillStyle = '#06b6d4';
-                ctx.fillRect(-6, 3, 12, 2.5);
-                ctx.fillStyle = '#0f172a';
-                ctx.fillRect(-5, 9, 4, 5 + legOffset);
-                ctx.fillRect(1, 9, 4, 5 - legOffset);
-
-                ctx.fillStyle = '#fed7aa';
-                ctx.beginPath(); ctx.arc(0, -9, 5.5, 0, Math.PI * 2); ctx.fill();
-
-                // 龙角头饰
-                ctx.strokeStyle = '#facc15'; ctx.lineWidth = 1.8;
-                ctx.beginPath(); ctx.moveTo(-3, -13); ctx.lineTo(-6, -18); ctx.stroke();
-                ctx.beginPath(); ctx.moveTo(3, -13); ctx.lineTo(6, -18); ctx.stroke();
-
-                // 晶玉龙枪
-                ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 2.2;
-                ctx.beginPath(); ctx.moveTo(6 * facing, 2); ctx.lineTo(17 * facing, -12); ctx.stroke();
-            } else if (sect === 2) {
-                // 虎头怪 (赤金战铠，虎斑护腕，手持开山斧)
-                ctx.fillStyle = '#b45309';
-                ctx.fillRect(-7, -4, 14, 13);
-                ctx.fillStyle = '#f59e0b';
-                ctx.fillRect(-7, 3, 14, 3);
-                ctx.fillStyle = '#0f172a';
-                ctx.fillRect(-6, 9, 5, 5 + legOffset);
-                ctx.fillRect(1, 9, 5, 5 - legOffset);
-
-                ctx.fillStyle = '#fed7aa';
-                ctx.beginPath(); ctx.arc(0, -9, 6.5, 0, Math.PI * 2); ctx.fill();
-
-                // 虎纹面颊
-                ctx.fillStyle = '#000';
-                ctx.fillRect(-3, -8, 1.5, 1.5); ctx.fillRect(2, -8, 1.5, 1.5);
-
-                // 开山神斧
-                ctx.strokeStyle = '#ca8a04'; ctx.lineWidth = 2.8;
-                ctx.beginPath(); ctx.moveTo(6 * facing, 4); ctx.lineTo(16 * facing, -8); ctx.stroke();
-                ctx.fillStyle = '#78350f';
-                ctx.fillRect(13 * facing, -13, 6, 7);
-            } else {
-                // 剑侠客 (大唐官府经典风采)
-                ctx.fillStyle = '#1e3a8a';
-                ctx.fillRect(-6, -4, 12, 13);
-                ctx.fillStyle = '#f8fafc';
-                ctx.fillRect(-2, -4, 4, 10);
-                ctx.fillStyle = '#eab308';
-                ctx.fillRect(-6, 3, 12, 2.5);
-
-                ctx.fillStyle = '#0f172a';
-                ctx.fillRect(-5, 9, 4, 5 + legOffset);
-                ctx.fillRect(1, 9, 4, 5 - legOffset);
-
-                ctx.fillStyle = '#fed7aa';
-                ctx.beginPath(); ctx.arc(0, -9, 5.5, 0, Math.PI * 2); ctx.fill();
-
-                ctx.fillStyle = '#0284c7';
-                ctx.beginPath(); ctx.arc(0, -12, 6, Math.PI, Math.PI * 2); ctx.fill();
-                ctx.beginPath(); ctx.moveTo(-2, -14); ctx.lineTo(-8 * facing, -18 + Math.sin(time * 6) * 3); ctx.lineTo(0, -12); ctx.fill();
-
-                ctx.strokeStyle = player.equipPower >= 80 ? '#facc15' : '#e2e8f0';
-                ctx.lineWidth = player.equipPower >= 80 ? 2.4 : 1.8;
-                ctx.beginPath(); ctx.moveTo(6 * facing, 2); ctx.lineTo(16 * facing, -10); ctx.stroke();
-            }
+            ctx.restore();
 
             ctx.restore();
         }
 
-        function drawSeaTurtle(ctx, x, y, time) {
-            ctx.save(); ctx.translate(x, y);
-            const breath = Math.sin(time * 3) * 0.8;
-            ctx.fillStyle = '#059669'; ctx.beginPath(); ctx.ellipse(0, 0, 11 + breath, 9 + breath, 0, 0, Math.PI * 2); ctx.fill();
-            ctx.strokeStyle = '#10b981'; ctx.lineWidth = 1.5; ctx.stroke();
-            ctx.fillStyle = '#34d399'; ctx.beginPath(); ctx.arc(10, 0, 4, 0, Math.PI * 2); ctx.fill();
-            ctx.restore();
-        }
-        function drawCoralFrog(ctx, x, y, time) {
-            ctx.save(); ctx.translate(x, y);
-            const hop = Math.abs(Math.sin(time * 4)) * 3;
-            ctx.fillStyle = '#06b6d4'; ctx.beginPath(); ctx.ellipse(0, -hop, 10, 8, 0, 0, Math.PI * 2); ctx.fill();
-            ctx.fillStyle = '#facc15'; ctx.beginPath(); ctx.arc(-4, -7 - hop, 2.5, 0, Math.PI * 2); ctx.arc(4, -7 - hop, 2.5, 0, Math.PI * 2); ctx.fill();
-            ctx.restore();
-        }
-        function drawWildBoar(ctx, x, y, time) {
-            ctx.save(); ctx.translate(x, y);
-            ctx.fillStyle = '#78350f'; ctx.beginPath(); ctx.ellipse(0, 0, 13, 9, 0, 0, Math.PI * 2); ctx.fill();
-            ctx.fillStyle = '#fef08a'; ctx.beginPath(); ctx.moveTo(9, 2); ctx.lineTo(15, -3); ctx.lineTo(10, 6); ctx.fill();
-            ctx.restore();
-        }
-        function drawSkeleton(ctx, x, y, time) {
-            ctx.save(); ctx.translate(x, y);
-            ctx.fillStyle = '#e2e8f0'; ctx.beginPath(); ctx.arc(0, -8, 6, 0, Math.PI * 2); ctx.fill();
-            ctx.fillStyle = '#38bdf8'; ctx.fillRect(-2, -9, 1.5, 1.5); ctx.fillRect(2, -9, 1.5, 1.5);
-            ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0, -2); ctx.lineTo(0, 8); ctx.moveTo(-6, 2); ctx.lineTo(6, 2); ctx.stroke();
-            ctx.restore();
-        }
-        function drawTreant(ctx, x, y, time) {
-            ctx.save(); ctx.translate(x, y);
-            ctx.fillStyle = '#451a03'; ctx.fillRect(-8, -12, 16, 22);
-            ctx.fillStyle = '#15803d'; ctx.beginPath(); ctx.arc(0, -18, 14, 0, Math.PI * 2); ctx.fill();
-            ctx.restore();
-        }
-        function drawGoatDemon(ctx, x, y, time) {
-            ctx.save(); ctx.translate(x, y);
-            ctx.fillStyle = '#475569'; ctx.beginPath(); ctx.ellipse(0, 0, 11, 10, 0, 0, Math.PI * 2); ctx.fill();
-            ctx.strokeStyle = '#eab308'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(-7, -9, 6, 0, Math.PI); ctx.stroke(); ctx.beginPath(); ctx.arc(7, -9, 6, 0, Math.PI); ctx.stroke();
-            ctx.restore();
-        }
-        function drawFlowerDemon(ctx, x, y, time) {
-            ctx.save(); ctx.translate(x, y);
-            ctx.fillStyle = '#ec4899';
-            for (let i = 0; i < 5; i++) {
-                const ang = (i * Math.PI * 2) / 5 + time;
-                ctx.beginPath(); ctx.arc(Math.cos(ang) * 9, Math.sin(ang) * 9, 5, 0, Math.PI * 2); ctx.fill();
-            }
-            ctx.fillStyle = '#fef08a'; ctx.beginPath(); ctx.arc(0, 0, 6, 0, Math.PI * 2); ctx.fill();
-            ctx.restore();
-        }
-        function drawTowerBoss(ctx, x, y, time) {
-            ctx.save(); ctx.translate(x, y);
-            const pulse = Math.sin(time * 5) * 3;
-            ctx.strokeStyle = 'rgba(239, 68, 68, 0.7)'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(0, 0, 24 + pulse, 0, Math.PI * 2); ctx.stroke();
-            ctx.fillStyle = '#1c1917'; ctx.fillRect(-14, -16, 28, 30);
-            ctx.fillStyle = '#b91c1c'; ctx.fillRect(-10, -10, 20, 18);
-            ctx.strokeStyle = '#dc2626'; ctx.lineWidth = 3.5; ctx.beginPath(); ctx.moveTo(-12, -16); ctx.lineTo(-20, -28); ctx.moveTo(12, -16); ctx.lineTo(20, -28); ctx.stroke();
-            ctx.fillStyle = '#fef08a'; ctx.fillRect(-6, -8, 4, 4); ctx.fillRect(3, -8, 4, 4);
-            ctx.restore();
-        }
-        function drawBandit(ctx, x, y) {
-            ctx.save(); ctx.translate(x, y);
-            ctx.fillStyle = '#e11d48'; ctx.fillRect(-6, -6, 12, 12);
-            ctx.fillStyle = '#1e1b4b'; ctx.fillRect(-6, -10, 12, 4);
-            ctx.restore();
-        }
-        function drawPeachTree(ctx, x, y) {
-            ctx.save(); ctx.translate(x, y);
-            ctx.fillStyle = '#78350f'; ctx.fillRect(-3, -2, 6, 12);
-            ctx.fillStyle = 'rgba(244, 114, 182, 0.95)'; ctx.beginPath(); ctx.arc(0, -9, 13, 0, Math.PI * 2); ctx.fill();
-            ctx.restore();
-        }
-        function drawTaihuRock(ctx, x, y) {
-            ctx.save(); ctx.translate(x, y);
-            ctx.fillStyle = '#475569'; ctx.beginPath(); ctx.ellipse(0, 2, 10, 7, -0.2, 0, Math.PI * 2); ctx.fill();
-            ctx.restore();
-        }
-        function drawPagodaPillar(ctx, x, y) {
-            ctx.save(); ctx.translate(x, y);
-            ctx.fillStyle = '#334155'; ctx.fillRect(-6, -12, 12, 24);
-            ctx.fillStyle = '#f59e0b'; ctx.beginPath(); ctx.arc(0, -14, 3, 0, Math.PI * 2); ctx.fill();
-            ctx.restore();
-        }
-
-        function drawMartialEffects(ctx, slash, elapsed) {
+        // =========================================================================
+        // 7. 元气地牢怪物手绘
+        // =========================================================================
+        function drawPixelMonster(ctx, m, x, y, time) {
             ctx.save();
-            ctx.translate(slash.x, slash.y);
-            const progress = elapsed / 420;
+            ctx.translate(x, y);
 
-            if (slash.type === 'hengsao') {
-                ctx.strokeStyle = `rgba(239, 68, 68, ${1 - progress})`;
-                ctx.lineWidth = 5.5; ctx.shadowColor = '#f59e0b'; ctx.shadowBlur = 20;
-                ctx.beginPath(); ctx.arc(0, 0, 34 * (0.6 + progress), -Math.PI * 0.8, Math.PI * 0.5); ctx.stroke();
-            } else if (slash.type === 'pofu' || slash.type === 'longjuan') {
-                ctx.strokeStyle = currentSect === 1 ? `rgba(6, 182, 212, ${1 - progress})` : `rgba(56, 189, 248, ${1 - progress})`;
-                ctx.lineWidth = 4.5; ctx.shadowColor = '#38bdf8'; ctx.shadowBlur = 24;
-                ctx.beginPath(); ctx.arc(0, 0, 72 * progress, 0, Math.PI * 2); ctx.stroke();
-            } else if (slash.type === 'longteng' || slash.type === 'yingji') {
-                ctx.strokeStyle = `rgba(245, 158, 11, ${1 - progress})`;
-                ctx.lineWidth = 5; ctx.shadowColor = '#fbbf24'; ctx.shadowBlur = 22;
-                ctx.beginPath(); ctx.arc(0, 0, 42 * (0.5 + progress), -Math.PI, Math.PI * 0.6); ctx.stroke();
-            } else {
-                ctx.strokeStyle = `rgba(56, 189, 248, ${1 - progress})`;
-                ctx.lineWidth = 3.5; ctx.shadowColor = '#38bdf8'; ctx.shadowBlur = 12;
-                ctx.beginPath(); ctx.arc(0, 0, 24 * (0.5 + progress * 0.8), -Math.PI * 0.6, Math.PI * 0.4); ctx.stroke();
+            // 影子
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+            ctx.beginPath();
+            ctx.ellipse(0, 10, m.isBoss ? 18 : 9, m.isBoss ? 7 : 3.5, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            if (m.type === "turtle") { // 刺壳龟
+                const breath = Math.sin(time * 4) * 0.8;
+                ctx.fillStyle = '#059669';
+                ctx.beginPath(); ctx.arc(0, 0, 10 + breath, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = '#34d399';
+                ctx.fillRect(-3, -3, 6, 6);
+                // 萌眼
+                ctx.fillStyle = '#fff'; ctx.fillRect(4, -4, 3, 3);
+                ctx.fillStyle = '#000'; ctx.fillRect(5, -3, 1.5, 1.5);
+            } else if (m.type === "frog") { // 巨蛙
+                const hop = Math.abs(Math.sin(time * 5)) * 3;
+                ctx.fillStyle = '#06b6d4';
+                ctx.beginPath(); ctx.ellipse(0, -hop, 9, 7, 0, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = '#facc15'; ctx.fillRect(-3, -8 - hop, 3, 3); ctx.fillRect(3, -8 - hop, 3, 3);
+            } else if (m.type === "boar") { // 尖牙野猪
+                ctx.fillStyle = '#78350f';
+                ctx.fillRect(-8, -5, 16, 10);
+                ctx.fillStyle = '#fef08a';
+                ctx.fillRect(7, -2, 4, 3);
+            } else if (m.type === "skeleton") { // 地牢骷髅
+                ctx.fillStyle = '#e2e8f0';
+                ctx.fillRect(-5, -10, 10, 8);
+                ctx.fillStyle = '#ef4444'; // 红光鬼眼
+                ctx.fillRect(-2, -8, 2, 2); ctx.fillRect(2, -8, 2, 2);
+                ctx.fillStyle = '#94a3b8';
+                ctx.fillRect(-3, -2, 6, 8);
+            } else if (m.type === "boss") { // 巨型镇塔妖王 (Soul Knight Giant Demon)
+                const pulse = Math.sin(time * 6) * 2;
+                ctx.fillStyle = '#18181b';
+                ctx.fillRect(-16, -18, 32, 28);
+                ctx.fillStyle = '#b91c1c';
+                ctx.fillRect(-12, -14, 24, 20);
+
+                // 巨型赤红牛角
+                ctx.fillStyle = '#dc2626';
+                ctx.fillRect(-18, -24, 6, 8);
+                ctx.fillRect(12, -24, 6, 8);
+
+                // 狂暴红光护盾
+                ctx.strokeStyle = 'rgba(239, 68, 68, 0.6)';
+                ctx.lineWidth = 2.5;
+                ctx.beginPath();
+                ctx.arc(0, -4, 26 + pulse, 0, Math.PI * 2);
+                ctx.stroke();
+
+                // 恶魔凶眸
+                ctx.fillStyle = '#facc15';
+                ctx.fillRect(-7, -8, 4, 4);
+                ctx.fillRect(3, -8, 4, 4);
+            } else { // 强盗
+                ctx.fillStyle = '#e11d48'; ctx.fillRect(-5, -6, 10, 12);
+                ctx.fillStyle = '#1e1b4b'; ctx.fillRect(-5, -10, 10, 4);
             }
+
             ctx.restore();
+        }
+
+        // =========================================================================
+        // 8. 地面神兵掉落光球 (Ground Loot Drop System)
+        // =========================================================================
+        function spawnLootOrb(x, y, name, rarity, power, itemType) {
+            groundLootOrbs.push({
+                x: x, y: y,
+                name: name,
+                rarity: rarity,
+                power: power,
+                itemType: itemType,
+                time: performance.now(),
+                bounced: false
+            });
+            logTx(`💎 妖兽爆出神兵光球【${name}】！走近即可自动拾取！`, "info");
+        }
+
+        function drawGroundLootOrbs(ctx, time) {
+            for (let i = groundLootOrbs.length - 1; i >= 0; i--) {
+                const orb = groundLootOrbs[i];
+                const px = orb.x * TILE_PX + TILE_PX * 0.5;
+                const py = orb.y * TILE_PX + TILE_PX * 0.5;
+                const floatY = Math.sin(time * 5 + i) * 3;
+
+                // 拾取磁吸判定 (吸附到主角)
+                const dist = Math.hypot(player.x - orb.x, player.y - orb.y);
+                if (dist <= 1.2) {
+                    sfx.playPickup();
+                    showItemToast(`✨ 拾取到通关神兵【${orb.name}】(战力 +${orb.power})！`);
+                    logTx(`🎒 获得神兵【${orb.name}】！进入传送门将自动认领 Mint 上链！`, "success");
+                    groundLootOrbs.splice(i, 1);
+                    continue;
+                }
+
+                ctx.save();
+                ctx.translate(px, py + floatY);
+
+                // 金色灵气光环
+                ctx.strokeStyle = 'rgba(250, 204, 21, 0.7)';
+                ctx.lineWidth = 2;
+                ctx.beginPath(); ctx.arc(0, 0, 9, 0, Math.PI * 2); ctx.stroke();
+
+                ctx.fillStyle = '#f59e0b';
+                ctx.beginPath(); ctx.arc(0, 0, 6, 0, Math.PI * 2); ctx.fill();
+
+                ctx.fillStyle = '#fef08a';
+                ctx.font = 'bold 9px VT323, monospace';
+                ctx.textAlign = 'center';
+                ctx.fillText(orb.name, 0, -12);
+
+                ctx.restore();
+            }
         }
 
         function drawFloatingTexts(ctx) {
             for (let i = floatingTexts.length - 1; i >= 0; i--) {
                 const ft = floatingTexts[i];
                 ft.y += ft.vy;
-                ft.alpha -= 0.025;
+                ft.alpha -= 0.028;
 
                 ctx.save();
                 ctx.globalAlpha = Math.max(0, ft.alpha);
                 ctx.fillStyle = ft.color;
-                ctx.font = `${ft.isCrit ? 'bold 15px' : '12px'} JetBrains Mono, monospace`;
+                ctx.font = `${ft.isCrit ? 'bold 15px' : '11px'} VT323, monospace`;
                 ctx.textAlign = 'center';
                 ctx.shadowColor = ft.color;
-                ctx.shadowBlur = ft.isCrit ? 12 : 4;
+                ctx.shadowBlur = 8;
                 ctx.fillText(ft.text, ft.x, ft.y);
                 ctx.restore();
 
@@ -1235,32 +1008,38 @@
             }
         }
 
-        function addFloatingDamage(x, y, damage, isCrit = false, isHeal = false) {
+        function addFloatingDamage(x, y, text, color = '#f87171', isCrit = false) {
             floatingTexts.push({
-                x: x + (Math.random() - 0.5) * 14,
-                y: y - 10,
-                text: isHeal ? `+${damage} MP` : `-${damage}`,
-                color: isHeal ? '#38bdf8' : (isCrit ? '#facc15' : '#f87171'),
-                vy: isCrit ? -2.2 : -1.6,
+                x: x + (Math.random() - 0.5) * 12,
+                y: y - 8,
+                text: text,
+                color: color,
+                vy: isCrit ? -2.2 : -1.5,
                 alpha: 1.0,
                 isCrit: isCrit
             });
         }
 
+        function showItemToast(msg) {
+            itemToastText.innerText = msg;
+            itemToast.style.opacity = '1';
+            setTimeout(() => { itemToast.style.opacity = '0'; }, 2200);
+        }
+
         // =========================================================================
-        // 7. 平滑键盘走位 (WASD 毫秒级微步轮询)
+        // 9. 移动与攻击输入 (WASD 平滑微步 + 自动认领传送门)
         // =========================================================================
         const keysDown = {};
         let lastMoveStepTime = 0;
-        const MOVE_COOLDOWN = 115;
+        const MOVE_COOLDOWN = 110; // ms
 
         window.addEventListener('keydown', (e) => {
             keysDown[e.key.toLowerCase()] = true;
             if (e.code === 'Space') e.preventDefault();
 
-            if (e.key === '1' || e.code === 'Space') doSkill1();
-            else if (e.key === '2' || e.key.toLowerCase() === 'q') doSkill2();
-            else if (e.key === '3' || e.key.toLowerCase() === 'e') doSkill3();
+            if (e.key === '1' || e.code === 'Space') doNormalAttack();
+            else if (e.key === '2' || e.key.toLowerCase() === 'q') doSkillAttack(2);
+            else if (e.key === '3' || e.key.toLowerCase() === 'e') doSkillAttack(3);
         });
 
         window.addEventListener('keyup', (e) => {
@@ -1290,304 +1069,208 @@
             const nextX = player.x + dx;
             const nextY = player.y + dy;
 
-            if (nextX < 0 || nextX >= MAP_SIZE || nextY < 0 || nextY >= MAP_SIZE) return;
-            if (currentObstacles.has(`${nextX},${nextY}`)) return;
+            // 地牢边界判定 (避免穿墙)
+            if (nextX <= 0 || nextX >= MAP_SIZE - 1 || nextY <= 0 || nextY >= MAP_SIZE - 1) return;
 
             player.x = nextX;
             player.y = nextY;
             player.facing = dx !== 0 ? dx : player.facing;
             player.isMoving = true;
-            coordDisplay.innerText = `${nextX}, ${nextY}`;
+            coordDisplay.innerText = `${nextX},${nextY}`;
             chapterStats.stepsTaken++;
+
+            // 传送门触碰判定 (Step into Portal -> 自动认领 Mint NFT!)
+            if (portalActive && Math.abs(nextX - portalPos.x) <= 1 && Math.abs(nextY - portalPos.y) <= 1) {
+                triggerAutoMintClaim();
+            }
         }
 
         // =========================================================================
-        // 8. 多门派战斗与道法绝技施展 (Combat Actions)
+        // 10. 战斗招式与打击 (Combat Mechanics)
         // =========================================================================
-        function updateCooldownUI() {
-            const now = performance.now();
-            const m1 = document.getElementById('cdMask1');
-            const m2 = document.getElementById('cdMask2');
-            const m3 = document.getElementById('cdMask3');
-
-            if (now < cdSkill1) {
-                m1.style.display = 'flex'; m1.innerText = ((cdSkill1 - now) / 1000).toFixed(1) + 's';
-            } else m1.style.display = 'none';
-
-            if (now < cdSkill2) {
-                m2.style.display = 'flex'; m2.innerText = ((cdSkill2 - now) / 1000).toFixed(1) + 's';
-            } else m2.style.display = 'none';
-
-            if (now < cdSkill3) {
-                m3.style.display = 'flex'; m3.innerText = ((cdSkill3 - now) / 1000).toFixed(1) + 's';
-            } else m3.style.display = 'none';
-        }
-
-        function doSkill1() {
+        function doNormalAttack() {
             if (chapterStats.isCleared) return;
-            const now = performance.now();
-            if (now < cdSkill1) return;
-            cdSkill1 = now + 260;
-
             sfx.playSlash();
 
-            const target = monsters.find(m => m.hp > 0 && Math.abs(m.x - player.x) <= 2 && Math.abs(m.y - player.y) <= 2);
-            const targetPx = target ? target.x * TILE_PX + TILE_PX * 0.5 : (player.x + player.facing) * TILE_PX;
-            const targetPy = target ? target.y * TILE_PX + TILE_PX * 0.5 : player.y * TILE_PX;
+            player.isAttacking = true;
+            player.attackProgress = 1.0;
+            setTimeout(() => { player.isAttacking = false; }, 180);
 
-            swordSlash = { x: targetPx, y: targetPy, time: now, type: 'normal' };
+            const target = monsters.find(m => m.hp > 0 && Math.abs(m.x - player.x) <= 2 && Math.abs(m.y - player.y) <= 2);
             if (!target) return;
 
             sfx.playHit();
-            target.hitFlash = 4;
+            target.hitFlash = 5;
             screenShake = 3;
 
-            const base = Math.floor(Math.random() * 20) + 75;
-            const totalDmg = base + Math.floor(player.equipPower * 0.45);
-            applyDamageToMonster(target, totalDmg, false);
+            const dmg = Math.floor(Math.random() * 20) + player.baseAtk + Math.floor(player.equipPower * 0.5);
+            applyMonsterDamage(target, dmg, false);
         }
 
-        function doSkill2() {
+        function doSkillAttack(slot) {
             if (chapterStats.isCleared) return;
-            const now = performance.now();
-            if (now < cdSkill2) return;
-            const cfg = SECT_CONFIGS[currentSect];
-
-            if (player.mp < cfg.skill2.mp) {
-                logTx(`⚠️ 魔法不足 ${cfg.skill2.mp} 点，无法施展【${cfg.skill2.name}】！`, "error");
+            if (player.mp < 20) {
+                logTx("⚠️ 能量不足，无法施展技能！", "error");
                 return;
             }
 
-            cdSkill2 = now + cfg.skill2.cd;
-            player.mp -= cfg.skill2.mp;
+            player.mp -= 20;
             updateHudBars();
             chapterStats.skillsUsed++;
-            statSkills.innerText = chapterStats.skillsUsed;
 
-            const target = monsters.find(m => m.hp > 0 && Math.abs(m.x - player.x) <= 2 && Math.abs(m.y - player.y) <= 2);
-            const targetPx = target ? target.x * TILE_PX + TILE_PX * 0.5 : (player.x + player.facing) * TILE_PX;
-            const targetPy = target ? target.y * TILE_PX + TILE_PX * 0.5 : player.y * TILE_PX;
+            sfx.playSlash();
+            sfx.playHit();
+            screenShake = 6;
 
-            if (currentSect === 1) { // 龙宫: 龙腾
-                sfx.playWaterMagic();
-                swordSlash = { x: targetPx, y: targetPy, time: now, type: 'longteng' };
-                screenShake = 6;
-                logTx("🐉 施展龙宫玄法【龙腾】！狂澜水龙破空咆哮！", "sent");
-                if (target) applyDamageToMonster(target, Math.floor((120 + player.equipPower * 0.7) * 2.2), true);
-            } else if (currentSect === 2) { // 狮驼: 变身狂暴
-                sfx.playBeastRoar();
-                swordSlash = { x: player.x * TILE_PX, y: player.y * TILE_PX, time: now, type: 'hengsao' };
-                screenShake = 8;
-                logTx("🦁 施展狮驼秘技【变身】！魔兽之躯狂暴觉醒！", "sent");
-                if (target) applyDamageToMonster(target, Math.floor((140 + player.equipPower * 0.8) * 2.0), true);
-            } else { // 大唐: 横扫千军
-                sfx.playHengSao();
-                swordSlash = { x: targetPx, y: targetPy, time: now, type: 'hengsao' };
-                screenShake = 7;
-                logTx("🔥 施展大唐绝学【横扫千军】！三连刺暴击！", "sent");
-                if (target) {
-                    const baseDmg = Math.floor(Math.random() * 20) + 75 + Math.floor(player.equipPower * 0.5);
-                    [1.2, 1.6, 2.2].forEach((mul, i) => {
-                        setTimeout(() => {
-                            if (target.hp <= 0) return;
-                            target.hitFlash = 5;
-                            screenShake = 5 + i * 2;
-                            applyDamageToMonster(target, Math.floor(baseDmg * mul), true);
-                        }, i * 120);
-                    });
-                }
-            }
+            player.isAttacking = true;
+            player.attackProgress = 1.2;
+            setTimeout(() => { player.isAttacking = false; }, 220);
+
+            const target = monsters.find(m => m.hp > 0 && Math.abs(m.x - player.x) <= 3 && Math.abs(m.y - player.y) <= 3);
+            if (!target) return;
+
+            target.hitFlash = 6;
+            const dmg = Math.floor((player.baseAtk + player.equipPower) * (slot === 2 ? 1.8 : 2.4));
+            applyMonsterDamage(target, dmg, true);
         }
 
-        function doSkill3() {
-            if (chapterStats.isCleared) return;
-            const now = performance.now();
-            if (now < cdSkill3) return;
-            const cfg = SECT_CONFIGS[currentSect];
-
-            if (player.mp < cfg.skill3.mp) {
-                logTx(`⚠️ 魔法不足 ${cfg.skill3.mp} 点，无法施展【${cfg.skill3.name}】！`, "error");
-                return;
-            }
-
-            cdSkill3 = now + cfg.skill3.cd;
-            player.mp -= cfg.skill3.mp;
-            updateHudBars();
-            chapterStats.skillsUsed++;
-            statSkills.innerText = chapterStats.skillsUsed;
-
-            screenShake = 9;
-            const heroPx = player.x * TILE_PX + TILE_PX * 0.5;
-            const heroPy = player.y * TILE_PX + TILE_PX * 0.5;
-
-            if (currentSect === 1) { // 龙卷雨击
-                sfx.playWaterMagic();
-                swordSlash = { x: heroPx, y: heroPy, time: now, type: 'longjuan' };
-                logTx("⛈️ 念动水系秘咒！施展【龙卷雨击】倾覆三界！", "sent");
-            } else if (currentSect === 2) { // 鹰击
-                sfx.playBeastRoar();
-                swordSlash = { x: heroPx, y: heroPy, time: now, type: 'yingji' };
-                logTx("🦅 金翅大鹏化影！施展【鹰击长空】疾风扑杀！", "sent");
-            } else { // 破釜沉舟
-                sfx.playPoFu();
-                swordSlash = { x: heroPx, y: heroPy, time: now, type: 'pofu' };
-                logTx("🌪️ 气贯长虹！施展【破釜沉舟】引爆狂风剑阵！", "sent");
-            }
-
-            const baseDmg = Math.floor(Math.random() * 25) + 125 + Math.floor(player.equipPower * 0.6);
-            let hits = 0;
-            monsters.forEach(m => {
-                if (m.hp <= 0) return;
-                const dist = Math.hypot(m.x - player.x, m.y - player.y);
-                if (dist <= 4.0) {
-                    m.hitFlash = 6;
-                    applyDamageToMonster(m, baseDmg, true);
-                    hits++;
-                }
-            });
-            if (hits > 0) sfx.playHit();
-        }
-
-        function applyDamageToMonster(target, damage, isCrit = false) {
-            target.hp = Math.max(0, target.hp - damage);
-            chapterStats.totalDamage += damage;
-            statDamage.innerText = chapterStats.totalDamage;
+        function applyMonsterDamage(target, dmg, isCrit) {
+            target.hp = Math.max(0, target.hp - dmg);
+            chapterStats.totalDamage += dmg;
 
             const mx = target.x * TILE_PX + TILE_PX * 0.5;
             const my = target.y * TILE_PX + TILE_PX * 0.5;
-            addFloatingDamage(mx, my, damage, isCrit);
+            addFloatingDamage(mx, my, `-${dmg}`, isCrit ? '#facc15' : '#ef4444', isCrit);
 
             if (target.hp <= 0) {
                 chapterStats.monstersSlain++;
-                killProgressText.innerText = `${chapterStats.monstersSlain} / ${monsters.length}`;
-                logTx(`🎉 斩破【${target.name}】！关卡进度推进`, "success");
+                logTx(`🎉 斩破【${target.name}】！`, "success");
 
-                player.mp = Math.min(player.maxMp, player.mp + 25);
-                updateHudBars();
-                addFloatingDamage(player.visualX * TILE_PX, player.visualY * TILE_PX, 25, false, true);
+                // 怪物倒地爆出神兵光球！
+                const lootNames = ["【大唐青锋剑】", "【东海辟水珠】", "【金丝软猬甲】", "【逍遥游龙剑】"];
+                const pick = (chapterStats.monstersSlain + currentChapter) % 4;
+                spawnLootOrb(target.x, target.y, lootNames[pick], "史诗神品", 75 + pick * 30, pick % 3);
 
                 if (target.isBoss) {
                     chapterStats.bossDefeated = true;
-                    logTx("👑 震撼三界！【大雁塔镇塔妖王】轰然倒塌！", "success");
+                    logTx("👑 斩灭地牢镇塔妖王！", "success");
                 }
 
+                // 若房间怪物肃清，激活中央传送门！
                 if (chapterStats.monstersSlain >= monsters.length) {
-                    triggerStageClearance();
+                    portalActive = true;
+                    portalPos = { x: 14, y: 14 };
+                    sfx.playPortal();
+                    showItemToast("🌀 地牢妖兽全歼！中央传送门开启，踏入即可自动 Mint NFT！");
+                    logTx("🌀 传送阵已在 (14, 14) 激发！走入光圈自动认领通关 NFT！", "info");
                 }
             }
         }
 
-        // =========================================================================
-        // 9. 关底批量清算 (Batch Settle V3)
-        // =========================================================================
-        function triggerStageClearance() {
-            chapterStats.isCleared = true;
-            sfx.playVictory();
-
-            document.getElementById('summaryDamage').innerText = chapterStats.totalDamage;
-            document.getElementById('summaryKills').innerText = chapterStats.monstersSlain;
-            document.getElementById('summarySkills').innerText = chapterStats.skillsUsed + ' 次';
-            document.getElementById('summarySteps').innerText = chapterStats.stepsTaken + ' 步';
-
-            const cfg = CHAPTER_CONFIGS[currentChapter];
-            clearanceTitle.innerText = `${cfg.title} • 大捷！`;
-            clearanceOverlay.style.display = 'flex';
-
-            logTx(`🏆 ${cfg.title} 已全数肃清！请点击一键奏请天庭合并结算！`, "success");
+        function updateHudBars() {
+            hpBarFill.style.width = `${(player.hp / player.maxHp) * 100}%`;
+            hpText.innerText = `${player.hp}/${player.maxHp}`;
+            shieldBarFill.style.width = `${(player.shield / player.maxShield) * 100}%`;
+            shieldText.innerText = `${player.shield}/${player.maxShield}`;
+            mpBarFill.style.width = `${(player.mp / player.maxMp) * 100}%`;
+            mpText.innerText = `${player.mp}/${player.maxMp}`;
         }
 
-        async function doSettleOnChain() {
-            const btn = document.getElementById('btnSettleOnChain');
-            const spinner = document.getElementById('settlingSpinner');
-            btn.disabled = true;
-            spinner.classList.remove('hidden');
+        // =========================================================================
+        // 11. 传送门触碰：全自动认领与 Mint NFT 铸造 (Auto-Mint Claim System)
+        // =========================================================================
+        async function triggerAutoMintClaim() {
+            if (chapterStats.autoMintTriggered) return;
+            chapterStats.autoMintTriggered = true;
+            chapterStats.isCleared = true;
 
-            const clearSeconds = Math.max(1, Math.round((performance.now() - chapterStats.startTime) / 1000));
+            sfx.playVictory();
+            clearanceOverlay.style.display = 'flex';
+            clearanceTitle.innerText = `STAGE ${currentChapter} CLEARED!`;
+
+            const clearSecs = Math.max(1, Math.round((performance.now() - chapterStats.startTime) / 1000));
             const summary = {
                 chapterId: currentChapter,
                 totalDamage: chapterStats.totalDamage,
                 monstersSlain: chapterStats.monstersSlain,
                 skillsUsed: chapterStats.skillsUsed,
                 stepsTaken: chapterStats.stepsTaken,
-                clearTimeSeconds: clearSeconds,
+                clearTimeSeconds: clearSecs,
                 bossDefeated: chapterStats.bossDefeated
             };
 
-            logTx(`📜 正在将第 ${currentChapter} 章数据打包为单笔交易发往 Monad...`, "pending");
+            logTx(`📜 踏入传送门！正在 Monad 上自动认领并 Mint NFT 道具...`, "pending");
 
             try {
+                // 单笔合并交易：自动认领 + 经验升级 + NFT 铸造落块！
                 const tx = await contract.settleChapter(summary, { gasLimit: 400000n });
-                logTx(`📡 清算交易已广播: ${tx.hash.slice(0, 12)}...`, "sent", tx.hash);
+                logTx(`📡 自动 Mint 交易已广播: ${tx.hash.slice(0, 12)}...`, "sent", tx.hash);
 
                 const rc = await tx.wait();
-                logTx(`🎉 恭喜少侠！第 ${currentChapter} 章全链落块完毕！(区块 #${rc.blockNumber})`, "success", tx.hash);
+                logTx(`🎉 自动认领成功！神兵已由 Monad 落块铸造！(区块 #${rc.blockNumber})`, "success", tx.hash);
 
+                // 同步藏宝阁与装备
                 await refreshLootInventory();
                 await syncEquippedState();
 
-                spinner.innerHTML = "✅ 关卡清算成功！神兵已自动落入藏宝阁！";
+                // 呈现落块成果
+                mintStatusText.innerHTML = `✅ <b>自动 Mint 成功！</b> 已由 Monad 区块 #${rc.blockNumber} 确权入库！`;
+                btnNextLevel.classList.remove('hidden');
 
-                if (currentChapter < 3) {
-                    btn.innerHTML = `🚀 踏入第 ${currentChapter + 1} 章：${CHAPTER_CONFIGS[currentChapter + 1].title}`;
-                    btn.disabled = false;
-                    btn.onclick = () => loadNextChapter(currentChapter + 1);
-                } else {
-                    btn.innerHTML = "👑 降妖圆满 • 少侠已登临三界之巅！";
-                    btn.disabled = false;
-                }
+                btnNextLevel.onclick = () => {
+                    if (currentChapter < 3) {
+                        loadNextDungeon(currentChapter + 1);
+                    } else {
+                        alert("👑 恭喜少侠！通关大雁塔决战！三界地牢全歼！");
+                        window.location.reload();
+                    }
+                };
             } catch (err) {
                 console.error(err);
-                logTx(`❌ 清算失败: ${err.shortMessage || err.message}`, "error");
-                btn.disabled = false;
-                spinner.classList.add('hidden');
+                mintStatusText.innerHTML = `❌ 自动 Mint 失败: ${err.shortMessage || err.message}`;
             }
         }
 
-        function loadNextChapter(chapterId) {
+        function loadNextDungeon(chapterId) {
             currentChapter = chapterId;
             const cfg = CHAPTER_CONFIGS[chapterId];
 
-            currentObstacles = cfg.obstacles;
             monsters = cfg.monsters.map(m => ({ ...m, hp: m.maxHp, hitFlash: 0 }));
+            portalActive = false;
+            groundLootOrbs = [];
 
-            player.x = 15; player.y = 15;
-            player.visualX = 15; player.visualY = 15;
+            player.x = 14; player.y = 14;
+            player.visualX = 14; player.visualY = 14;
 
             chapterStats = {
                 chapterId: chapterId,
                 totalDamage: 0, monstersSlain: 0, skillsUsed: 0, stepsTaken: 0,
-                startTime: performance.now(), isCleared: false, bossDefeated: false
+                startTime: performance.now(), isCleared: false, autoMintTriggered: false
             };
 
-            chapterTitleBadge.innerText = cfg.badge;
-            stageHintText.innerText = cfg.hint;
-            killProgressText.innerText = `0 / ${monsters.length}`;
-            statDamage.innerText = '0'; statSkills.innerText = '0';
-
-            npcName.innerText = cfg.npcName + ':';
-            npcAvatar.innerText = cfg.npcAvatar;
-            npcText.innerText = cfg.npcText;
-            npcDialogueBox.style.display = 'flex';
-
             clearanceOverlay.style.display = 'none';
-            logTx(`🗺️ 已踏入【${cfg.title}】！请施展仙法斩妖！`, "info");
+            btnNextLevel.classList.add('hidden');
+            mintStatusText.innerHTML = "⏳ 正在广播单笔原子清算与自动 Mint 交易 (落块约 1.0 秒)...";
+
+            document.getElementById('chapterTitleBadge').innerText = cfg.badge;
+            logTx(`🗺️ 踏入 ${cfg.title}！准备战斗！`, "info");
         }
 
         // =========================================================================
-        // 10. 藏宝阁多维面板：我的背包 VS 全链寄售市场 (Bazaar C2C)
+        // 12. 藏宝阁双面板与 C2C 寄售行
         // =========================================================================
         const tabBtnBackpack = document.getElementById('tabBtnBackpack');
         const tabBtnBazaar = document.getElementById('tabBtnBazaar');
 
         tabBtnBackpack.addEventListener('click', () => {
-            tabBtnBackpack.classList.add('active');
-            tabBtnBazaar.classList.remove('active');
+            tabBtnBackpack.className = "px-3 py-1 rounded bg-amber-950 text-yellow-300 border border-yellow-500/70 font-bold flex items-center space-x-1";
+            tabBtnBazaar.className = "px-3 py-1 rounded bg-slate-800 text-slate-300 border border-slate-600 flex items-center space-x-1 hover:text-white";
             tabContentBackpack.classList.remove('hidden');
             tabContentBazaar.classList.add('hidden');
         });
         tabBtnBazaar.addEventListener('click', () => {
-            tabBtnBazaar.classList.add('active');
-            tabBtnBackpack.classList.remove('active');
+            tabBtnBazaar.className = "px-3 py-1 rounded bg-amber-950 text-yellow-300 border border-yellow-500/70 font-bold flex items-center space-x-1";
+            tabBtnBackpack.className = "px-3 py-1 rounded bg-slate-800 text-slate-300 border border-slate-600 flex items-center space-x-1 hover:text-white";
             tabContentBazaar.classList.remove('hidden');
             tabContentBackpack.classList.add('hidden');
             refreshBazaarListings();
@@ -1605,10 +1288,10 @@
                 const powers = loot[5];
 
                 nftTotalDisplay.innerText = `(${ids.length})`;
-
                 tabContentBackpack.innerHTML = '';
+
                 if (ids.length === 0) {
-                    tabContentBackpack.innerHTML = `<div class="text-amber-200/50 italic py-4 text-center font-xy">暂无神兵，通关章节即可自动获得！</div>`;
+                    tabContentBackpack.innerHTML = `<div class="text-slate-500 italic py-4 text-center font-xy">暂无神兵，通关地牢将自动 Mint 铸造！</div>`;
                     return;
                 }
 
@@ -1622,51 +1305,44 @@
                     const pName = names[i];
                     const rName = rarities[i];
                     const cPower = Number(powers[i]);
-
                     const isEquipped = (equippedItems[iType] && equippedItems[iType].name === pName);
 
-                    const itemDiv = document.createElement('div');
-                    itemDiv.className = `p-2.5 rounded-xl bg-black/50 border ${isEquipped ? 'border-amber-400 shadow-md shadow-amber-500/10' : 'border-yellow-600/30'} flex items-center justify-between transition-all`;
-                    itemDiv.innerHTML = `
-                        <div class="flex items-center space-x-2.5">
-                            <div class="w-9 h-9 rounded-lg bg-amber-950/80 border border-amber-500/70 flex items-center justify-center text-base shadow">
-                                ${typeIcons[iType] || '🔱'}
-                            </div>
+                    const div = document.createElement('div');
+                    div.className = `p-2 rounded-lg bg-black/60 border ${isEquipped ? 'border-yellow-400' : 'border-slate-800'} flex items-center justify-between`;
+                    div.innerHTML = `
+                        <div class="flex items-center space-x-2">
+                            <span class="text-base">${typeIcons[iType] || '🔱'}</span>
                             <div>
-                                <div class="font-bold font-xy text-sm text-yellow-300 flex items-center gap-1.5">
+                                <div class="font-bold font-xy text-yellow-300 text-xs flex items-center gap-1">
                                     <span>${pName}</span>
-                                    ${isEquipped ? '<span class="text-[9px] px-1 py-0.2 rounded bg-amber-500 text-black font-mono font-bold">已着装</span>' : ''}
+                                    <span class="text-[9px] px-1 bg-amber-950 text-amber-300 rounded font-pixel">#${tid}</span>
+                                    ${isEquipped ? '<span class="text-[8px] bg-yellow-400 text-black px-1 rounded font-bold">已着装</span>' : ''}
                                 </div>
-                                <div class="text-[10px] text-amber-200/70 font-mono">
-                                    第 ${chId} 章 • ${typeLabels[iType]} • 战力 +${cPower} • ${rName}
-                                </div>
+                                <div class="text-[9px] text-slate-400 font-mono">第 ${chId} 层 • 战力 +${cPower} • ${rName}</div>
                             </div>
                         </div>
                         <div class="flex items-center space-x-1">
-                            <button onclick="equipNFT(${tid}, ${iType}, '${pName}', ${cPower})" class="px-2 py-1 ${isEquipped ? 'bg-amber-600/40 text-amber-200/50' : 'bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 text-black font-bold'} rounded text-[10px] font-xy border border-amber-400 shadow">
+                            <button onclick="equipNFT(${tid}, ${iType}, '${pName}', ${cPower})" class="px-2 py-1 ${isEquipped ? 'bg-slate-700 text-slate-400' : 'bg-amber-600 hover:bg-amber-500 text-black font-bold'} rounded text-[9px] font-xy">
                                 ${isEquipped ? '已穿' : '穿戴'}
                             </button>
-                            ${!isEquipped ? `<button onclick="promptListNFT(${tid}, '${pName}')" class="px-2 py-1 bg-amber-950 hover:bg-amber-900 text-amber-300 rounded text-[10px] font-xy border border-amber-600/50">寄售</button>` : ''}
+                            ${!isEquipped ? `<button onclick="promptListNFT(${tid}, '${pName}')" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-yellow-300 border border-slate-600 rounded text-[9px] font-xy">寄售</button>` : ''}
                         </div>
                     `;
-                    tabContentBackpack.appendChild(itemDiv);
+                    tabContentBackpack.appendChild(div);
                 }
             } catch (e) {
-                console.error("Fetch loot error:", e);
+                console.error("Loot refresh error:", e);
             }
         }
 
         window.equipNFT = async function(tokenId, slot, name, power) {
-            sfx.playChime();
+            sfx.playPickup();
             equippedItems[slot] = { id: tokenId, name: name, power: power };
-            player.equipPower = equippedItems.reduce((sum, itm) => sum + (itm ? itm.power : 0), 0);
+            player.equipPower = equippedItems.reduce((s, itm) => s + (itm ? itm.power : 0), 0);
             headerPowerDisplay.innerText = '+' + player.equipPower;
 
-            if (slot === 0) slotWeaponName.innerText = name.replace(/[【】]/g, '').slice(0, 4);
-            if (slot === 1) slotArmorName.innerText = name.replace(/[【】]/g, '').slice(0, 4);
-            if (slot === 2) slotRelicName.innerText = name.replace(/[【】]/g, '').slice(0, 4);
-
-            logTx(`🛡️ 穿戴神兵【${name}】！全身战力升至 +${player.equipPower} 点`, "info");
+            if (slot === 0) document.getElementById('weaponSlotName').innerText = name.replace(/[【】]/g, '').slice(0, 4);
+            logTx(`🛡️ 穿戴【${name}】！全身战力提升至 +${player.equipPower}`, "info");
             refreshLootInventory();
 
             try {
@@ -1674,17 +1350,16 @@
                 await tx.wait();
                 logTx(`✅ 装备【${name}】全链穿戴铭刻完毕！`, "success", tx.hash);
             } catch (err) {
-                console.warn("On-chain equip error:", err);
+                console.warn(err);
             }
         };
 
         window.promptListNFT = async function(tokenId, name) {
-            const priceStr = prompt(`请输入将【${name}】挂牌至全链藏宝阁的售价 (单位: MON):`, "0.01");
+            const priceStr = prompt(`请输入将【${name}】挂单至藏宝阁寄售行的售价 (单位: MON):`, "0.01");
             if (!priceStr || isNaN(priceStr) || Number(priceStr) <= 0) return;
 
-            sfx.playChime();
-            logTx(`🏷️ 正在将【${name}】以 ${priceStr} MON 挂牌至藏宝阁寄售行...`, "info");
-
+            sfx.playPickup();
+            logTx(`🏷️ 正在将【${name}】以 ${priceStr} MON 挂单至寄售行...`, "info");
             try {
                 const weiPrice = ethers.parseEther(priceStr);
                 const tx = await contract.listLoot(tokenId, weiPrice, { gasLimit: 250000n });
@@ -1693,7 +1368,6 @@
                 refreshLootInventory();
                 refreshBazaarListings();
             } catch (e) {
-                console.error(e);
                 logTx(`❌ 挂单失败: ${e.shortMessage || e.message}`, "error");
             }
         };
@@ -1714,11 +1388,9 @@
                 tabContentBazaar.innerHTML = '';
 
                 if (ids.length === 0) {
-                    tabContentBazaar.innerHTML = `<div class="text-amber-200/50 italic py-4 text-center font-xy">全链集市暂无挂单，少侠可在“我的神兵”中寄售多余宝物！</div>`;
+                    tabContentBazaar.innerHTML = `<div class="text-slate-500 italic py-4 text-center font-xy">全链集市暂无挂单，少侠可在背包中寄售神兵！</div>`;
                     return;
                 }
-
-                const typeIcons = ["🗡️", "🛡️", "📿"];
 
                 for (let i = 0; i < ids.length; i++) {
                     const tid = Number(ids[i]);
@@ -1727,39 +1399,27 @@
                     const name = names[i];
                     const rarity = rarities[i];
                     const power = Number(powers[i]);
-                    const t = Number(types[i]);
-
                     const isMine = (seller.toLowerCase() === signer.address.toLowerCase());
 
-                    const bDiv = document.createElement('div');
-                    bDiv.className = "p-2.5 rounded-xl bg-black/50 border border-yellow-500/40 flex items-center justify-between";
-                    bDiv.innerHTML = `
-                        <div class="flex items-center space-x-2.5">
-                            <div class="w-9 h-9 rounded-lg bg-amber-950/80 border border-amber-500/70 flex items-center justify-center text-base shadow">
-                                ${typeIcons[t] || '🔱'}
-                            </div>
-                            <div>
-                                <div class="font-bold font-xy text-sm text-yellow-300 flex items-center gap-1.5">
-                                    <span>${name}</span>
-                                    <span class="text-[9px] px-1 rounded bg-amber-950 text-amber-300 font-mono">#${tid}</span>
-                                </div>
-                                <div class="text-[10px] text-amber-200/70 font-mono">
-                                    战力 +${power} • ${rarity} • 卖家: ${seller.slice(0, 6)}...
-                                </div>
-                            </div>
+                    const div = document.createElement('div');
+                    div.className = "p-2 rounded-lg bg-black/60 border border-slate-700 flex items-center justify-between";
+                    div.innerHTML = `
+                        <div>
+                            <div class="font-bold font-xy text-yellow-300 text-xs">${name} <span class="font-mono text-slate-400">#${tid}</span></div>
+                            <div class="text-[9px] text-slate-400 font-mono">战力 +${power} • ${rarity}</div>
                         </div>
-                        <div class="flex items-center space-x-2">
-                            <span class="text-yellow-400 font-mono font-bold text-xs">${priceMon} MON</span>
+                        <div class="flex items-center space-x-1.5">
+                            <span class="text-yellow-400 font-pixel text-sm">${priceMon} MON</span>
                             ${isMine ? 
-                                `<button onclick="cancelListing(${tid})" class="px-2 py-1 bg-red-950 hover:bg-red-900 text-rose-300 rounded text-[10px] font-xy border border-red-600/50">撤单</button>` :
-                                `<button onclick="buyBazaarItem(${tid}, '${prices[i]}', '${name}')" class="px-2.5 py-1 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 text-black font-bold rounded text-[10px] font-xy border border-yellow-300 shadow">购买</button>`
+                                `<button onclick="cancelListing(${tid})" class="px-2 py-0.5 bg-red-950 text-rose-300 border border-red-700 rounded text-[9px]">撤单</button>` :
+                                `<button onclick="buyBazaarItem(${tid}, '${prices[i]}', '${name}')" class="px-2 py-0.5 bg-yellow-500 hover:bg-yellow-400 text-black font-bold rounded text-[9px]">购买</button>`
                             }
                         </div>
                     `;
-                    tabContentBazaar.appendChild(bDiv);
+                    tabContentBazaar.appendChild(div);
                 }
             } catch (e) {
-                console.warn("Fetch bazaar error:", e);
+                console.warn(e);
             }
         }
 
@@ -1768,7 +1428,7 @@
             try {
                 const tx = await contract.cancelListing(tokenId, { gasLimit: 200000n });
                 await tx.wait();
-                logTx(`✅ 撤单成功！神兵已归还背包！`, "success", tx.hash);
+                logTx(`✅ 撤单成功！神兵已退回背包！`, "success", tx.hash);
                 refreshLootInventory();
                 refreshBazaarListings();
             } catch (e) {
@@ -1777,8 +1437,8 @@
         };
 
         window.buyBazaarItem = async function(tokenId, priceWei, name) {
-            sfx.playChime();
-            logTx(`🛒 正在支付 ${ethers.formatEther(priceWei)} MON 竞购【${name}】...`, "info");
+            sfx.playPickup();
+            logTx(`🛒 正在支付 ${ethers.formatEther(priceWei)} MON 购买【${name}】...`, "info");
             try {
                 const fee = await provider.getFeeData();
                 const tx = await contract.buyLoot(tokenId, {
@@ -1788,63 +1448,18 @@
                     gasPrice: fee.gasPrice || 105000000000n
                 });
                 await tx.wait();
-                logTx(`🎉 购买成功！【${name}】已永久归入您的全链背包！`, "success", tx.hash);
+                logTx(`🎉 购买成功！【${name}】已进入您的全链背包！`, "success", tx.hash);
                 refreshLootInventory();
                 refreshBazaarListings();
             } catch (e) {
-                console.error(e);
                 logTx(`❌ 购买失败: ${e.shortMessage || e.message}`, "error");
             }
         };
 
-        // =========================================================================
-        // 11. 长安城擂台切磋模块 (Arena Duel System)
-        // =========================================================================
-        const arenaModal = document.getElementById('arenaModal');
-        const duelResultText = document.getElementById('duelResultText');
-
-        document.getElementById('btnOpenArena').addEventListener('click', () => {
-            document.getElementById('arenaPlayerName').innerText = SECT_CONFIGS[currentSect].heroName;
-            document.getElementById('arenaPlayerPower').innerText = `战力 +${player.equipPower + 60}`;
-            duelResultText.innerText = '';
-            arenaModal.classList.remove('hidden');
-        });
-        window.closeArenaModal = function() { arenaModal.classList.add('hidden'); };
-
-        document.getElementById('btnExecuteDuel').addEventListener('click', async () => {
-            sfx.playSlash();
-            sfx.playHit();
-            const btn = document.getElementById('btnExecuteDuel');
-            btn.disabled = true;
-            duelResultText.innerText = "⚔️ 剑光纵横！两人在擂台上交手三十回合...";
-
-            setTimeout(async () => {
-                const win = (player.equipPower + 60 >= 100);
-                if (win) {
-                    sfx.playVictory();
-                    duelResultText.innerHTML = "🎉 <b>大获全胜！</b> 少侠以深湛道法力克大唐首席，正在上链敕封战神积分...";
-                    try {
-                        const tx = await contract.recordArenaVictory("0x0000000000000000000000000000000000000001", 150, { gasLimit: 200000n });
-                        await tx.wait();
-                        player.arenaWins++;
-                        arenaWinsBadge.innerText = `胜: ${player.arenaWins}`;
-                        duelResultText.innerHTML = "🏆 <b>大获全胜！</b> 战神榜已由 Monad 落块记录 (胜场 +1)！";
-                        logTx(`👑 长安擂台切磋凯旋！战绩落块完毕！`, "success", tx.hash);
-                    } catch (e) {
-                        console.error(e);
-                    }
-                } else {
-                    sfx.playHit();
-                    duelResultText.innerHTML = "💨 <b>惜败半招！</b> 守擂弟子战力高强，建议少侠多穿戴高阶神兵再来挑战！";
-                }
-                btn.disabled = false;
-            }, 1200);
-        });
-
         function logTx(msg, type = "info", hash = "") {
             const row = document.createElement('div');
-            row.className = "flex items-center justify-between py-1 border-b border-amber-900/30";
-            let color = "text-amber-200";
+            row.className = "flex items-center justify-between py-1 border-b border-slate-800";
+            let color = "text-slate-300";
             if (type === "success") color = "text-emerald-400 font-bold";
             if (type === "sent") color = "text-yellow-300";
             if (type === "error") color = "text-rose-400";
@@ -1852,7 +1467,7 @@
 
             row.innerHTML = `
                 <span class="${color}">${msg}</span>
-                ${hash ? `<a href="https://testnet.monadexplorer.com/tx/${hash}" target="_blank" class="text-amber-400 hover:underline ml-2">验链 ↗</a>` : ''}
+                ${hash ? `<a href="https://testnet.monadexplorer.com/tx/${hash}" target="_blank" class="text-yellow-400 hover:underline ml-2">验链 ↗</a>` : ''}
             `;
             if (txLogContainer.firstChild && txLogContainer.firstChild.classList?.contains('italic')) {
                 txLogContainer.innerHTML = '';
@@ -1860,19 +1475,15 @@
             txLogContainer.prepend(row);
         }
 
-        // 按钮事件绑定
-        document.getElementById('btnSkill1').addEventListener('click', doSkill1);
-        document.getElementById('btnSkill2').addEventListener('click', doSkill2);
-        document.getElementById('btnSkill3').addEventListener('click', doSkill3);
-        document.getElementById('btnSettleOnChain').addEventListener('click', doSettleOnChain);
-        document.getElementById('btnDismissNpc').addEventListener('click', () => {
-            npcDialogueBox.style.display = 'none';
-        });
+        // Action Buttons
+        document.getElementById('btnSkill1').addEventListener('click', doNormalAttack);
+        document.getElementById('btnSkill2').addEventListener('click', () => doSkillAttack(2));
+        document.getElementById('btnSkill3').addEventListener('click', () => doSkillAttack(3));
 
         document.getElementById('btnAudioToggle').addEventListener('click', () => {
             sfx.muted = !sfx.muted;
             document.getElementById('audioIcon').innerText = sfx.muted ? '🔇' : '🔊';
-            document.getElementById('audioText').innerText = sfx.muted ? '原声: 关' : '原声: 开';
+            document.getElementById('audioText').innerText = sfx.muted ? '音效: 关' : '音效: 开';
         });
 
         // 启动引擎
