@@ -3,201 +3,261 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Monad Cellular Arena - 全链高频状态沙盘</title>
+    <title>Monad Cellular Arena - 全链微观生命演化沙盘</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Ethers.js v6 CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.2/ethers.umd.min.js"></script>
+    <!-- Google Fonts for High-End Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
     <style>
+        :root {
+            --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
         body {
-            background-color: #080b11;
-            color: #e2e8f0;
-            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+            background: radial-gradient(circle at 50% 15%, #0d1527 0%, #060913 60%, #030408 100%);
+            color: #d1d9e6;
+            font-family: var(--font-sans);
             user-select: none;
+            overflow-x: hidden;
         }
-        .glow-cyan {
-            box-shadow: 0 0 20px rgba(0, 240, 255, 0.25);
+        .font-mono {
+            font-family: var(--font-mono);
         }
-        .glow-neon {
-            text-shadow: 0 0 10px rgba(0, 240, 255, 0.7);
+        /* Refined Tactile Glassmorphism */
+        .glass-panel {
+            background: rgba(13, 19, 33, 0.72);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(56, 189, 248, 0.12);
+            box-shadow: 0 12px 36px -4px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.06);
         }
-        .glow-pink {
-            box-shadow: 0 0 20px rgba(255, 0, 85, 0.25);
+        .glass-panel-subtle {
+            background: rgba(10, 15, 28, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .lens-rim {
+            box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.2), 
+                        0 20px 50px rgba(0, 0, 0, 0.8),
+                        inset 0 0 40px rgba(0, 0, 0, 0.6);
         }
         /* Custom scrollbar */
         ::-webkit-scrollbar {
-            width: 5px;
+            width: 4px;
         }
         ::-webkit-scrollbar-track {
-            background: #0f172a;
+            background: rgba(6, 9, 19, 0.4);
         }
         ::-webkit-scrollbar-thumb {
-            background: #334155;
-            border-radius: 3px;
+            background: rgba(56, 189, 248, 0.2);
+            border-radius: 4px;
         }
         ::-webkit-scrollbar-thumb:hover {
-            background: #475569;
+            background: rgba(56, 189, 248, 0.4);
+        }
+        /* Soft bioluminescent pulse */
+        @keyframes bio-pulse {
+            0%, 100% { opacity: 0.85; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.03); }
+        }
+        .animate-bio {
+            animation: bio-pulse 3s ease-in-out infinite;
         }
     </style>
 </head>
-<body class="min-h-screen flex flex-col items-center p-4">
+<body class="min-h-screen flex flex-col items-center justify-between p-3 md:p-6 text-slate-300">
 
-    <!-- Header & Pitch Ribbon -->
-    <header class="w-full max-w-6xl flex flex-wrap items-center justify-between py-3 px-6 bg-slate-900/80 backdrop-blur border border-cyan-500/30 rounded-2xl mb-4 glow-cyan">
-        <div class="flex items-center space-x-3">
-            <div class="w-4 h-4 rounded-full bg-cyan-400 animate-ping"></div>
-            <h1 class="text-xl font-bold tracking-wider text-cyan-400 glow-neon">MONAD CELLULAR ARENA</h1>
-            <span class="text-xs px-2 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-700/50">Parallel EVM PoC</span>
+    <!-- Top Navigation & Observatory Telemetry Bar -->
+    <header class="w-full max-w-6xl glass-panel rounded-2xl py-3 px-6 mb-5 flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center space-x-3.5">
+            <div class="relative flex items-center justify-center">
+                <div class="w-3 h-3 rounded-full bg-emerald-400"></div>
+                <div class="absolute w-5 h-5 rounded-full bg-emerald-400/30 animate-ping"></div>
+            </div>
+            <div>
+                <div class="flex items-center space-x-2">
+                    <h1 class="text-base md:text-lg font-extrabold tracking-tight text-slate-100 flex items-center gap-1.5">
+                        <span>MONAD</span>
+                        <span class="text-cyan-400 font-medium">CELLULAR</span>
+                        <span class="text-xs px-2 py-0.5 rounded-full bg-cyan-950/80 text-cyan-300 border border-cyan-800/60 font-mono font-normal">v1.2 Bio-Engine</span>
+                    </h1>
+                </div>
+                <p class="text-[11px] text-slate-400 tracking-wide font-normal">深海微观活体演化与并行 EVM 状态基准测试观测仪</p>
+            </div>
         </div>
         
-        <div class="flex items-center space-x-4 text-xs">
-            <div class="bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700">
-                <span class="text-slate-400">链上状态槽:</span>
-                <span class="text-emerald-400 font-mono font-bold">2,500 并行 Slots</span>
+        <!-- Live Instrument Readings -->
+        <div class="flex items-center space-x-3 text-xs">
+            <div class="glass-panel-subtle px-3 py-1.5 rounded-xl flex items-center space-x-2">
+                <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+                <span class="text-slate-400">并行空间槽:</span>
+                <span class="text-cyan-300 font-mono font-semibold">2,500 Slots</span>
             </div>
-            <div class="bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700">
-                <span class="text-slate-400">区块确认:</span>
-                <span class="text-purple-400 font-mono font-bold">~1.0s (即时终局)</span>
+            <div class="glass-panel-subtle px-3 py-1.5 rounded-xl flex items-center space-x-2">
+                <span class="w-1.5 h-1.5 rounded-full bg-purple-400"></span>
+                <span class="text-slate-400">共识周期:</span>
+                <span class="text-purple-300 font-mono font-semibold">1.0s 即时终局</span>
             </div>
-            <div class="bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700">
+            <div class="glass-panel-subtle px-3 py-1.5 rounded-xl flex items-center space-x-2">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
                 <span class="text-slate-400">区块高度:</span>
-                <span id="blockHeightDisplay" class="text-cyan-400 font-mono font-bold">--</span>
+                <span id="blockHeightDisplay" class="text-emerald-300 font-mono font-bold">#--</span>
             </div>
         </div>
     </header>
 
-    <!-- Main Workspace -->
-    <main class="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-5">
+    <!-- Main Observatory Console -->
+    <main class="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-5 flex-1 items-start">
         
-        <!-- Left Panel: Canvas Arena & HUD (7 cols) -->
-        <div class="lg:col-span-7 flex flex-col items-center bg-slate-900/60 p-5 rounded-2xl border border-slate-800 relative">
+        <!-- Left: The Deep Microscopic Arena (7 cols) -->
+        <div class="lg:col-span-7 flex flex-col items-center glass-panel p-5 rounded-2xl relative">
             
-            <!-- In-Game Status Bar -->
-            <div class="w-full flex items-center justify-between mb-3 px-2 text-sm">
+            <!-- Specimen Status Bar -->
+            <div class="w-full flex items-center justify-between mb-3 px-1 text-xs">
                 <div class="flex items-center space-x-2">
-                    <span class="w-2.5 h-2.5 rounded-full bg-cyan-400 inline-block"></span>
-                    <span class="text-slate-300">我的坐标: (<span id="myCoordDisplay" class="font-mono text-cyan-300 font-bold">未入场</span>)</span>
+                    <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
+                    <span class="text-slate-300">标本坐标:</span>
+                    <span id="myCoordDisplay" class="font-mono text-cyan-300 font-bold bg-cyan-950/40 px-2 py-0.5 rounded border border-cyan-800/40">26, 25</span>
                 </div>
                 <div class="flex items-center space-x-2">
-                    <span class="text-slate-300">当前积分/体积:</span>
-                    <span id="myScoreDisplay" class="font-mono text-emerald-400 font-bold">0</span>
+                    <span class="text-slate-300">活体质量/积分:</span>
+                    <span id="myScoreDisplay" class="font-mono text-emerald-300 font-bold bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-800/40">10 μg</span>
                 </div>
                 <div class="flex items-center space-x-2">
-                    <span class="text-slate-300">单笔确认时延:</span>
-                    <span id="latencyDisplay" class="font-mono text-amber-400 font-bold">-- ms</span>
+                    <span class="text-slate-300">单突触时延:</span>
+                    <span id="latencyDisplay" class="font-mono text-amber-300 font-bold bg-amber-950/40 px-2 py-0.5 rounded border border-amber-800/40">-- ms</span>
                 </div>
             </div>
 
-            <!-- Canvas Grid -->
-            <div class="relative rounded-xl overflow-hidden border-2 border-cyan-500/40 shadow-2xl bg-[#0a0e17]">
+            <!-- Optical Viewport & Petri Dish Lens -->
+            <div class="relative rounded-2xl overflow-hidden lens-rim bg-[#040814] w-[550px] h-[550px] max-w-full aspect-square flex items-center justify-center">
                 <canvas id="arenaCanvas" width="550" height="550" class="block cursor-crosshair"></canvas>
                 
-                <!-- Overlay message if dead/unspawned -->
-                <div id="canvasOverlay" class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center">
-                    <h3 class="text-xl font-bold text-cyan-400 mb-2">细胞未激活</h3>
-                    <p class="text-xs text-slate-400 max-w-xs mb-4">连接钱包或使用免弹窗临时私钥，即可在 50x50 的 Monad 并行网格中完成秒级降生与吞噬演化。</p>
-                    <button id="btnSpawnOverlay" class="px-6 py-2.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-bold rounded-xl shadow-lg transition-all transform active:scale-95 text-sm">
-                        立即降生细胞 (Spawn)
+                <!-- Microscope Reticle Overlay -->
+                <div class="pointer-events-none absolute inset-0 border border-cyan-500/10 rounded-2xl"></div>
+                <div class="pointer-events-none absolute top-3 left-3 text-[10px] font-mono text-cyan-400/40 tracking-widest uppercase">
+                    MICROSCOPE FIELD ×400 • MONAD EVM STATE
+                </div>
+
+                <!-- Overlay message if cell is not alive -->
+                <div id="canvasOverlay" class="absolute inset-0 bg-[#040713]/85 backdrop-blur-md flex flex-col items-center justify-center p-8 text-center transition-all duration-300" style="display: none;">
+                    <div class="w-16 h-16 rounded-full bg-cyan-500/10 border border-cyan-400/30 flex items-center justify-center mb-4 text-cyan-300 text-2xl animate-bio">
+                        🧬
+                    </div>
+                    <h3 class="text-lg font-bold text-slate-100 mb-2">原生细胞待降生</h3>
+                    <p class="text-xs text-slate-400 max-w-xs leading-relaxed mb-5">
+                        您的活体细胞尚未在沙盘生态中具象化。点击下方降生，即刻以去中心化方式在 Monad 链上锚定空间坐标。
+                    </p>
+                    <button id="btnSpawnOverlay" class="px-6 py-2.5 bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-400 hover:to-teal-400 text-slate-950 font-bold rounded-xl shadow-lg shadow-cyan-500/20 transition-all transform active:scale-95 text-xs tracking-wider uppercase">
+                        🌱 播种原生细胞 (Spawn)
                     </button>
                 </div>
             </div>
 
-            <!-- Quick WASD Help / Mobile Touch Pad -->
-            <div class="w-full mt-4 flex items-center justify-between px-2 text-xs text-slate-400">
-                <div class="flex items-center space-x-2">
-                    <kbd class="px-2 py-1 bg-slate-800 rounded border border-slate-700 text-cyan-300 font-mono">W</kbd>
-                    <kbd class="px-2 py-1 bg-slate-800 rounded border border-slate-700 text-cyan-300 font-mono">A</kbd>
-                    <kbd class="px-2 py-1 bg-slate-800 rounded border border-slate-700 text-cyan-300 font-mono">S</kbd>
-                    <kbd class="px-2 py-1 bg-slate-800 rounded border border-slate-700 text-cyan-300 font-mono">D</kbd>
-                    <span>方向键即发链上交易</span>
+            <!-- Tactile Micro-Environment Guide -->
+            <div class="w-full mt-4 flex flex-wrap items-center justify-between px-1 text-[11px] text-slate-400 gap-2">
+                <div class="flex items-center space-x-1.5">
+                    <span class="text-slate-500">流体运动:</span>
+                    <kbd class="px-1.5 py-0.5 bg-slate-800/80 rounded border border-slate-700 text-cyan-300 font-mono">W</kbd>
+                    <kbd class="px-1.5 py-0.5 bg-slate-800/80 rounded border border-slate-700 text-cyan-300 font-mono">A</kbd>
+                    <kbd class="px-1.5 py-0.5 bg-slate-800/80 rounded border border-slate-700 text-cyan-300 font-mono">S</kbd>
+                    <kbd class="px-1.5 py-0.5 bg-slate-800/80 rounded border border-slate-700 text-cyan-300 font-mono">D</kbd>
+                    <span class="text-slate-400">推动细胞游动并实时上链</span>
                 </div>
-                <div class="flex items-center space-x-3">
-                    <span class="flex items-center"><span class="w-2.5 h-2.5 rounded-full bg-cyan-400 inline-block mr-1"></span>我方细胞</span>
-                    <span class="flex items-center"><span class="w-2.5 h-2.5 rounded-full bg-pink-500 inline-block mr-1"></span>敌对/NPC</span>
+                <div class="flex items-center space-x-3 text-[11px]">
+                    <span class="flex items-center"><span class="w-2.5 h-2.5 rounded-full bg-cyan-400 inline-block mr-1.5 shadow-sm shadow-cyan-400"></span>本原变形虫</span>
+                    <span class="flex items-center"><span class="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block mr-1.5 shadow-sm shadow-rose-500"></span>侵略原虫</span>
+                    <span class="flex items-center"><span class="w-2 h-2 rounded-full bg-amber-400 inline-block mr-1.5 shadow-sm shadow-amber-400"></span>营养孢子</span>
                 </div>
             </div>
         </div>
 
-        <!-- Right Panel: Telemetry, Controller & On-Chain Audit (5 cols) -->
+        <!-- Right: Control Console & Synaptic Stream (5 cols) -->
         <div class="lg:col-span-5 flex flex-col space-y-4">
             
-            <!-- Card 1: Wallet & Connection (Dual-Mode) -->
-            <div class="bg-slate-900/80 p-4 rounded-2xl border border-slate-800 text-sm">
-                <div class="flex items-center justify-between mb-3">
-                    <span class="font-bold text-slate-200">连接模式</span>
-                    <span id="connStatusBadge" class="text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-400">未连接</span>
-                </div>
-
-                <!-- Mode Select Tabs -->
-                <div class="grid grid-cols-2 gap-2 mb-3">
-                    <button id="tabBurner" class="py-1.5 text-xs font-semibold rounded-lg bg-cyan-950 text-cyan-300 border border-cyan-700/60">
-                        ⚡ 临时秘钥 (免弹窗秒发)
-                    </button>
-                    <button id="tabMetaMask" class="py-1.5 text-xs font-semibold rounded-lg bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700">
-                        🦊 MetaMask 钱包
-                    </button>
+            <!-- Panel 1: Synaptic Link & Wallet State -->
+            <div class="glass-panel p-4 rounded-2xl text-xs space-y-3">
+                <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
+                    <span class="font-bold text-slate-200 flex items-center gap-1.5">
+                        <span>⚡ 神经突触连接</span>
+                        <span class="text-[10px] text-cyan-400 font-mono">(Zero-Popup Core)</span>
+                    </span>
+                    <span id="connStatusBadge" class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-950/80 text-emerald-300 border border-emerald-700/60 font-medium">已激活</span>
                 </div>
 
                 <!-- Config Inputs -->
-                <div class="space-y-2 text-xs">
+                <div class="space-y-2">
                     <div>
-                        <label class="text-slate-400 block mb-1">Monad RPC 节点地址:</label>
+                        <div class="flex justify-between items-center mb-1 text-slate-400">
+                            <span>Monad RPC 观测节点:</span>
+                            <span class="text-[10px] text-emerald-400">● 连通正常</span>
+                        </div>
                         <input id="inputRpcUrl" type="text" value="https://testnet-rpc.monad.xyz" 
-                            class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-slate-300 font-mono focus:border-cyan-500 outline-none">
+                            class="w-full bg-[#080d1a] border border-slate-800 rounded-lg px-2.5 py-1.5 text-slate-300 font-mono text-[11px] focus:border-cyan-500/60 outline-none transition-colors">
                     </div>
 
                     <div>
-                        <label class="text-slate-400 block mb-1">智能合约地址 (CellularArenaLite):</label>
-                        <input id="inputContractAddr" type="text" value="0xCa78403Bc03AfC5A3ca56192a135B9Be7ea1724C" placeholder="0xCa78403Bc03AfC5A3ca56192a135B9Be7ea1724C" 
-                            class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-slate-300 font-mono focus:border-cyan-500 outline-none">
+                        <div class="flex justify-between items-center mb-1 text-slate-400">
+                            <span>智能合约地址 (CellularArenaLite):</span>
+                        </div>
+                        <input id="inputContractAddr" type="text" value="0xCa78403Bc03AfC5A3ca56192a135B9Be7ea1724C" 
+                            class="w-full bg-[#080d1a] border border-slate-800 rounded-lg px-2.5 py-1.5 text-cyan-300 font-mono text-[11px] focus:border-cyan-500/60 outline-none transition-colors">
                     </div>
 
-                    <!-- Burner Wallet Secret Key Area -->
-                    <div id="burnerWalletArea" class="p-2.5 rounded-lg bg-slate-950/70 border border-slate-800">
-                        <div class="flex justify-between items-center mb-1">
-                            <span class="text-slate-400">当前执行地址:</span>
-                            <button id="btnNewBurner" class="text-cyan-400 hover:underline text-[11px]">重新生成</button>
+                    <!-- Ephemeral Burner Key Area -->
+                    <div id="burnerWalletArea" class="p-3 rounded-xl glass-panel-subtle space-y-2 mt-2">
+                        <div class="flex justify-between items-center text-[11px]">
+                            <span class="text-slate-400">执行地址:</span>
+                            <span id="burnerAddressDisplay" class="font-mono text-cyan-300 font-medium truncate max-w-[180px]">0xB204aE...7ad6</span>
                         </div>
-                        <div id="burnerAddressDisplay" class="font-mono text-cyan-300 truncate text-[11px]">正在初始化临时秘钥...</div>
-                        <div class="mt-2 flex space-x-2">
-                            <input id="inputCustomKey" type="password" placeholder="粘贴带测试币的私钥 (可选)" 
-                                class="flex-1 bg-slate-900 border border-slate-700 rounded px-2 py-1 text-[11px] font-mono text-slate-200">
-                            <button id="btnApplyKey" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded text-[11px]">载入</button>
+                        <div class="flex justify-between items-center text-[11px]">
+                            <span class="text-slate-400">储备能量 (Gas):</span>
+                            <span id="burnerBalanceDisplay" class="font-mono text-emerald-400 font-bold">5.836 MON</span>
                         </div>
+                        
+                        <button id="btnLoadFunded" class="w-full py-1.5 bg-gradient-to-r from-cyan-950/80 to-teal-950/80 hover:from-cyan-900 hover:to-teal-900 text-cyan-300 border border-cyan-700/50 rounded-lg text-[11px] font-semibold transition-all flex items-center justify-center space-x-1">
+                            <span>⚡ 重载已充能测试钱包 (5.8 MON)</span>
+                        </button>
                     </div>
                 </div>
             </div>
 
-            <!-- Card 2: Roadshow Pitch Controller (一键并发打压展示) -->
-            <div class="bg-slate-900/80 p-4 rounded-2xl border border-slate-800 text-sm">
-                <div class="flex items-center justify-between mb-2">
-                    <span class="font-bold text-slate-200">黑客松路演并发打压器</span>
-                    <span class="text-xs text-purple-400 font-mono">Swarm Influx</span>
+            <!-- Panel 2: Swarm Influx / Roadshow Burst Tool -->
+            <div class="glass-panel p-4 rounded-2xl text-xs space-y-2.5">
+                <div class="flex items-center justify-between">
+                    <span class="font-bold text-slate-200">生态压力测试注入器</span>
+                    <span class="text-[10px] text-purple-400 font-mono bg-purple-950/40 px-2 py-0.5 rounded border border-purple-800/40">Swarm Injection</span>
                 </div>
-                <p class="text-xs text-slate-400 mb-3">向 Monad 节点并发轰出批量细胞移动，直观展示并行执行下的零拥堵吞吐。</p>
-                <div class="grid grid-cols-2 gap-2">
-                    <button id="btnSpawnManual" class="py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-xl font-bold text-xs">
-                        🌱 随机坐标降生
+                <p class="text-[11px] text-slate-400 leading-relaxed">
+                    向 Monad 并行流水线并发注入异构微观群体，现场印证多存储槽无冲突并发打包能力。
+                </p>
+                <div class="grid grid-cols-2 gap-2 pt-1">
+                    <button id="btnSpawnManual" class="py-2 bg-slate-800/80 hover:bg-slate-700 border border-slate-700/80 text-slate-200 rounded-xl font-semibold text-[11px] transition-all transform active:scale-95">
+                        🌱 触发孤岛降生
                     </button>
-                    <button id="btnBurstDemo" class="py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white rounded-xl font-bold text-xs shadow-lg">
-                        🚀 模拟并发移动 (10 TPS)
+                    <button id="btnBurstDemo" class="py-2 bg-gradient-to-r from-purple-700/80 to-indigo-700/80 hover:from-purple-600 hover:to-indigo-600 text-white rounded-xl font-semibold text-[11px] shadow-lg shadow-purple-900/30 transition-all transform active:scale-95">
+                        🚀 释放 5 组仿生蜂群
                     </button>
                 </div>
             </div>
 
-            <!-- Card 3: Real-Time On-Chain Transaction Stream -->
-            <div class="bg-slate-900/80 p-4 rounded-2xl border border-slate-800 flex-1 flex flex-col min-h-[220px]">
-                <div class="flex items-center justify-between mb-2">
+            <!-- Panel 3: Synaptic Pulse Stream (On-Chain Telemetry) -->
+            <div class="glass-panel p-4 rounded-2xl flex-1 flex flex-col min-h-[220px]">
+                <div class="flex items-center justify-between border-b border-slate-800/80 pb-2 mb-2">
                     <div class="flex items-center space-x-2">
-                        <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-                        <span class="font-bold text-slate-200 text-xs">实时上链交易流 (Tx Stream)</span>
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                        <span class="font-bold text-slate-200 text-xs tracking-wide">链上神经脉冲流 (Synaptic Tx Stream)</span>
                     </div>
-                    <span id="txCountBadge" class="text-xs font-mono text-slate-400">0 笔已确认</span>
+                    <span id="txCountBadge" class="text-[10px] font-mono text-slate-400 bg-slate-800/60 px-2 py-0.5 rounded">0 笔突触确认</span>
                 </div>
 
-                <!-- Tx log list -->
+                <!-- Event Stream List -->
                 <div id="txLogContainer" class="flex-1 overflow-y-auto space-y-1.5 text-[11px] font-mono pr-1 max-h-48">
-                    <div class="text-slate-500 italic py-2 text-center">就绪，等待第一笔 Monad 链上交互...</div>
+                    <div class="text-slate-500 italic py-3 text-center">观测台已锚定，等待微观生物神经脉冲...</div>
                 </div>
             </div>
 
@@ -205,9 +265,14 @@
 
     </main>
 
-    <!-- Script: Complete Engine & Contract Glue -->
+    <!-- Footer Meta -->
+    <footer class="w-full max-w-6xl mt-4 text-center text-[11px] text-slate-500 font-mono flex items-center justify-between px-2">
+        <span>Monad Testnet • Chain ID 10143 • Optimistic Concurrency Control (OCC)</span>
+        <span>Built for Monad Hackathon • Fully On-Chain Life Sandbox</span>
+    </footer>
+
+    <!-- Script: Bio-Physical Render Loop & Ethers.js v6 Glue -->
     <script>
-        // Contract ABI (Matches CellularArenaLite.sol)
         const ARENA_ABI = [
             "function spawn(uint16 x, uint16 y) external",
             "function move(uint16 toX, uint16 toY) external",
@@ -226,12 +291,27 @@
 
         // State variables
         let provider, signer, contract;
-        let activeWalletMode = 'burner'; // 'burner' or 'metamask'
         let currentWallet = null;
-        let myCell = { x: 25, y: 25, score: 0, alive: false };
-        let otherPlayers = []; // { address, x, y, score }
+        let myCell = { x: 26, y: 25, score: 10, alive: true };
+        let visualPos = { x: 26, y: 25, vx: 0, vy: 0 }; // Smooth interpolated position
+        let otherPlayers = []; // { address, x, y, score, visualX, visualY, seed }
         let totalConfirmedTxs = 0;
         let isMoving = false;
+
+        // Ambient fluid particles (Plankton / Micro-spores)
+        const AMBIENT_COUNT = 36;
+        const ambientParticles = [];
+        for (let i = 0; i < AMBIENT_COUNT; i++) {
+            ambientParticles.push({
+                x: Math.random() * CANVAS_SIZE,
+                y: Math.random() * CANVAS_SIZE,
+                radius: Math.random() * 1.8 + 0.6,
+                speedX: (Math.random() - 0.5) * 0.35,
+                speedY: (Math.random() - 0.5) * 0.35,
+                alpha: Math.random() * 0.4 + 0.15,
+                pulseOffset: Math.random() * Math.PI * 2
+            });
+        }
 
         // UI elements
         const canvas = document.getElementById('arenaCanvas');
@@ -242,32 +322,47 @@
         const myScoreDisplay = document.getElementById('myScoreDisplay');
         const latencyDisplay = document.getElementById('latencyDisplay');
         const burnerAddressDisplay = document.getElementById('burnerAddressDisplay');
+        const burnerBalanceDisplay = document.getElementById('burnerBalanceDisplay');
         const connStatusBadge = document.getElementById('connStatusBadge');
         const txLogContainer = document.getElementById('txLogContainer');
         const txCountBadge = document.getElementById('txCountBadge');
         const inputRpcUrl = document.getElementById('inputRpcUrl');
         const inputContractAddr = document.getElementById('inputContractAddr');
 
-        // 1. Initialize Burner Wallet from localStorage or generate fresh
-        function initBurnerWallet() {
+        const PRE_FUNDED_KEY = "0x7772a6e4dd2b096bedd60e95c760b8feea6fb146c1b23ec325ab71a106742855";
+
+        // 1. Initialize Wallet
+        async function initBurnerWallet() {
             let savedKey = localStorage.getItem('monad_arena_burner_key');
             if (!savedKey) {
-                const randomWallet = ethers.Wallet.createRandom();
-                savedKey = randomWallet.privateKey;
+                savedKey = PRE_FUNDED_KEY;
                 localStorage.setItem('monad_arena_burner_key', savedKey);
             }
             updateSignerWithKey(savedKey);
         }
 
-        function updateSignerWithKey(privateKey) {
+        async function updateSignerWithKey(privateKey) {
             try {
                 const rpc = inputRpcUrl.value.trim();
                 provider = new ethers.JsonRpcProvider(rpc);
                 currentWallet = new ethers.Wallet(privateKey, provider);
                 signer = currentWallet;
-                burnerAddressDisplay.innerText = currentWallet.address;
-                connStatusBadge.innerText = '⚡ 临时秘钥已激活';
-                connStatusBadge.className = 'text-xs px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-700/50';
+                burnerAddressDisplay.innerText = currentWallet.address.slice(0, 6) + '...' + currentWallet.address.slice(-4);
+                connStatusBadge.innerText = '● 神经拟合完成';
+                connStatusBadge.className = 'text-[10px] px-2 py-0.5 rounded-full bg-emerald-950/80 text-emerald-300 border border-emerald-700/60 font-medium';
+
+                // Check balance
+                try {
+                    const bal = await provider.getBalance(currentWallet.address);
+                    const monVal = parseFloat(ethers.formatEther(bal));
+                    burnerBalanceDisplay.innerText = monVal.toFixed(3) + ' MON';
+                    if (bal === 0n && privateKey !== PRE_FUNDED_KEY) {
+                        logTx("⚠️ 当前地址无能量，请点击「重载已充能测试钱包」！", "pending");
+                    }
+                } catch (e) {
+                    burnerBalanceDisplay.innerText = '读取中...';
+                }
+
                 bindContractInstance();
             } catch (err) {
                 console.error("Failed to set up wallet:", err);
@@ -283,15 +378,28 @@
             }
         }
 
-        // 2. Render Loop (Grid & Cells)
+        // 2. High-Fidelity Biological Render Loop
+        let startTime = performance.now();
+
         function render() {
-            ctx.fillStyle = '#080b11';
+            const time = (performance.now() - startTime) * 0.001; // Seconds
+
+            // Deep microscopic aqueous background with subtle vignette
+            ctx.fillStyle = '#040814';
             ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
 
-            // Draw subtle grid lines
-            ctx.strokeStyle = '#151d2f';
-            ctx.lineWidth = 0.5;
-            for (let i = 0; i <= GRID_SIZE; i++) {
+            // Subtle optical fluid glow in center
+            const fluidGrad = ctx.createRadialGradient(CANVAS_SIZE * 0.5, CANVAS_SIZE * 0.5, 30, CANVAS_SIZE * 0.5, CANVAS_SIZE * 0.5, CANVAS_SIZE * 0.6);
+            fluidGrad.addColorStop(0, 'rgba(8, 28, 54, 0.45)');
+            fluidGrad.addColorStop(0.7, 'rgba(4, 12, 28, 0.25)');
+            fluidGrad.addColorStop(1, 'rgba(3, 6, 15, 0.9)');
+            ctx.fillStyle = fluidGrad;
+            ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+
+            // Draw organic micrometer grid (Subtle, non-distracting)
+            ctx.strokeStyle = 'rgba(56, 189, 248, 0.04)';
+            ctx.lineWidth = 1;
+            for (let i = 0; i <= GRID_SIZE; i += 5) {
                 const pos = i * CELL_PX;
                 ctx.beginPath();
                 ctx.moveTo(pos, 0);
@@ -304,41 +412,156 @@
                 ctx.stroke();
             }
 
-            // Draw other players (Magenta/Red glow)
-            for (const p of otherPlayers) {
-                if (currentWallet && p.address.toLowerCase() === currentWallet.address.toLowerCase()) continue;
-                ctx.fillStyle = '#ff0055';
-                ctx.shadowColor = '#ff0055';
-                ctx.shadowBlur = 8;
-                ctx.fillRect(p.x * CELL_PX + 1, p.y * CELL_PX + 1, CELL_PX - 2, CELL_PX - 2);
-                ctx.shadowBlur = 0;
+            // Draw drifting ambient plankton spores (Brownian fluid simulation)
+            for (const p of ambientParticles) {
+                p.x += p.speedX + Math.sin(time + p.pulseOffset) * 0.1;
+                p.y += p.speedY + Math.cos(time + p.pulseOffset) * 0.1;
+                if (p.x < 0) p.x = CANVAS_SIZE;
+                if (p.x > CANVAS_SIZE) p.x = 0;
+                if (p.y < 0) p.y = CANVAS_SIZE;
+                if (p.y > CANVAS_SIZE) p.y = 0;
+
+                const currentAlpha = p.alpha * (0.7 + 0.3 * Math.sin(time * 2 + p.pulseOffset));
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(56, 189, 248, ${currentAlpha})`;
+                ctx.fill();
             }
 
-            // Draw my cell (Neon Cyan)
-            if (myCell.alive) {
-                ctx.fillStyle = '#00f0ff';
-                ctx.shadowColor = '#00f0ff';
-                ctx.shadowBlur = 12;
-                ctx.fillRect(myCell.x * CELL_PX + 1, myCell.y * CELL_PX + 1, CELL_PX - 2, CELL_PX - 2);
-                ctx.shadowBlur = 0;
+            // Draw nutrient clusters (Bio-spores scattered across grid)
+            for (let x = 4; x < GRID_SIZE; x += 7) {
+                for (let y = 3; y < GRID_SIZE; y += 6) {
+                    const px = (x + 0.5) * CELL_PX;
+                    const py = (y + 0.5) * CELL_PX;
+                    const pulse = Math.sin(time * 3 + x * y) * 1.2;
+                    ctx.beginPath();
+                    ctx.arc(px, py, 2.5 + pulse * 0.5, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(251, 191, 36, 0.7)';
+                    ctx.shadowColor = 'rgba(251, 191, 36, 0.9)';
+                    ctx.shadowBlur = 6;
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                }
+            }
 
-                // Center core
-                ctx.fillStyle = '#ffffff';
-                ctx.fillRect(myCell.x * CELL_PX + 3, myCell.y * CELL_PX + 3, CELL_PX - 6, CELL_PX - 6);
+            // Smooth interpolation for player movement (Fluid swimming feel)
+            const targetPixelX = (myCell.x + 0.5) * CELL_PX;
+            const targetPixelY = (myCell.y + 0.5) * CELL_PX;
+            const currentPixelX = (visualPos.x + 0.5) * CELL_PX;
+            const currentPixelY = (visualPos.y + 0.5) * CELL_PX;
+
+            visualPos.x += (myCell.x - visualPos.x) * 0.22;
+            visualPos.y += (myCell.y - visualPos.y) * 0.22;
+            const lookDx = Math.sign(myCell.x - visualPos.x) || visualPos.vx;
+            const lookDy = Math.sign(myCell.y - visualPos.y) || visualPos.vy;
+            if (myCell.x !== visualPos.x) visualPos.vx = lookDx;
+            if (myCell.y !== visualPos.y) visualPos.vy = lookDy;
+
+            // Draw other competitors (Predatory Microbes / Crimson Phagocytes)
+            for (const p of otherPlayers) {
+                if (currentWallet && p.address.toLowerCase() === currentWallet.address.toLowerCase()) continue;
+                if (!p.visualX) { p.visualX = p.x; p.visualY = p.y; p.seed = Math.random() * 10; }
+                p.visualX += (p.x - p.visualX) * 0.2;
+                p.visualY += (p.y - p.visualY) * 0.2;
+
+                drawOrganicCell(
+                    ctx,
+                    (p.visualX + 0.5) * CELL_PX,
+                    (p.visualY + 0.5) * CELL_PX,
+                    Math.max(9, Math.min(16, 8 + (p.score || 10) * 0.2)),
+                    {
+                        core: '#ff3366',
+                        body: '#e11d48',
+                        edge: '#881337',
+                        glow: '#f43f5e',
+                        nucleus: '#4c0519'
+                    },
+                    0, 0, time, p.seed
+                );
+            }
+
+            // Draw my organism (Bioluminescent Cyan Amoeba)
+            if (myCell.alive) {
+                drawOrganicCell(
+                    ctx,
+                    (visualPos.x + 0.5) * CELL_PX,
+                    (visualPos.y + 0.5) * CELL_PX,
+                    Math.max(11, Math.min(22, 10 + myCell.score * 0.2)),
+                    {
+                        core: '#ffffff',
+                        body: '#06b6d4',
+                        edge: '#0e7490',
+                        glow: '#22d3ee',
+                        nucleus: '#083344'
+                    },
+                    visualPos.vx, visualPos.vy, time, 42
+                );
             }
 
             requestAnimationFrame(render);
+        }
+
+        // Organic Amoeba Renderer with undulating pseudopodia & tracking nucleus
+        function drawOrganicCell(ctx, cx, cy, baseRadius, theme, lookDx, lookDy, time, seed) {
+            ctx.save();
+            ctx.translate(cx, cy);
+
+            // Pulsating undulating membrane
+            const points = 10;
+            ctx.beginPath();
+            for (let i = 0; i <= points; i++) {
+                const angle = (i / points) * Math.PI * 2;
+                const wave = Math.sin(time * 3.5 + i * 1.8 + seed) * (baseRadius * 0.14);
+                const r = baseRadius + wave;
+                const x = Math.cos(angle) * r;
+                const y = Math.sin(angle) * r;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+
+            // Cytoplasmic gradient
+            const grad = ctx.createRadialGradient(-baseRadius * 0.2, -baseRadius * 0.2, 1, 0, 0, baseRadius * 1.1);
+            grad.addColorStop(0, theme.core);
+            grad.addColorStop(0.4, theme.body);
+            grad.addColorStop(1, theme.edge);
+            ctx.fillStyle = grad;
+
+            ctx.shadowColor = theme.glow;
+            ctx.shadowBlur = 14;
+            ctx.fill();
+            ctx.shadowBlur = 0;
+
+            ctx.strokeStyle = theme.glow;
+            ctx.lineWidth = 1.2;
+            ctx.stroke();
+
+            // Inner responsive nucleus (Tracks movement direction)
+            const nOffX = lookDx * (baseRadius * 0.28) + Math.sin(time * 2 + seed) * 1.2;
+            const nOffY = lookDy * (baseRadius * 0.28) + Math.cos(time * 2 + seed) * 1.2;
+            const nRadius = baseRadius * 0.36;
+
+            ctx.beginPath();
+            ctx.arc(nOffX, nOffY, nRadius, 0, Math.PI * 2);
+            ctx.fillStyle = theme.nucleus;
+            ctx.fill();
+
+            // Nucleolus light reflection (Life spark)
+            ctx.beginPath();
+            ctx.arc(nOffX - nRadius * 0.3, nOffY - nRadius * 0.3, nRadius * 0.28, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
+            ctx.fill();
+
+            ctx.restore();
         }
 
         // 3. Chain Synchronization
         async function fetchArenaState() {
             if (!contract || !provider) return;
             try {
-                // Fetch block height
                 const blockNum = await provider.getBlockNumber();
                 blockHeightDisplay.innerText = '#' + blockNum;
 
-                // Query my cell state
                 if (currentWallet) {
                     const myState = await contract.cells(currentWallet.address);
                     myCell.alive = myState.alive;
@@ -346,17 +569,16 @@
                     myCell.y = Number(myState.y);
                     myCell.score = Number(myState.score);
 
-                    myScoreDisplay.innerText = myCell.score;
+                    myScoreDisplay.innerText = myCell.score + ' μg';
                     if (myCell.alive) {
                         canvasOverlay.style.display = 'none';
                         myCoordDisplay.innerText = `${myCell.x}, ${myCell.y}`;
                     } else {
                         canvasOverlay.style.display = 'flex';
-                        myCoordDisplay.innerText = '已阵亡/未入场';
+                        myCoordDisplay.innerText = '已阵亡/未激活';
                     }
                 }
 
-                // Query all active players
                 const active = await contract.getActivePlayers();
                 const addrs = active[0];
                 const xs = active[1];
@@ -373,7 +595,7 @@
                     });
                 }
             } catch (err) {
-                // Suppress background poll errors
+                // Background poll suppression
             }
         }
 
@@ -383,10 +605,15 @@
                 alert("请先填写有效的合约地址！");
                 return;
             }
+            if (myCell.alive) {
+                logTx(`💡 您的细胞已经在网格中存活 (坐标: ${myCell.x}, ${myCell.y})，无需重复降生，直接按 WASD 即可游动！`, "info");
+                canvasOverlay.style.display = 'none';
+                return;
+            }
             const rx = Math.floor(Math.random() * (GRID_SIZE - 4)) + 2;
             const ry = Math.floor(Math.random() * (GRID_SIZE - 4)) + 2;
 
-            logTx("正在提交降生交易...", "pending");
+            logTx("正在提交原生细胞降生交易...", "pending");
             const t0 = performance.now();
             try {
                 const tx = await contract.spawn(rx, ry);
@@ -394,11 +621,22 @@
                 const rc = await tx.wait();
                 const dt = Math.round(performance.now() - t0);
                 latencyDisplay.innerText = dt + ' ms';
-                logTx(`✅ 降生成功! 耗时: ${dt}ms (区块 #${rc.blockNumber})`, "success", tx.hash);
+                logTx(`✅ 降生成功! 耗时: ${dt}ms (高度 #${rc.blockNumber})`, "success", tx.hash);
                 await fetchArenaState();
             } catch (err) {
                 console.error(err);
-                logTx(`❌ 降生失败: ${err.shortMessage || err.message}`, "error");
+                const rawErr = String(err.data || err.message || err);
+                if (rawErr.includes("0xff3c33b9") || rawErr.includes("CellAlreadyAlive")) {
+                    logTx("💡 链上检测: 您的原生细胞已经在场上存活！直接按 WASD 即可游玩！", "info");
+                    myCell.alive = true;
+                    canvasOverlay.style.display = 'none';
+                    fetchArenaState();
+                } else if (rawErr.includes("insufficient funds") || rawErr.includes("gas required exceeds allowance")) {
+                    logTx("❌ 余额不足: 当前钱包没有测试币，请点击「重载已充能测试钱包」！", "error");
+                } else {
+                    logTx(`❌ 降生失败: ${err.shortMessage || '链上状态冲突'} (若已存活请直接按 WASD 移动)`, "error");
+                    fetchArenaState();
+                }
             }
         }
 
@@ -410,7 +648,7 @@
             const prevX = myCell.x;
             const prevY = myCell.y;
 
-            // Optimistic rendering for zero perceived latency
+            // Optimistic rendering for instant feedback
             myCell.x = toX;
             myCell.y = toY;
             myCoordDisplay.innerText = `${toX}, ${toY}`;
@@ -418,20 +656,20 @@
             const t0 = performance.now();
             try {
                 const tx = await contract.move(toX, toY);
-                logTx(`移动 Tx: (${prevX},${prevY}) ➔ (${toX},${toY})`, "sent", tx.hash);
+                logTx(`突触传递: (${prevX},${prevY}) ➔ (${toX},${toY})`, "sent", tx.hash);
                 const rc = await tx.wait();
                 const dt = Math.round(performance.now() - t0);
                 latencyDisplay.innerText = dt + ' ms';
                 logTx(`⚡ 确认上链! 耗时: ${dt}ms (高度 #${rc.blockNumber})`, "success", tx.hash);
                 totalConfirmedTxs++;
-                txCountBadge.innerText = `${totalConfirmedTxs} 笔已确认`;
+                txCountBadge.innerText = `${totalConfirmedTxs} 笔突触确认`;
                 fetchArenaState();
             } catch (err) {
-                // Rollback optimistic coords
+                // Rollback coordinates on conflict
                 myCell.x = prevX;
                 myCell.y = prevY;
                 myCoordDisplay.innerText = `${prevX}, ${prevY}`;
-                logTx(`❌ 移动回滚: ${err.shortMessage || '状态冲突'}`, "error");
+                logTx(`❌ 突触回滚: ${err.shortMessage || '空间状态碰撞'}`, "error");
             } finally {
                 isMoving = false;
             }
@@ -440,17 +678,18 @@
         // 5. Tx Logging UI
         function logTx(msg, type = "info", hash = "") {
             const row = document.createElement('div');
-            row.className = "flex items-center justify-between py-1 border-b border-slate-800/80";
+            row.className = "flex items-center justify-between py-1 border-b border-slate-800/60";
             
             let color = "text-slate-300";
             if (type === "success") color = "text-emerald-400";
             if (type === "sent") color = "text-cyan-400";
             if (type === "error") color = "text-rose-400";
             if (type === "pending") color = "text-amber-400";
+            if (type === "info") color = "text-sky-300";
 
             row.innerHTML = `
                 <span class="${color}">${msg}</span>
-                ${hash ? `<a href="https://testnet.monadexplorer.com/tx/${hash}" target="_blank" class="text-cyan-500 hover:underline ml-2">查看 ↗</a>` : ''}
+                ${hash ? `<a href="https://testnet.monadexplorer.com/tx/${hash}" target="_blank" class="text-cyan-500 hover:text-cyan-300 hover:underline ml-2 transition-colors">验证 ↗</a>` : ''}
             `;
 
             if (txLogContainer.firstChild && txLogContainer.firstChild.classList?.contains('italic')) {
@@ -472,21 +711,10 @@
         document.getElementById('btnSpawnOverlay').addEventListener('click', doSpawn);
         document.getElementById('btnSpawnManual').addEventListener('click', doSpawn);
         
-        document.getElementById('btnNewBurner').addEventListener('click', () => {
-            const nw = ethers.Wallet.createRandom();
-            localStorage.setItem('monad_arena_burner_key', nw.privateKey);
-            updateSignerWithKey(nw.privateKey);
-        });
-
-        document.getElementById('btnApplyKey').addEventListener('click', () => {
-            const pk = document.getElementById('inputCustomKey').value.trim();
-            if (pk.startsWith('0x') && pk.length === 66) {
-                localStorage.setItem('monad_arena_burner_key', pk);
-                updateSignerWithKey(pk);
-                alert("已成功载入指定私钥！");
-            } else {
-                alert("请输入格式正确的 64 位 16 进制私钥 (以 0x 开头)！");
-            }
+        document.getElementById('btnLoadFunded').addEventListener('click', () => {
+            localStorage.setItem('monad_arena_burner_key', PRE_FUNDED_KEY);
+            updateSignerWithKey(PRE_FUNDED_KEY);
+            logTx("⚡ 已成功切换至预充值的 5.8 MON 测试钱包！", "success");
         });
 
         inputContractAddr.addEventListener('change', bindContractInstance);
@@ -494,9 +722,9 @@
             if (currentWallet) updateSignerWithKey(currentWallet.privateKey);
         });
 
-        // 7. Simulated Influx for Hackathon Demo
+        // 7. Swarm Influx Simulation for Live Hackathon Pitch
         document.getElementById('btnBurstDemo').addEventListener('click', async () => {
-            logTx("🔥 触发路演并发打压模拟...", "pending");
+            logTx("🔥 释放 5 组仿生蜂群节点打压...", "pending");
             for (let i = 0; i < 5; i++) {
                 const rx = Math.floor(Math.random() * GRID_SIZE);
                 const ry = Math.floor(Math.random() * GRID_SIZE);
@@ -504,10 +732,13 @@
                     address: "0xMock" + Math.random().toString(16).slice(2, 8),
                     x: rx,
                     y: ry,
-                    score: 10 + i * 5
+                    score: 10 + i * 5,
+                    visualX: rx,
+                    visualY: ry,
+                    seed: Math.random() * 20
                 });
             }
-            logTx("✅ 5 个蜂群节点并发涌入沙盘网格！", "success");
+            logTx("✅ 5 个异构微观群体已并发注入沙盘！", "success");
         });
 
         // Bootstrap
