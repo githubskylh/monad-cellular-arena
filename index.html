@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>全链梦幻西游：章节伏魔录 - Monad Session Settlement</title>
+    <title>全链梦幻西游 V2：多章节伏魔与神兵穿戴 - Monad High-Speed L1</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Ethers.js v6 CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.2/ethers.umd.min.js"></script>
-    <!-- Classical Chinese & Monospace Fonts -->
+    <!-- Classical Chinese Fonts & Monospace -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=ZCOOL+XiaoWei&family=Plus+Jakarta+Sans:wght@500;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
@@ -20,7 +20,7 @@
             --font-mono: 'JetBrains Mono', monospace;
         }
         body {
-            background: radial-gradient(circle at 50% 10%, #15241c 0%, #0a130f 50%, #040806 100%);
+            background: radial-gradient(circle at 50% 8%, #14241c 0%, #09120e 45%, #040806 100%);
             color: #e2e8f0;
             font-family: var(--font-ui);
             user-select: none;
@@ -30,67 +30,86 @@
         .font-mono { font-family: var(--font-mono); }
         
         .mh-panel {
-            background: rgba(14, 25, 20, 0.85);
+            background: rgba(14, 25, 20, 0.88);
             backdrop-filter: blur(14px);
             -webkit-backdrop-filter: blur(14px);
-            border: 1px solid rgba(234, 179, 8, 0.25);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(253, 224, 71, 0.1);
+            border: 1px solid rgba(234, 179, 8, 0.28);
+            box-shadow: 0 10px 32px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(253, 224, 71, 0.12);
         }
-        .mh-gold-glow { text-shadow: 0 0 14px rgba(250, 204, 21, 0.7); }
+        .mh-gold-glow { text-shadow: 0 0 16px rgba(250, 204, 21, 0.75); }
         .mh-border {
             border: 2px solid #ca8a04;
-            box-shadow: 0 0 18px rgba(202, 138, 4, 0.35), inset 0 0 12px rgba(0,0,0,0.6);
+            box-shadow: 0 0 20px rgba(202, 138, 4, 0.4), inset 0 0 14px rgba(0,0,0,0.6);
         }
         .bar-hp {
-            background: linear-gradient(90deg, #dc2626 0%, #ef4444 100%);
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            background: linear-gradient(90deg, #b91c1c 0%, #ef4444 60%, #f87171 100%);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
         }
         .bar-mp {
-            background: linear-gradient(90deg, #2563eb 0%, #3b82f6 100%);
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            background: linear-gradient(90deg, #1d4ed8 0%, #3b82f6 60%, #60a5fa 100%);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
         }
         @keyframes loot-pulse {
-            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 8px rgba(250, 204, 21, 0.8)); }
-            50% { transform: scale(1.04); filter: drop-shadow(0 0 22px rgba(250, 204, 21, 1)); }
+            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 6px rgba(250, 204, 21, 0.8)); }
+            50% { transform: scale(1.03); filter: drop-shadow(0 0 18px rgba(250, 204, 21, 1)); }
         }
-        .animate-loot { animation: loot-pulse 2s ease-in-out infinite; }
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.3); }
+        .animate-loot { animation: loot-pulse 2.2s ease-in-out infinite; }
+        
+        /* 技能冷却半透明遮罩 */
+        .cd-mask {
+            background: rgba(0, 0, 0, 0.65);
+            pointer-events: none;
+        }
+
+        /* 装备槽位高亮光圈 */
+        .equip-slot {
+            background: radial-gradient(circle, rgba(202, 138, 4, 0.15) 0%, rgba(0,0,0,0.4) 100%);
+            border: 1px solid rgba(234, 179, 8, 0.45);
+            box-shadow: inset 0 0 8px rgba(202, 138, 4, 0.25);
+            transition: all 0.2s ease;
+        }
+        .equip-slot:hover {
+            border-color: #facc15;
+            box-shadow: 0 0 12px rgba(250, 204, 21, 0.5);
+        }
+
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.4); }
         ::-webkit-scrollbar-thumb { background: #ca8a04; border-radius: 4px; }
     </style>
 </head>
-<body class="min-h-screen flex flex-col items-center justify-between p-3 md:p-5">
+<body class="min-h-screen flex flex-col items-center justify-between p-2 md:p-4">
 
-    <!-- Top Ribbon: 章节伏魔与清算总览 -->
-    <header class="w-full max-w-6xl mh-panel rounded-2xl py-3 px-6 mb-4 flex flex-wrap items-center justify-between gap-4 border-amber-600/40">
-        <div class="flex items-center space-x-3.5">
-            <div class="w-10 h-10 rounded-xl bg-amber-950/80 border border-amber-500/50 flex items-center justify-center text-xl shadow-md">
+    <!-- Top Ribbon: 梦幻西游 V2 全景总览 -->
+    <header class="w-full max-w-6xl mh-panel rounded-2xl py-2.5 px-5 mb-3 flex flex-wrap items-center justify-between gap-3 border-amber-600/40">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-xl bg-amber-950/90 border border-amber-500/60 flex items-center justify-center text-xl shadow-lg">
                 📜
             </div>
             <div>
                 <div class="flex items-center space-x-2">
                     <h1 class="text-lg md:text-xl font-bold font-xy tracking-wider text-amber-300 mh-gold-glow flex items-center gap-2">
-                        <span>全链梦幻西游</span>
-                        <span id="chapterTitleBadge" class="text-xs px-2 py-0.5 rounded bg-amber-950 text-amber-200 border border-amber-600/60 font-sans">第一章 • 东海沉船试炼</span>
+                        <span>全链梦幻西游 V2</span>
+                        <span id="chapterTitleBadge" class="text-xs px-2.5 py-0.5 rounded-full bg-amber-950 text-amber-200 border border-amber-500/60 font-sans">第 1 章 • 东海沉船试炼</span>
                     </h1>
                 </div>
                 <p class="text-[11px] text-amber-200/70 font-xy tracking-wide">
-                    关卡内 0 Gas 极速畅玩 • 关底一键合并清算 • 节省 95% Gas 兼得神兵 NFT
+                    0 Gas 极速畅斗 • 经典大唐三式绝学 • 关底一键合并清算 • 神兵穿戴即时增幅
                 </p>
             </div>
         </div>
         
-        <!-- Live Settlement Telemetry -->
-        <div class="flex items-center space-x-3 text-xs font-mono">
-            <div class="bg-black/40 border border-amber-700/40 px-3 py-1.5 rounded-xl flex items-center space-x-2">
-                <span class="text-slate-400">清算模式:</span>
-                <span class="text-emerald-400 font-bold font-xy">章节聚合上链 (Batch)</span>
+        <!-- Live Telemetry & Audio Toggle -->
+        <div class="flex items-center space-x-2 text-xs font-mono">
+            <button id="btnAudioToggle" class="bg-black/50 hover:bg-black/80 border border-amber-600/50 px-2.5 py-1.5 rounded-xl flex items-center space-x-1.5 text-amber-300 transition-colors">
+                <span id="audioIcon">🔊</span>
+                <span id="audioText" class="font-xy text-[11px]">仙侠原声: 开</span>
+            </button>
+            <div class="bg-black/50 border border-amber-700/40 px-3 py-1.5 rounded-xl flex items-center space-x-2">
+                <span class="text-slate-400">穿戴战力:</span>
+                <span id="headerPowerDisplay" class="text-yellow-400 font-bold font-mono">+65</span>
             </div>
-            <div class="bg-black/40 border border-amber-700/40 px-3 py-1.5 rounded-xl flex items-center space-x-2">
-                <span class="text-slate-400">已铸神兵:</span>
-                <span id="nftTotalDisplay" class="text-yellow-400 font-bold">1 件</span>
-            </div>
-            <div class="bg-black/40 border border-amber-700/40 px-3 py-1.5 rounded-xl flex items-center space-x-2">
+            <div class="bg-black/50 border border-amber-700/40 px-3 py-1.5 rounded-xl flex items-center space-x-2">
                 <span class="text-slate-400">Monad 高度:</span>
                 <span id="blockHeightDisplay" class="text-emerald-400 font-bold">#--</span>
             </div>
@@ -98,166 +117,236 @@
     </header>
 
     <!-- Main Game Area -->
-    <main class="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-5 flex-1 items-start">
+    <main class="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-4 flex-1 items-start">
         
-        <!-- Left: Canvas Map & Battle Stage (7 cols) -->
-        <div class="lg:col-span-7 flex flex-col items-center mh-panel p-4 rounded-2xl relative">
+        <!-- Left: Canvas Map, Battle HUD, Skill Bar (7 cols) -->
+        <div class="lg:col-span-7 flex flex-col items-center mh-panel p-3.5 rounded-2xl relative">
             
-            <!-- Character Head & Chapter Progress HUD -->
-            <div class="w-full flex items-center justify-between mb-3 px-3 bg-black/50 py-2.5 rounded-xl border border-amber-900/40">
-                <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 rounded-lg bg-gradient-to-b from-blue-600 to-indigo-900 border border-amber-400/80 flex items-center justify-center text-lg shadow">
-                        🧑‍🎤
-                    </div>
-                    <div>
-                        <div class="flex items-center space-x-2">
-                            <span class="font-bold font-xy text-sm text-amber-200">剑侠客</span>
-                            <span id="playerLevelBadge" class="text-[10px] px-1.5 py-0.2 rounded bg-amber-900/60 text-amber-300 border border-amber-600/40 font-mono">Lv.1</span>
-                            <span class="text-[11px] font-mono text-cyan-300 ml-2">坐标: (<span id="coordDisplay">15, 15</span>)</span>
+            <!-- Character Status & Paper Doll Quick Slots HUD -->
+            <div class="w-full bg-black/60 p-2.5 rounded-xl border border-amber-900/50 mb-2.5">
+                <div class="flex items-center justify-between">
+                    <!-- Left: Hero Info & Dual Bar (HP/MP) -->
+                    <div class="flex items-center space-x-3">
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-b from-blue-700 to-indigo-950 border-2 border-amber-400/80 flex items-center justify-center text-2xl shadow-md relative">
+                            🧑‍🎤
+                            <span id="playerLevelBadge" class="absolute -bottom-1 -right-1 text-[9px] px-1 rounded bg-amber-950 text-amber-300 border border-amber-500 font-mono font-bold">Lv.2</span>
                         </div>
-                        <div class="flex items-center space-x-3 mt-1 text-[10px] font-mono">
-                            <div class="flex items-center space-x-1">
-                                <span class="text-rose-400 font-bold">气血:</span>
-                                <div class="w-20 h-2 bg-slate-900 rounded-full overflow-hidden border border-rose-900/60">
-                                    <div id="hpBarFill" class="h-full bar-hp w-full"></div>
+                        <div class="space-y-1">
+                            <div class="flex items-center space-x-2">
+                                <span class="font-bold font-xy text-sm text-amber-200">剑侠客 (大唐官府)</span>
+                                <span class="text-[10px] font-mono text-cyan-300">坐标: (<span id="coordDisplay">15, 15</span>)</span>
+                            </div>
+                            <div class="flex items-center space-x-3 text-[10px] font-mono">
+                                <!-- HP Bar -->
+                                <div class="flex items-center space-x-1">
+                                    <span class="text-rose-400 font-bold">气血:</span>
+                                    <div class="w-20 h-2.5 bg-slate-950 rounded-full overflow-hidden border border-rose-900/80">
+                                        <div id="hpBarFill" class="h-full bar-hp w-full transition-all duration-200"></div>
+                                    </div>
+                                    <span id="hpText" class="w-14 text-right">300/300</span>
                                 </div>
-                                <span id="hpText">250/250</span>
-                            </div>
-                            <div class="flex items-center space-x-1">
-                                <span class="text-amber-300 font-bold">击破进度:</span>
-                                <span id="killProgressText" class="text-emerald-400 font-bold">0 / 3</span>
+                                <!-- MP Bar -->
+                                <div class="flex items-center space-x-1">
+                                    <span class="text-blue-400 font-bold">魔法:</span>
+                                    <div class="w-16 h-2.5 bg-slate-950 rounded-full overflow-hidden border border-blue-900/80">
+                                        <div id="mpBarFill" class="h-full bar-mp w-full transition-all duration-200"></div>
+                                    </div>
+                                    <span id="mpText" class="w-12 text-right">150/150</span>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Action Button -->
-                <div class="flex items-center space-x-2">
-                    <button id="btnAttackManual" class="px-3.5 py-2 bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-amber-100 font-bold font-xy text-xs rounded-xl shadow-lg border border-amber-400/60 flex items-center space-x-1 transition-transform transform active:scale-95">
-                        <span>⚔️ 拔剑斩击 (空格)</span>
-                    </button>
+                    <!-- Right: Paper Doll 3 Equipment Slots (武器, 宝甲, 法宝) -->
+                    <div class="flex items-center space-x-2">
+                        <!-- Slot 0: Weapon -->
+                        <div id="slotWeapon" class="equip-slot w-11 h-12 rounded-lg flex flex-col items-center justify-center cursor-pointer relative" title="武器槽位">
+                            <span class="text-base">🗡️</span>
+                            <span id="slotWeaponName" class="text-[9px] font-xy text-yellow-300 truncate max-w-[42px]">青锋剑</span>
+                            <span class="absolute -top-1 -right-1 text-[8px] bg-red-950 border border-red-500 rounded px-0.5 text-amber-300">武</span>
+                        </div>
+                        <!-- Slot 1: Armor -->
+                        <div id="slotArmor" class="equip-slot w-11 h-12 rounded-lg flex flex-col items-center justify-center cursor-pointer relative" title="宝甲槽位">
+                            <span class="text-base">🛡️</span>
+                            <span id="slotArmorName" class="text-[9px] font-xy text-yellow-300 truncate max-w-[42px]">黄金甲</span>
+                            <span class="absolute -top-1 -right-1 text-[8px] bg-amber-950 border border-amber-500 rounded px-0.5 text-amber-300">甲</span>
+                        </div>
+                        <!-- Slot 2: Relic -->
+                        <div id="slotRelic" class="equip-slot w-11 h-12 rounded-lg flex flex-col items-center justify-center cursor-pointer relative" title="法宝槽位">
+                            <span class="text-base">📿</span>
+                            <span id="slotRelicName" class="text-[9px] font-xy text-slate-400 truncate max-w-[42px]">未装备</span>
+                            <span class="absolute -top-1 -right-1 text-[8px] bg-blue-950 border border-blue-500 rounded px-0.5 text-cyan-300">宝</span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- The Game Map Canvas -->
+            <!-- The Game Map Canvas Container -->
             <div class="relative rounded-xl overflow-hidden mh-border bg-[#101b14] w-[550px] h-[550px] max-w-full aspect-square flex items-center justify-center">
-                <canvas id="gameCanvas" width="550" height="550" class="block cursor-pointer"></canvas>
+                <canvas id="gameCanvas" width="550" height="550" class="block cursor-crosshair"></canvas>
                 
-                <!-- Floating Toast Notification -->
-                <div id="battleToast" class="pointer-events-none absolute top-5 left-1/2 transform -translate-x-1/2 opacity-0 transition-opacity duration-300 bg-red-950/90 border border-red-500 text-amber-200 px-4 py-1.5 rounded-full text-xs font-xy font-bold shadow-2xl">
-                    ⚔️ 剑光划过！对野怪造成暴击伤害！
+                <!-- Floating NPC Story Dialogue (剧情引导对话框) -->
+                <div id="npcDialogueBox" class="absolute bottom-3 left-3 right-3 bg-black/90 border border-amber-500/70 rounded-xl p-2.5 flex items-center space-x-3 shadow-2xl backdrop-blur-md transition-opacity duration-300">
+                    <div id="npcAvatar" class="w-10 h-10 rounded-lg bg-amber-950 border border-amber-400 flex items-center justify-center text-xl shrink-0">
+                        👴
+                    </div>
+                    <div class="flex-1">
+                        <div class="text-[11px] font-bold font-xy text-amber-300" id="npcName">建邺城老村长:</div>
+                        <div class="text-[11px] text-amber-100/90 font-xy leading-tight" id="npcText">
+                            少侠留步！东海沉船被水妖侵扰，请持大唐青锋剑诛灭妖孽！按 1 普攻，按 2/Q 施展【横扫千军】！
+                        </div>
+                    </div>
+                    <button id="btnDismissNpc" class="px-2 py-1 bg-amber-900/70 hover:bg-amber-800 text-amber-200 rounded text-[10px] font-xy border border-amber-600/60">
+                        知晓
+                    </button>
                 </div>
 
                 <!-- STAGE CLEARANCE BANNER (关卡大捷弹窗) -->
                 <div id="clearanceOverlay" class="absolute inset-0 bg-black/85 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center transition-all duration-300" style="display: none;">
-                    <div class="w-16 h-16 rounded-2xl bg-amber-900/60 border-2 border-yellow-400 flex items-center justify-center text-3xl shadow-2xl animate-loot mb-3">
+                    <div class="w-16 h-16 rounded-2xl bg-amber-900/80 border-2 border-yellow-400 flex items-center justify-center text-3xl shadow-2xl animate-loot mb-3">
                         🏆
                     </div>
-                    <h2 class="text-xl font-bold font-xy text-yellow-300 mb-1 mh-gold-glow">第一章 • 东海沉船大捷！</h2>
-                    <p class="text-xs text-amber-200/80 max-w-sm mb-4 leading-relaxed font-xy">
-                        少侠剑光如练，沉船妖物悉数伏诛！关卡数据已在本地严密聚合，点击一键奏报天庭，合并上链并敕封神兵利器！
+                    <h2 id="clearanceTitle" class="text-xl font-bold font-xy text-yellow-300 mb-1 mh-gold-glow">第一章 • 东海沉船大捷！</h2>
+                    <p id="clearanceSubtext" class="text-xs text-amber-200/80 max-w-sm mb-4 leading-relaxed font-xy">
+                        少侠神勇无比，关内战况已由本地引擎毫厘不差严密聚合。点击下方按钮一键上链清算，敕封专属神兵 NFT！
                     </p>
                     
                     <!-- Chapter Summary Stats -->
-                    <div class="grid grid-cols-3 gap-3 w-full max-w-xs bg-black/60 p-3 rounded-xl border border-amber-800/60 mb-4 text-xs font-mono">
+                    <div class="grid grid-cols-4 gap-2 w-full max-w-sm bg-black/60 p-3 rounded-xl border border-amber-800/60 mb-4 text-xs font-mono">
                         <div>
-                            <div class="text-slate-400 text-[10px]">累计物理伤害</div>
-                            <div id="summaryDamage" class="text-red-400 font-bold text-sm">380 点</div>
+                            <div class="text-slate-400 text-[10px]">累计伤害</div>
+                            <div id="summaryDamage" class="text-red-400 font-bold text-sm">450</div>
                         </div>
                         <div>
-                            <div class="text-slate-400 text-[10px]">击破妖魔</div>
-                            <div id="summaryKills" class="text-yellow-400 font-bold text-sm">3 只</div>
+                            <div class="text-slate-400 text-[10px]">斩灭妖魔</div>
+                            <div id="summaryKills" class="text-yellow-400 font-bold text-sm">3</div>
+                        </div>
+                        <div>
+                            <div class="text-slate-400 text-[10px]">大唐绝技</div>
+                            <div id="summarySkills" class="text-blue-400 font-bold text-sm">2 次</div>
                         </div>
                         <div>
                             <div class="text-slate-400 text-[10px]">探索步数</div>
-                            <div id="summarySteps" class="text-cyan-400 font-bold text-sm">18 步</div>
+                            <div id="summarySteps" class="text-cyan-400 font-bold text-sm">22 步</div>
                         </div>
                     </div>
 
                     <!-- Settlement Action Button -->
-                    <button id="btnSettleOnChain" class="px-6 py-3 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-bold font-xy text-sm rounded-xl shadow-xl shadow-amber-500/20 border border-yellow-300 flex items-center space-x-2 transition-transform transform active:scale-95">
-                        <span>📜 奏请天庭 • 一键聚合清算与铸造神兵</span>
+                    <button id="btnSettleOnChain" class="px-6 py-3 bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-bold font-xy text-sm rounded-xl shadow-xl shadow-amber-500/25 border border-yellow-300 flex items-center space-x-2 transition-transform transform active:scale-95">
+                        <span>📜 奏请天庭 • 一键聚合清算与铸造神兵 (Monad)</span>
                     </button>
                     <div id="settlingSpinner" class="hidden mt-2 text-xs text-amber-300 font-mono animate-pulse">
-                        ⏳ 正在广播单笔原子清算交易至 Monad (落块约 1.0 秒)...
+                        ⏳ 正在广播原子清算交易至 Monad (落块约 1.0 秒)...
                     </div>
                 </div>
             </div>
 
-            <!-- Chapter In-Game Statistics -->
-            <div class="w-full mt-3 flex flex-wrap items-center justify-between px-2 text-[11px] text-amber-200/70 gap-2">
+            <!-- Active Martial Art Skill Bar (大唐官府经典技能快捷栏) -->
+            <div class="w-full mt-3 bg-black/60 p-2 rounded-xl border border-amber-900/50 flex items-center justify-between gap-2">
                 <div class="flex items-center space-x-2">
-                    <span class="text-amber-400 font-bold">本关实时战绩:</span>
-                    <span class="bg-black/40 px-2 py-0.5 rounded border border-amber-900/60">伤害: <b id="statDamage" class="text-rose-400 font-mono">0</b></span>
-                    <span class="bg-black/40 px-2 py-0.5 rounded border border-amber-900/60">步数: <b id="statSteps" class="text-cyan-400 font-mono">0</b></span>
-                    <span class="bg-emerald-950/60 text-emerald-300 px-2 py-0.5 rounded border border-emerald-700/60">关内 Gas: 0 MON</span>
+                    <!-- Skill 1: 普攻斩击 (1 / 空格) -->
+                    <button id="btnSkill1" class="relative group p-2 rounded-xl bg-gradient-to-b from-stone-800 to-stone-950 border border-amber-600/60 hover:border-amber-400 flex items-center space-x-2 transition-all active:scale-95">
+                        <span class="text-xl">🗡️</span>
+                        <div class="text-left font-xy">
+                            <div class="text-xs font-bold text-amber-200">普攻斩击</div>
+                            <div class="text-[9px] text-slate-400 font-mono">按键 1 / 空格 • 0 耗蓝</div>
+                        </div>
+                        <div id="cdMask1" class="cd-mask absolute inset-0 rounded-xl hidden items-center justify-center text-amber-300 text-xs font-mono font-bold"></div>
+                    </button>
+
+                    <!-- Skill 2: 横扫千军 (2 / Q) -->
+                    <button id="btnSkill2" class="relative group p-2 rounded-xl bg-gradient-to-b from-red-950/80 to-stone-950 border border-red-500/60 hover:border-red-400 flex items-center space-x-2 transition-all active:scale-95">
+                        <span class="text-xl">⚡</span>
+                        <div class="text-left font-xy">
+                            <div class="text-xs font-bold text-red-300">横扫千军</div>
+                            <div class="text-[9px] text-amber-200/70 font-mono">按键 2 / Q • 3连斩 20MP</div>
+                        </div>
+                        <div id="cdMask2" class="cd-mask absolute inset-0 rounded-xl hidden items-center justify-center text-amber-300 text-xs font-mono font-bold"></div>
+                    </button>
+
+                    <!-- Skill 3: 破釜沉舟 (3 / E) -->
+                    <button id="btnSkill3" class="relative group p-2 rounded-xl bg-gradient-to-b from-blue-950/80 to-stone-950 border border-blue-500/60 hover:border-blue-400 flex items-center space-x-2 transition-all active:scale-95">
+                        <span class="text-xl">🌪️</span>
+                        <div class="text-left font-xy">
+                            <div class="text-xs font-bold text-cyan-300">破釜沉舟</div>
+                            <div class="text-[9px] text-amber-200/70 font-mono">按键 3 / E • 环形AOE 35MP</div>
+                        </div>
+                        <div id="cdMask3" class="cd-mask absolute inset-0 rounded-xl hidden items-center justify-center text-amber-300 text-xs font-mono font-bold"></div>
+                    </button>
                 </div>
-                <div class="flex items-center space-x-2 font-xy text-amber-400">
-                    <span>🌲 桃木 🪨 顽石 (碰撞阻挡)</span>
+
+                <!-- Guidance Note -->
+                <div class="text-right text-[11px] font-xy text-amber-300/80 hidden md:block">
+                    <div>长按 <b>WASD</b> 连贯走位</div>
+                    <div class="text-emerald-400 font-mono">关内 120FPS 零 Gas 延迟</div>
+                </div>
+            </div>
+
+            <!-- Chapter In-Game Statistics & Telemetry -->
+            <div class="w-full mt-2 flex flex-wrap items-center justify-between px-2 text-[11px] text-amber-200/70 gap-2 font-mono">
+                <div class="flex items-center space-x-2">
+                    <span class="text-amber-400 font-bold font-xy">关内实时遥测:</span>
+                    <span class="bg-black/50 px-2 py-0.5 rounded border border-amber-900/60">伤害: <b id="statDamage" class="text-rose-400">0</b></span>
+                    <span class="bg-black/50 px-2 py-0.5 rounded border border-amber-900/60">斩妖: <b id="killProgressText" class="text-emerald-400">0 / 3</b></span>
+                    <span class="bg-black/50 px-2 py-0.5 rounded border border-amber-900/60">技能: <b id="statSkills" class="text-cyan-400">0</b></span>
+                    <span class="bg-emerald-950/70 text-emerald-300 px-2 py-0.5 rounded border border-emerald-700/60">Gas: 0 MON</span>
+                </div>
+                <div class="flex items-center space-x-1 font-xy text-amber-400">
+                    <span id="stageHintText">🌴 东海珊瑚与沉船残骸 (阻挡碰撞)</span>
                 </div>
             </div>
         </div>
 
-        <!-- Right: 藏宝阁背包与清算账本 (5 cols) -->
-        <div class="lg:col-span-5 flex flex-col space-y-4">
+        <!-- Right: 藏宝阁背包、穿戴账本与清算流 (5 cols) -->
+        <div class="lg:col-span-5 flex flex-col space-y-3">
             
-            <!-- Panel 1: 藏宝阁 • 我的神兵背包 (Auto-Minted Loot NFTs) -->
-            <div class="mh-panel p-4 rounded-2xl text-xs space-y-3">
+            <!-- Panel 1: 藏宝阁 • 我的神兵背包 (Auto-Minted Loot NFTs & Equip Button) -->
+            <div class="mh-panel p-3.5 rounded-2xl text-xs space-y-2.5">
                 <div class="flex items-center justify-between border-b border-amber-900/60 pb-2">
                     <span class="font-bold text-amber-300 font-xy text-sm flex items-center gap-1.5">
-                        <span>📦 藏宝阁 • 通关神兵背包</span>
+                        <span>📦 藏宝阁 • 全链神兵宝匣</span>
                         <span class="text-[10px] text-amber-400 font-mono">(Monad NFT)</span>
                     </span>
-                    <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-700/60 font-mono">单关原子铸造</span>
+                    <span id="nftTotalDisplay" class="text-[10px] px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-700/60 font-mono">
+                        已拥有 2 件
+                    </span>
                 </div>
 
                 <!-- NFT List Container -->
-                <div id="nftListContainer" class="space-y-2 max-h-52 overflow-y-auto pr-1">
-                    <!-- Default initial NFT item -->
-                    <div class="p-2.5 rounded-xl bg-black/40 border border-yellow-500/40 flex items-center justify-between animate-loot">
-                        <div class="flex items-center space-x-3">
-                            <div class="w-9 h-9 rounded-lg bg-amber-900/80 border border-amber-400 flex items-center justify-center text-lg shadow">
-                                🔱
-                            </div>
-                            <div>
-                                <div class="font-bold font-xy text-sm text-yellow-300">【大唐破阵戟】</div>
-                                <div class="text-[10px] text-amber-200/70 font-mono">第 1 章通关 • 战力 +105 • 名品法宝</div>
-                            </div>
-                        </div>
-                        <a href="https://testnet.monadexplorer.com/tx/0x682bcb6afcb7668aa0b8fa90b2ab3ac064aed63670458e9f6be2bdce4b83f3a8" target="_blank" class="px-2 py-1 bg-amber-900/80 hover:bg-amber-800 text-amber-200 rounded text-[10px] font-mono border border-amber-500/60">
-                            验链 ↗
-                        </a>
-                    </div>
+                <div id="nftListContainer" class="space-y-2 max-h-56 overflow-y-auto pr-1">
+                    <!-- Dynamic populated by refreshLootInventory() -->
                 </div>
             </div>
 
             <!-- Panel 2: 章节清算实录流 (On-Chain Settlement Telemetry) -->
-            <div class="mh-panel p-4 rounded-2xl flex-1 flex flex-col min-h-[260px]">
+            <div class="mh-panel p-3.5 rounded-2xl flex-1 flex flex-col min-h-[220px]">
                 <div class="flex items-center justify-between border-b border-amber-900/60 pb-2 mb-2">
                     <div class="flex items-center space-x-2">
                         <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                        <span class="font-bold text-amber-200 text-xs font-xy">链上章节清算流 (Chapter Settle Stream)</span>
+                        <span class="font-bold text-amber-200 text-xs font-xy">Monad 章节清算流 (Session Stream)</span>
                     </div>
-                    <span id="settleCountBadge" class="text-[10px] font-mono text-amber-300/80 bg-black/40 px-2 py-0.5 rounded border border-amber-900/50">已落块归档</span>
+                    <span class="text-[10px] font-mono text-amber-300/80 bg-black/50 px-2 py-0.5 rounded border border-amber-900/50">
+                        原子级落块
+                    </span>
                 </div>
 
                 <!-- Event Stream List -->
-                <div id="txLogContainer" class="flex-1 overflow-y-auto space-y-1.5 text-[11px] font-mono pr-1 max-h-52">
-                    <div class="text-amber-200/50 italic py-3 text-center font-xy">第一章进行中，数据正在关内极速聚合...</div>
+                <div id="txLogContainer" class="flex-1 overflow-y-auto space-y-1.5 text-[11px] font-mono pr-1 max-h-48">
+                    <div class="text-amber-200/50 italic py-3 text-center font-xy">游戏进行中，关内数据正以 120 FPS 零 Gas 极速聚合...</div>
                 </div>
             </div>
 
             <!-- Panel 3: 结算合约与钱包信息 -->
-            <div class="mh-panel p-3.5 rounded-2xl text-xs flex items-center justify-between text-amber-200/60 font-mono text-[11px]">
+            <div class="mh-panel p-3 rounded-2xl text-xs flex items-center justify-between text-amber-200/70 font-mono text-[11px]">
                 <div>
-                    <span>结算合约: </span>
-                    <a href="https://testnet.monadexplorer.com/address/0xD2838dc347ca1896D9482c77bD1426df62965Dbd" target="_blank" class="text-amber-400 hover:underline">
-                        0xD283...5Dbd ↗
+                    <span>V2 合约: </span>
+                    <a href="https://testnet.monadexplorer.com/address/0x339D3baF6Fc223e95ef383026B46AF8919081BC0" target="_blank" class="text-amber-400 hover:underline">
+                        0x339D...1BC0 ↗
                     </a>
                 </div>
                 <div>
-                    <span>Gas 结余: </span>
-                    <span id="gasBalanceDisplay" class="text-emerald-400 font-bold">2.67 MON</span>
+                    <span>Gas 储备: </span>
+                    <span id="gasBalanceDisplay" class="text-emerald-400 font-bold">2.43 MON</span>
                 </div>
             </div>
 
@@ -265,101 +354,362 @@
 
     </main>
 
-    <!-- Script: Chapter Progression & Batch Settlement Engine -->
+    <!-- Script: Chapter Progression, Combat Engine, SoundFX & Batch Settlement -->
     <script>
-        const CHAPTER_CONTRACT_ADDR = "0xD2838dc347ca1896D9482c77bD1426df62965Dbd";
-        const CHAPTER_ABI = [
-            "function settleChapter(tuple(uint16 chapterId, uint32 totalDamage, uint16 monstersSlain, uint16 stepsTaken, uint32 clearTimeSeconds) summary) external returns (uint256 mintedTokenId)",
-            "function getPlayerLoot(address player) external view returns (uint256[] tokenIds, uint16[] chapterIds, string[] names, string[] rarities, uint32[] powers)",
-            "function profiles(address) view returns (uint16 level, uint32 totalExp, uint16 currentChapter, uint32 totalDamageDealt, uint16 totalMonstersKilled, bool isRegistered)",
-            "event ChapterCleared(address indexed player, uint16 indexed chapterId, uint32 expGained, uint256 indexed lootTokenId, string lootName, string rarity, uint32 combatPower, uint256 blockNum)"
+        const CONTRACT_ADDR = "0x339D3baF6Fc223e95ef383026B46AF8919081BC0";
+        const CONTRACT_ABI = [
+            "function settleChapter(tuple(uint16 chapterId, uint32 totalDamage, uint16 monstersSlain, uint16 skillsUsed, uint16 stepsTaken, uint32 clearTimeSeconds, bool bossDefeated) summary) external returns (uint256 mintedTokenId)",
+            "function equipItem(uint256 tokenId, uint8 slot) external",
+            "function unequipItem(uint8 slot) external",
+            "function getEquippedDetails(address player) external view returns (uint256[3] tokenIds, string[3] names, string[3] rarities, uint32[3] powers, uint32 totalEquipPower)",
+            "function getPlayerLoot(address player) external view returns (uint256[] tokenIds, uint16[] chapterIds, uint8[] itemTypes, string[] names, string[] rarities, uint32[] powers)",
+            "function profiles(address) view returns (uint16 level, uint32 totalExp, uint16 maxChapterUnlocked, uint32 totalDamageDealt, uint16 totalMonstersKilled, uint32 totalSkillsCast, bool isRegistered)",
+            "event ChapterCleared(address indexed player, uint16 indexed chapterId, uint32 expGained, uint256 indexed lootTokenId, string lootName, string rarity, uint32 combatPower, uint256 blockNum)",
+            "event ItemEquipped(address indexed player, uint8 indexed slot, uint256 indexed tokenId, string itemName, uint32 combatPower)"
         ];
 
         const MAP_SIZE = 30;
         const CANVAS_SIZE = 550;
-        const TILE_PX = CANVAS_SIZE / MAP_SIZE; // ~18.3px per tile
+        const TILE_PX = CANVAS_SIZE / MAP_SIZE; // ~18.33px
 
         const RPC_URL = "https://testnet-rpc.monad.xyz";
         const PRE_FUNDED_KEY = "0x7772a6e4dd2b096bedd60e95c760b8feea6fb146c1b23ec325ab71a106742855";
 
         let provider, signer, contract;
-        let player = { x: 15, y: 15, visualX: 15, visualY: 15, facing: 1, isMoving: false };
-        let swordSlash = null;
 
-        // 本关实时聚合数据 (In-Stage Session Aggregator - 0 Gas)
+        // =========================================================================
+        // 1. Web Audio API 原生仙侠音效引擎 (零外部依赖，100% 本地即时合成)
+        // =========================================================================
+        class SoundFX {
+            constructor() {
+                this.ctx = null;
+                this.muted = false;
+            }
+            init() {
+                if (!this.ctx) {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    this.ctx = new AudioContext();
+                }
+                if (this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            }
+            playSlash() {
+                if (this.muted) return;
+                this.init();
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(650, now);
+                osc.frequency.exponentialRampToValueAtTime(120, now + 0.12);
+                gain.gain.setValueAtTime(0.25, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.12);
+            }
+            playHit() {
+                if (this.muted) return;
+                this.init();
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(160, now);
+                osc.frequency.exponentialRampToValueAtTime(40, now + 0.15);
+                gain.gain.setValueAtTime(0.35, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.15);
+            }
+            playHengSao() {
+                if (this.muted) return;
+                for (let i = 0; i < 3; i++) {
+                    setTimeout(() => {
+                        this.playSlash();
+                        this.playHit();
+                    }, i * 90);
+                }
+            }
+            playPoFu() {
+                if (this.muted) return;
+                this.init();
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(220, now);
+                osc.frequency.linearRampToValueAtTime(700, now + 0.12);
+                osc.frequency.exponentialRampToValueAtTime(80, now + 0.35);
+                gain.gain.setValueAtTime(0.35, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.35);
+            }
+            playVictory() {
+                if (this.muted) return;
+                this.init();
+                const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+                notes.forEach((freq, idx) => {
+                    const now = this.ctx.currentTime + idx * 0.11;
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(freq, now);
+                    gain.gain.setValueAtTime(0.28, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.38);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.38);
+                });
+            }
+            playEquip() {
+                if (this.muted) return;
+                this.init();
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(880, now);
+                osc.frequency.exponentialRampToValueAtTime(1760, now + 0.18);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.22);
+            }
+        }
+
+        const sfx = new SoundFX();
+
+        // =========================================================================
+        // 2. 核心状态数据
+        // =========================================================================
         let currentChapter = 1;
+        let player = {
+            x: 15, y: 15, visualX: 15, visualY: 15, facing: 1, isMoving: false,
+            hp: 300, maxHp: 300, mp: 150, maxMp: 150,
+            baseAtk: 70, equipPower: 65, level: 2
+        };
+
+        // 装备槽位状态 (Slot 0: 武器, 1: 宝甲, 2: 法宝)
+        let equippedItems = [
+            { id: 1, name: "【大唐青锋剑】", power: 65, rarity: "名品法宝" },
+            { id: 2, name: "【锁子黄金甲】", power: 195, rarity: "传世孤品" },
+            { id: 0, name: "【虚位以待】", power: 0, rarity: "无" }
+        ];
+
+        // 技能冷却状态
+        let cdSkill1 = 0; // 普攻
+        let cdSkill2 = 0; // 横扫千军 (CD 3.5s)
+        let cdSkill3 = 0; // 破釜沉舟 (CD 4.5s)
+
+        // 视觉打击感
+        let screenShake = 0;
+        let floatingTexts = [];
+        let swordSlash = null; // { x, y, time, type: 'normal'|'hengsao'|'pofu' }
+
+        // 本关聚合数据 (In-Stage Session 0-Gas Aggregator)
         let chapterStats = {
             chapterId: 1,
             totalDamage: 0,
             monstersSlain: 0,
+            skillsUsed: 0,
             stepsTaken: 0,
             startTime: performance.now(),
-            isCleared: false
+            isCleared: false,
+            bossDefeated: false
         };
 
-        // 障碍物坐标
-        const obstacles = new Set([
-            "5,5", "5,6", "12,10", "12,11", "18,15", "20,20", "20,21", "8,22", "25,8",
-            "4,5", "11,10", "19,20", "7,22"
-        ]);
+        // 章节怪物与环境定义
+        const CHAPTER_CONFIGS = {
+            1: {
+                title: "第一章 • 东海沉船试炼",
+                badge: "第一章 • 东海沉船试炼",
+                npcName: "建邺城老村长",
+                npcAvatar: "👴",
+                npcText: "少侠留步！东海沉船怨念深重，大海龟与巨蛙横行！按 1 普攻，按 2 施展【横扫千军】速荡妖氛！",
+                bgFloor: "#172d1f",
+                bgWater: "rgba(6, 78, 59, 0.45)",
+                hint: "🌴 东海珊瑚与沉船残骸 (阻挡碰撞)",
+                obstacles: new Set(["5,5", "5,6", "12,10", "12,11", "18,15", "20,20", "20,21", "8,22", "25,8", "4,5", "11,10", "19,20", "7,22"]),
+                monsters: [
+                    { id: 1, name: "东海大海龟", type: "turtle", x: 17, y: 15, hp: 100, maxHp: 100, hitFlash: 0 },
+                    { id: 2, name: "珊瑚巨蛙", type: "frog", x: 13, y: 16, hp: 120, maxHp: 120, hitFlash: 0 },
+                    { id: 3, name: "东海海盗", type: "bandit", x: 17, y: 18, hp: 140, maxHp: 140, hitFlash: 0 }
+                ]
+            },
+            2: {
+                title: "第二章 • 江南野外伏魔",
+                badge: "第二章 • 江南野外伏魔",
+                npcName: "大唐名将 • 程咬金",
+                npcAvatar: "🧔‍♂️",
+                npcText: "哈哈！好徒儿！江南野外野猪、骷髅怪与树精凶恶，试一试为师传你的【破釜沉舟】全屏剑阵！",
+                bgFloor: "#1e3820",
+                bgWater: "rgba(16, 185, 129, 0.2)",
+                hint: "🌲 桃花仙木与太湖顽石 (阻挡碰撞)",
+                obstacles: new Set(["6,6", "6,7", "14,8", "14,9", "22,14", "10,18", "10,19", "18,22", "24,24"]),
+                monsters: [
+                    { id: 4, name: "嗜血野猪", type: "boar", x: 16, y: 14, hp: 150, maxHp: 150, hitFlash: 0 },
+                    { id: 5, name: "幽冥骷髅", type: "skeleton", x: 12, y: 17, hp: 170, maxHp: 170, hitFlash: 0 },
+                    { id: 6, name: "千年树精", type: "treant", x: 19, y: 16, hp: 200, maxHp: 200, hitFlash: 0 },
+                    { id: 7, name: "荒野刺客", type: "bandit", x: 14, y: 20, hp: 180, maxHp: 180, hitFlash: 0 }
+                ]
+            },
+            3: {
+                title: "第三章 • 大唐大雁塔决战",
+                badge: "第三章 • 大唐大雁塔决战",
+                npcName: "玄奘法师",
+                npcAvatar: "🧙‍♂️",
+                npcText: "阿弥陀佛！大雁塔顶封印碎裂，镇塔妖王现身！少侠速速拔剑除恶，护佑长安城百万生灵！",
+                bgFloor: "#1b212c",
+                bgWater: "rgba(99, 102, 241, 0.25)",
+                hint: "🏛️ 佛塔青石古柱与梵文金石 (阻挡碰撞)",
+                obstacles: new Set(["7,7", "7,8", "14,10", "15,10", "22,12", "9,20", "21,21", "12,25"]),
+                monsters: [
+                    { id: 8, name: "幻魔羊头怪", type: "goat", x: 14, y: 14, hp: 220, maxHp: 220, hitFlash: 0 },
+                    { id: 9, name: "夺命花妖", type: "flower", x: 18, y: 13, hp: 240, maxHp: 240, hitFlash: 0 },
+                    { id: 10, name: "镇塔妖兵", type: "bandit", x: 12, y: 18, hp: 250, maxHp: 250, hitFlash: 0 },
+                    { id: 11, name: "【大雁塔镇塔妖王】", type: "boss", x: 16, y: 20, hp: 550, maxHp: 550, hitFlash: 0, isBoss: true }
+                ]
+            }
+        };
 
-        // 关卡野怪
-        let monsters = [
-            { id: 1, name: "东海大海龟", type: "turtle", x: 17, y: 15, hp: 100, maxHp: 100 },
-            { id: 2, name: "珊瑚巨蛙", type: "frog", x: 13, y: 16, hp: 120, maxHp: 120 },
-            { id: 3, name: "东海大盗", type: "bandit", x: 17, y: 18, hp: 140, maxHp: 140 }
-        ];
+        let currentObstacles = CHAPTER_CONFIGS[1].obstacles;
+        let monsters = CHAPTER_CONFIGS[1].monsters;
 
-        // UI
+        // UI 元素缓存
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const coordDisplay = document.getElementById('coordDisplay');
         const statDamage = document.getElementById('statDamage');
-        const statSteps = document.getElementById('statSteps');
+        const statSkills = document.getElementById('statSkills');
         const killProgressText = document.getElementById('killProgressText');
         const blockHeightDisplay = document.getElementById('blockHeightDisplay');
         const txLogContainer = document.getElementById('txLogContainer');
         const nftListContainer = document.getElementById('nftListContainer');
         const nftTotalDisplay = document.getElementById('nftTotalDisplay');
-        const battleToast = document.getElementById('battleToast');
         const clearanceOverlay = document.getElementById('clearanceOverlay');
+        const clearanceTitle = document.getElementById('clearanceTitle');
+        const clearanceSubtext = document.getElementById('clearanceSubtext');
+        const chapterTitleBadge = document.getElementById('chapterTitleBadge');
+        const stageHintText = document.getElementById('stageHintText');
+        const headerPowerDisplay = document.getElementById('headerPowerDisplay');
+        const slotWeaponName = document.getElementById('slotWeaponName');
+        const slotArmorName = document.getElementById('slotArmorName');
+        const slotRelicName = document.getElementById('slotRelicName');
+        const hpBarFill = document.getElementById('hpBarFill');
+        const hpText = document.getElementById('hpText');
+        const mpBarFill = document.getElementById('mpBarFill');
+        const mpText = document.getElementById('mpText');
+        const npcDialogueBox = document.getElementById('npcDialogueBox');
+        const npcName = document.getElementById('npcName');
+        const npcText = document.getElementById('npcText');
+        const npcAvatar = document.getElementById('npcAvatar');
 
         // =========================================================================
-        // 1. 初始化
+        // 3. 初始化与网络同步
         // =========================================================================
         async function init() {
             try {
                 provider = new ethers.JsonRpcProvider(RPC_URL);
                 signer = new ethers.Wallet(PRE_FUNDED_KEY, provider);
-                contract = new ethers.Contract(CHAPTER_CONTRACT_ADDR, CHAPTER_ABI, signer);
+                contract = new ethers.Contract(CONTRACT_ADDR, CONTRACT_ABI, signer);
 
-                logTx("🌸 剑侠客踏入东海湾！第一章试炼开启（关内 0 Gas）", "info");
-                refreshLootInventory();
+                logTx("🌸 剑侠客踏入长安！大唐盛世伏魔录开启（关内 120 FPS 零 Gas）", "info");
+
+                // 获取已穿戴装备与藏宝阁背包
+                await syncEquippedState();
+                await refreshLootInventory();
                 
                 provider.getBlockNumber().then(b => {
                     blockHeightDisplay.innerText = '#' + b;
+                });
+
+                provider.getBalance(signer.address).then(bal => {
+                    document.getElementById('gasBalanceDisplay').innerText = parseFloat(ethers.formatEther(bal)).toFixed(2) + " MON";
                 });
             } catch (err) {
                 console.error("Init failed:", err);
             }
         }
 
+        async function syncEquippedState() {
+            if (!contract || !signer) return;
+            try {
+                const eq = await contract.getEquippedDetails(signer.address);
+                const names = eq[1];
+                const powers = eq[3];
+                const totalPow = Number(eq[4]);
+
+                equippedItems[0].name = names[0];
+                equippedItems[0].power = Number(powers[0]);
+                equippedItems[1].name = names[1];
+                equippedItems[1].power = Number(powers[1]);
+                equippedItems[2].name = names[2];
+                equippedItems[2].power = Number(powers[2]);
+
+                player.equipPower = totalPow;
+                player.maxHp = 300 + (equippedItems[1].power > 0 ? 100 : 0);
+                updateHudBars();
+
+                slotWeaponName.innerText = names[0].replace(/[【】]/g, '').slice(0, 4);
+                slotArmorName.innerText = names[1].replace(/[【】]/g, '').slice(0, 4);
+                slotRelicName.innerText = names[2].replace(/[【】]/g, '').slice(0, 4);
+                headerPowerDisplay.innerText = '+' + totalPow;
+            } catch (e) {
+                console.warn("Sync equip failed:", e);
+            }
+        }
+
+        function updateHudBars() {
+            const hpPct = Math.max(0, Math.min(100, (player.hp / player.maxHp) * 100));
+            hpBarFill.style.width = hpPct + '%';
+            hpText.innerText = `${player.hp}/${player.maxHp}`;
+
+            const mpPct = Math.max(0, Math.min(100, (player.mp / player.maxMp) * 100));
+            mpBarFill.style.width = mpPct + '%';
+            mpText.innerText = `${player.mp}/${player.maxMp}`;
+        }
+
         // =========================================================================
-        // 2. 渲染引擎
+        // 4. 高频渲染引擎 (带震屏、浮字与华丽剑气)
         // =========================================================================
         let startTime = performance.now();
 
         function render() {
-            const time = (performance.now() - startTime) * 0.001;
+            const now = performance.now();
+            const time = (now - startTime) * 0.001;
 
-            // 地面与水岸
-            ctx.fillStyle = '#1c3321';
+            // 处理连续平滑键盘走位
+            updateContinuousInput();
+
+            // 震屏处理
+            ctx.save();
+            if (screenShake > 0) {
+                const sx = (Math.random() - 0.5) * screenShake * 2.5;
+                const sy = (Math.random() - 0.5) * screenShake * 2.5;
+                ctx.translate(sx, sy);
+                screenShake = Math.max(0, screenShake - 0.5);
+            }
+
+            // 地面与氛围
+            const cfg = CHAPTER_CONFIGS[currentChapter];
+            ctx.fillStyle = cfg.bgFloor;
             ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
 
-            ctx.fillStyle = 'rgba(6, 78, 59, 0.45)';
-            ctx.fillRect(0, CANVAS_SIZE - 60, CANVAS_SIZE, 60);
+            ctx.fillStyle = cfg.bgWater;
+            ctx.fillRect(0, CANVAS_SIZE - 55, CANVAS_SIZE, 55);
 
-            // 地表网格线
+            // 地表金丝网格
             ctx.strokeStyle = 'rgba(250, 204, 21, 0.04)';
             ctx.lineWidth = 0.8;
             for (let i = 0; i <= MAP_SIZE; i += 2) {
@@ -370,64 +720,101 @@
                 ctx.moveTo(0, pos); ctx.lineTo(CANVAS_SIZE, pos); ctx.stroke();
             }
 
-            // 障碍物 (桃树与顽石)
-            obstacles.forEach(key => {
+            // 绘制障碍物
+            currentObstacles.forEach(key => {
                 const [ox, oy] = key.split(',').map(Number);
-                const px = ox * TILE_PX;
-                const py = oy * TILE_PX;
-                if ((ox + oy) % 2 === 0) {
-                    drawPeachTree(ctx, px + TILE_PX * 0.5, py + TILE_PX * 0.5);
+                const px = ox * TILE_PX + TILE_PX * 0.5;
+                const py = oy * TILE_PX + TILE_PX * 0.5;
+                if (currentChapter === 3) {
+                    drawPagodaPillar(ctx, px, py);
+                } else if ((ox + oy) % 2 === 0) {
+                    drawPeachTree(ctx, px, py);
                 } else {
-                    drawTaihuRock(ctx, px + TILE_PX * 0.5, py + TILE_PX * 0.5);
+                    drawTaihuRock(ctx, px, py);
                 }
             });
 
-            // 野怪
+            // 绘制野怪与血条
             monsters.forEach(m => {
                 if (m.hp <= 0) return;
                 const mx = m.x * TILE_PX + TILE_PX * 0.5;
                 const my = m.y * TILE_PX + TILE_PX * 0.5;
 
+                // 怪物受击闪烁
+                if (m.hitFlash > 0) {
+                    m.hitFlash--;
+                    ctx.filter = 'brightness(2.2) contrast(1.5)';
+                } else {
+                    ctx.filter = 'none';
+                }
+
                 if (m.type === "turtle") drawSeaTurtle(ctx, mx, my, time);
                 else if (m.type === "frog") drawCoralFrog(ctx, mx, my, time);
-                else drawBandit(ctx, mx, my, time);
+                else if (m.type === "boar") drawWildBoar(ctx, mx, my, time);
+                else if (m.type === "skeleton") drawSkeleton(ctx, mx, my, time);
+                else if (m.type === "treant") drawTreant(ctx, mx, my, time);
+                else if (m.type === "goat") drawGoatDemon(ctx, mx, my, time);
+                else if (m.type === "flower") drawFlowerDemon(ctx, mx, my, time);
+                else if (m.type === "boss") drawTowerBoss(ctx, mx, my, time);
+                else drawBandit(ctx, mx, my);
 
-                // 血条
+                ctx.filter = 'none';
+
+                // 血条绘制
                 const hpPercent = m.hp / m.maxHp;
-                ctx.fillStyle = 'rgba(0,0,0,0.6)';
-                ctx.fillRect(mx - 14, my - 22, 28, 4);
-                ctx.fillStyle = hpPercent > 0.3 ? '#22c55e' : '#ef4444';
-                ctx.fillRect(mx - 14, my - 22, 28 * hpPercent, 4);
+                const barWidth = m.isBoss ? 56 : 28;
+                ctx.fillStyle = 'rgba(0,0,0,0.7)';
+                ctx.fillRect(mx - barWidth / 2, my - (m.isBoss ? 35 : 22), barWidth, m.isBoss ? 6 : 4);
+                ctx.fillStyle = m.isBoss ? '#f59e0b' : (hpPercent > 0.35 ? '#22c55e' : '#ef4444');
+                ctx.fillRect(mx - barWidth / 2, my - (m.isBoss ? 35 : 22), barWidth * hpPercent, m.isBoss ? 6 : 4);
 
-                ctx.fillStyle = '#fef08a';
-                ctx.font = '10px ZCOOL XiaoWei, sans-serif';
+                ctx.fillStyle = m.isBoss ? '#fef08a' : '#fef08a';
+                ctx.font = `${m.isBoss ? 'bold 12px' : '10px'} ZCOOL XiaoWei, sans-serif`;
                 ctx.textAlign = 'center';
-                ctx.fillText(m.name, mx, my - 25);
+                ctx.fillText(m.name, mx, my - (m.isBoss ? 40 : 25));
             });
 
-            // 剑侠客平滑插值
-            player.visualX += (player.x - player.visualX) * 0.35;
-            player.visualY += (player.y - player.visualY) * 0.35;
+            // 剑侠客平滑插值移动
+            player.visualX += (player.x - player.visualX) * 0.38;
+            player.visualY += (player.y - player.visualY) * 0.38;
 
             const heroPx = player.visualX * TILE_PX + TILE_PX * 0.5;
             const heroPy = player.visualY * TILE_PX + TILE_PX * 0.5;
             drawJianXiake(ctx, heroPx, heroPy, player.facing, time, player.isMoving);
 
-            // 剑气特效
-            if (swordSlash && performance.now() - swordSlash.time < 350) {
-                drawSwordSlashEffect(ctx, swordSlash.x, swordSlash.y, performance.now() - swordSlash.time);
+            // 华丽剑气特效
+            if (swordSlash && now - swordSlash.time < 380) {
+                drawSwordEffects(ctx, swordSlash, now - swordSlash.time);
             }
+
+            // 战斗伤害浮字 (Floating Damage Text)
+            drawFloatingTexts(ctx);
+
+            ctx.restore();
+
+            // 技能冷却遮罩刷新
+            updateCooldownUI();
 
             requestAnimationFrame(render);
         }
 
         // =========================================================================
-        // 3. 梦幻西游精灵与道具手绘函数
+        // 5. 梦幻西游精灵、Boss 与道法特效手绘
         // =========================================================================
         function drawJianXiake(ctx, x, y, facing, time, isMoving) {
             ctx.save();
             ctx.translate(x, y);
 
+            // 神兵流光脚底光环 (装备战力 > 100 时触发)
+            if (player.equipPower >= 100) {
+                ctx.strokeStyle = 'rgba(250, 204, 21, 0.45)';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.ellipse(0, 15, 14, 6, 0, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+
+            // 蓝布战袍
             ctx.fillStyle = '#1e3a8a';
             ctx.fillRect(-6, -4, 12, 13);
             ctx.fillStyle = '#f8fafc';
@@ -435,31 +822,35 @@
             ctx.fillStyle = '#eab308';
             ctx.fillRect(-6, 3, 12, 2.5);
 
-            const legOffset = isMoving ? Math.sin(time * 15) * 3 : 0;
+            // 双腿步伐动画
+            const legOffset = isMoving ? Math.sin(time * 16) * 3.5 : 0;
             ctx.fillStyle = '#0f172a';
             ctx.fillRect(-5, 9, 4, 5 + legOffset);
             ctx.fillRect(1, 9, 4, 5 - legOffset);
 
+            // 面颊与侠客风流束发
             ctx.fillStyle = '#fed7aa';
             ctx.beginPath();
             ctx.arc(0, -9, 5.5, 0, Math.PI * 2);
             ctx.fill();
 
+            // 湛蓝束发巾与飘带
             ctx.fillStyle = '#0284c7';
             ctx.beginPath();
             ctx.arc(0, -12, 6, Math.PI, Math.PI * 2);
             ctx.fill();
             ctx.beginPath();
             ctx.moveTo(-2, -14);
-            ctx.lineTo(-7 * facing, -18 + Math.sin(time * 5) * 2);
+            ctx.lineTo(-8 * facing, -18 + Math.sin(time * 6) * 3);
             ctx.lineTo(0, -12);
             ctx.fill();
 
-            ctx.strokeStyle = '#e2e8f0';
-            ctx.lineWidth = 1.8;
+            // 手中青锋剑
+            ctx.strokeStyle = player.equipPower >= 100 ? '#facc15' : '#e2e8f0';
+            ctx.lineWidth = player.equipPower >= 100 ? 2.4 : 1.8;
             ctx.beginPath();
             ctx.moveTo(6 * facing, 2);
-            ctx.lineTo(15 * facing, -10);
+            ctx.lineTo(16 * facing, -10);
             ctx.stroke();
 
             ctx.restore();
@@ -491,7 +882,7 @@
         function drawCoralFrog(ctx, x, y, time) {
             ctx.save();
             ctx.translate(x, y);
-            const hop = Math.abs(Math.sin(time * 4)) * 2.5;
+            const hop = Math.abs(Math.sin(time * 4)) * 3;
             ctx.fillStyle = '#06b6d4';
             ctx.beginPath();
             ctx.ellipse(0, -hop, 10, 8, 0, 0, Math.PI * 2);
@@ -501,6 +892,113 @@
             ctx.arc(-4, -7 - hop, 2.5, 0, Math.PI * 2);
             ctx.arc(4, -7 - hop, 2.5, 0, Math.PI * 2);
             ctx.fill();
+            ctx.restore();
+        }
+
+        function drawWildBoar(ctx, x, y, time) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.fillStyle = '#78350f';
+            ctx.beginPath();
+            ctx.ellipse(0, 0, 13, 9, 0, 0, Math.PI * 2);
+            ctx.fill();
+            // 獠牙
+            ctx.fillStyle = '#fef08a';
+            ctx.beginPath();
+            ctx.moveTo(9, 2); ctx.lineTo(15, -3); ctx.lineTo(10, 6); ctx.fill();
+            ctx.restore();
+        }
+
+        function drawSkeleton(ctx, x, y, time) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.fillStyle = '#e2e8f0';
+            ctx.beginPath();
+            ctx.arc(0, -8, 6, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#38bdf8'; // 鬼火眼眸
+            ctx.fillRect(-2, -9, 1.5, 1.5);
+            ctx.fillRect(2, -9, 1.5, 1.5);
+            ctx.strokeStyle = '#cbd5e1';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(0, -2); ctx.lineTo(0, 8);
+            ctx.moveTo(-6, 2); ctx.lineTo(6, 2);
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        function drawTreant(ctx, x, y, time) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.fillStyle = '#451a03';
+            ctx.fillRect(-8, -12, 16, 22);
+            ctx.fillStyle = '#15803d';
+            ctx.beginPath();
+            ctx.arc(0, -18, 14, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#facc15'; // 树眼
+            ctx.fillRect(-4, -6, 3, 3);
+            ctx.fillRect(2, -6, 3, 3);
+            ctx.restore();
+        }
+
+        function drawGoatDemon(ctx, x, y, time) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.fillStyle = '#475569';
+            ctx.beginPath(); ctx.ellipse(0, 0, 11, 10, 0, 0, Math.PI * 2); ctx.fill();
+            // 羊角
+            ctx.strokeStyle = '#eab308'; ctx.lineWidth = 2.5;
+            ctx.beginPath(); ctx.arc(-7, -9, 6, 0, Math.PI); ctx.stroke();
+            ctx.beginPath(); ctx.arc(7, -9, 6, 0, Math.PI); ctx.stroke();
+            ctx.restore();
+        }
+
+        function drawFlowerDemon(ctx, x, y, time) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.fillStyle = '#ec4899';
+            for (let i = 0; i < 5; i++) {
+                const ang = (i * Math.PI * 2) / 5 + time;
+                ctx.beginPath();
+                ctx.arc(Math.cos(ang) * 9, Math.sin(ang) * 9, 5, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.fillStyle = '#fef08a';
+            ctx.beginPath(); ctx.arc(0, 0, 6, 0, Math.PI * 2); ctx.fill();
+            ctx.restore();
+        }
+
+        function drawTowerBoss(ctx, x, y, time) {
+            ctx.save();
+            ctx.translate(x, y);
+            // 妖王巨型红金光环
+            const pulse = Math.sin(time * 5) * 3;
+            ctx.strokeStyle = 'rgba(239, 68, 68, 0.7)';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(0, 0, 24 + pulse, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // 妖王黑甲身躯
+            ctx.fillStyle = '#1c1917';
+            ctx.fillRect(-14, -16, 28, 30);
+            ctx.fillStyle = '#b91c1c';
+            ctx.fillRect(-10, -10, 20, 18);
+
+            // 妖王巨角与血红双眸
+            ctx.strokeStyle = '#dc2626';
+            ctx.lineWidth = 3.5;
+            ctx.beginPath();
+            ctx.moveTo(-12, -16); ctx.lineTo(-20, -28);
+            ctx.moveTo(12, -16); ctx.lineTo(20, -28);
+            ctx.stroke();
+
+            ctx.fillStyle = '#fef08a';
+            ctx.fillRect(-6, -8, 4, 4);
+            ctx.fillRect(3, -8, 4, 4);
+
             ctx.restore();
         }
 
@@ -519,7 +1017,7 @@
             ctx.translate(x, y);
             ctx.fillStyle = '#78350f';
             ctx.fillRect(-3, -2, 6, 12);
-            ctx.fillStyle = 'rgba(244, 114, 182, 0.9)';
+            ctx.fillStyle = 'rgba(244, 114, 182, 0.95)';
             ctx.beginPath();
             ctx.arc(0, -9, 13, 0, Math.PI * 2);
             ctx.fill();
@@ -541,31 +1039,134 @@
             ctx.restore();
         }
 
-        function drawSwordSlashEffect(ctx, x, y, elapsed) {
+        function drawPagodaPillar(ctx, x, y) {
             ctx.save();
             ctx.translate(x, y);
-            const progress = elapsed / 350;
-            ctx.strokeStyle = `rgba(56, 189, 248, ${1 - progress})`;
-            ctx.lineWidth = 3.5;
-            ctx.shadowColor = '#38bdf8';
-            ctx.shadowBlur = 12;
+            ctx.fillStyle = '#334155';
+            ctx.fillRect(-6, -12, 12, 24);
+            ctx.fillStyle = '#f59e0b';
             ctx.beginPath();
-            ctx.arc(0, 0, 22 * (0.5 + progress * 0.8), -Math.PI * 0.6, Math.PI * 0.4);
-            ctx.stroke();
+            ctx.arc(0, -14, 3, 0, Math.PI * 2);
+            ctx.fill();
             ctx.restore();
         }
 
+        function drawSwordEffects(ctx, slash, elapsed) {
+            ctx.save();
+            ctx.translate(slash.x, slash.y);
+            const progress = elapsed / 380;
+
+            if (slash.type === 'hengsao') {
+                // 三段连续金红爆裂剑芒
+                ctx.strokeStyle = `rgba(239, 68, 68, ${1 - progress})`;
+                ctx.lineWidth = 5;
+                ctx.shadowColor = '#f59e0b';
+                ctx.shadowBlur = 18;
+                ctx.beginPath();
+                ctx.arc(0, 0, 32 * (0.6 + progress), -Math.PI * 0.8, Math.PI * 0.5);
+                ctx.stroke();
+            } else if (slash.type === 'pofu') {
+                // 环形狂岚全屏冲击波
+                ctx.strokeStyle = `rgba(56, 189, 248, ${1 - progress})`;
+                ctx.lineWidth = 4;
+                ctx.shadowColor = '#38bdf8';
+                ctx.shadowBlur = 22;
+                ctx.beginPath();
+                ctx.arc(0, 0, 68 * progress, 0, Math.PI * 2);
+                ctx.stroke();
+            } else {
+                // 普通银蓝剑气
+                ctx.strokeStyle = `rgba(56, 189, 248, ${1 - progress})`;
+                ctx.lineWidth = 3.5;
+                ctx.shadowColor = '#38bdf8';
+                ctx.shadowBlur = 12;
+                ctx.beginPath();
+                ctx.arc(0, 0, 24 * (0.5 + progress * 0.8), -Math.PI * 0.6, Math.PI * 0.4);
+                ctx.stroke();
+            }
+            ctx.restore();
+        }
+
+        function drawFloatingTexts(ctx) {
+            for (let i = floatingTexts.length - 1; i >= 0; i--) {
+                const ft = floatingTexts[i];
+                ft.y += ft.vy;
+                ft.alpha -= 0.025;
+
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, ft.alpha);
+                ctx.fillStyle = ft.color;
+                ctx.font = `${ft.isCrit ? 'bold 15px' : '12px'} JetBrains Mono, monospace`;
+                ctx.textAlign = 'center';
+                ctx.shadowColor = ft.color;
+                ctx.shadowBlur = ft.isCrit ? 12 : 4;
+                ctx.fillText(ft.text, ft.x, ft.y);
+                ctx.restore();
+
+                if (ft.alpha <= 0) {
+                    floatingTexts.splice(i, 1);
+                }
+            }
+        }
+
+        function addFloatingDamage(x, y, damage, isCrit = false, isHeal = false) {
+            floatingTexts.push({
+                x: x + (Math.random() - 0.5) * 14,
+                y: y - 10,
+                text: isHeal ? `+${damage} MP` : `-${damage}`,
+                color: isHeal ? '#38bdf8' : (isCrit ? '#facc15' : '#f87171'),
+                vy: isCrit ? -2.2 : -1.6,
+                alpha: 1.0,
+                isCrit: isCrit
+            });
+        }
+
         // =========================================================================
-        // 4. 关内 0 Gas 极速移动与碰撞
+        // 6. 连贯平滑走位引擎 (解决按键不跟手，毫秒级响应)
         // =========================================================================
-        function tryMove(dx, dy) {
+        const keysDown = {};
+        let lastMoveStepTime = 0;
+        const MOVE_COOLDOWN = 115; // ms per tile step for continuous holding
+
+        window.addEventListener('keydown', (e) => {
+            keysDown[e.key.toLowerCase()] = true;
+            if (e.code === 'Space') e.preventDefault();
+
+            // 快捷键判定
+            if (e.key === '1' || e.code === 'Space') doNormalAttack();
+            else if (e.key === '2' || e.key.toLowerCase() === 'q') doHengSaoSkill();
+            else if (e.key === '3' || e.key.toLowerCase() === 'e') doPoFuSkill();
+        });
+
+        window.addEventListener('keyup', (e) => {
+            keysDown[e.key.toLowerCase()] = false;
+        });
+
+        function updateContinuousInput() {
             if (chapterStats.isCleared) return;
+            const now = performance.now();
+            if (now - lastMoveStepTime < MOVE_COOLDOWN) return;
+
+            let dx = 0, dy = 0;
+            if (keysDown['w'] || keysDown['arrowup']) dy -= 1;
+            else if (keysDown['s'] || keysDown['arrowdown']) dy += 1;
+            else if (keysDown['a'] || keysDown['arrowleft']) dx -= 1;
+            else if (keysDown['d'] || keysDown['arrowright']) dx += 1;
+
+            if (dx !== 0 || dy !== 0) {
+                tryMove(dx, dy);
+                lastMoveStepTime = now;
+            } else {
+                player.isMoving = false;
+            }
+        }
+
+        function tryMove(dx, dy) {
             const nextX = player.x + dx;
             const nextY = player.y + dy;
 
             if (nextX < 0 || nextX >= MAP_SIZE || nextY < 0 || nextY >= MAP_SIZE) return;
-            if (obstacles.has(`${nextX},${nextY}`)) {
-                logTx("🌲 仙桃古树/顽石挡道，无法通行！", "error");
+            if (currentObstacles.has(`${nextX},${nextY}`)) {
                 return;
             }
 
@@ -577,46 +1178,175 @@
 
             // 本地聚合数据自增 (0 Gas)
             chapterStats.stepsTaken++;
-            statSteps.innerText = chapterStats.stepsTaken;
-
-            const nearby = monsters.find(m => m.hp > 0 && Math.abs(m.x - nextX) <= 1 && Math.abs(m.y - nextY) <= 1);
-            if (nearby) {
-                showBattleToast(`⚠️ 遭遇【${nearby.name}】！请按空格出鞘斩击！`);
-            }
         }
 
         // =========================================================================
-        // 5. 关内 0 Gas 极速战斗与伤害聚合
+        // 7. 大唐官府三宗绝技：普攻、横扫千军、破釜沉舟
         // =========================================================================
-        function doAttack() {
-            if (chapterStats.isCleared) return;
-            const target = monsters.find(m => m.hp > 0 && Math.abs(m.x - player.x) <= 2 && Math.abs(m.y - player.y) <= 2);
-            
-            const slashTargetX = target ? target.x * TILE_PX + TILE_PX * 0.5 : (player.x + player.facing) * TILE_PX;
-            const slashTargetY = target ? target.y * TILE_PX + TILE_PX * 0.5 : player.y * TILE_PX;
-            swordSlash = { x: slashTargetX, y: slashTargetY, time: performance.now() };
+        function updateCooldownUI() {
+            const now = performance.now();
 
-            if (!target) {
-                logTx("🗡️ 剑气荡涤四野（周围暂无妖魔）", "info");
+            const m1 = document.getElementById('cdMask1');
+            const m2 = document.getElementById('cdMask2');
+            const m3 = document.getElementById('cdMask3');
+
+            if (now < cdSkill1) {
+                m1.style.display = 'flex';
+                m1.innerText = ((cdSkill1 - now) / 1000).toFixed(1) + 's';
+            } else m1.style.display = 'none';
+
+            if (now < cdSkill2) {
+                m2.style.display = 'flex';
+                m2.innerText = ((cdSkill2 - now) / 1000).toFixed(1) + 's';
+            } else m2.style.display = 'none';
+
+            if (now < cdSkill3) {
+                m3.style.display = 'flex';
+                m3.innerText = ((cdSkill3 - now) / 1000).toFixed(1) + 's';
+            } else m3.style.display = 'none';
+        }
+
+        // 绝技 1: 普攻斩击
+        function doNormalAttack() {
+            if (chapterStats.isCleared) return;
+            const now = performance.now();
+            if (now < cdSkill1) return;
+            cdSkill1 = now + 260; // 0.26s CD
+
+            sfx.playSlash();
+
+            const target = monsters.find(m => m.hp > 0 && Math.abs(m.x - player.x) <= 2 && Math.abs(m.y - player.y) <= 2);
+            const targetPx = target ? target.x * TILE_PX + TILE_PX * 0.5 : (player.x + player.facing) * TILE_PX;
+            const targetPy = target ? target.y * TILE_PX + TILE_PX * 0.5 : player.y * TILE_PX;
+
+            swordSlash = { x: targetPx, y: targetPy, time: now, type: 'normal' };
+
+            if (!target) return;
+
+            sfx.playHit();
+            target.hitFlash = 4;
+            screenShake = 3;
+
+            // 伤害计算: 基础 (75~95) + 装备战力增幅
+            const base = Math.floor(Math.random() * 20) + 75;
+            const equipBonus = Math.floor(player.equipPower * 0.45);
+            const totalDmg = base + equipBonus;
+
+            applyDamageToMonster(target, totalDmg, false);
+        }
+
+        // 绝技 2: 【横扫千军】 (连续三连击爆发)
+        function doHengSaoSkill() {
+            if (chapterStats.isCleared) return;
+            const now = performance.now();
+            if (now < cdSkill2) return;
+            if (player.mp < 20) {
+                logTx("⚠️ 魔法不足 20 点，无法施展【横扫千军】！", "error");
                 return;
             }
 
-            const damage = Math.floor(Math.random() * 25) + 65; // 65 ~ 90
-            target.hp = Math.max(0, target.hp - damage);
+            cdSkill2 = now + 3500; // 3.5s CD
+            player.mp -= 20;
+            updateHudBars();
+            chapterStats.skillsUsed++;
+            statSkills.innerText = chapterStats.skillsUsed;
 
-            // 关内本地聚合 (零 Gas 时延)
+            sfx.playHengSao();
+
+            const target = monsters.find(m => m.hp > 0 && Math.abs(m.x - player.x) <= 2 && Math.abs(m.y - player.y) <= 2);
+            const targetPx = target ? target.x * TILE_PX + TILE_PX * 0.5 : (player.x + player.facing) * TILE_PX;
+            const targetPy = target ? target.y * TILE_PX + TILE_PX * 0.5 : player.y * TILE_PX;
+
+            swordSlash = { x: targetPx, y: targetPy, time: now, type: 'hengsao' };
+            screenShake = 7;
+
+            logTx("🔥 施展大唐绝学【横扫千军】！三道剑芒凌厉迸发！", "sent");
+
+            if (!target) return;
+
+            // 3段极速递增伤害 (120%, 160%, 220%)
+            const baseDmg = Math.floor(Math.random() * 20) + 75 + Math.floor(player.equipPower * 0.5);
+            const hits = [Math.floor(baseDmg * 1.2), Math.floor(baseDmg * 1.6), Math.floor(baseDmg * 2.2)];
+
+            hits.forEach((dmg, idx) => {
+                setTimeout(() => {
+                    if (target.hp <= 0) return;
+                    target.hitFlash = 5;
+                    screenShake = 5 + idx * 2;
+                    applyDamageToMonster(target, dmg, true);
+                }, idx * 120);
+            });
+        }
+
+        // 绝技 3: 【破釜沉舟】 (范围全屏大扫荡)
+        function doPoFuSkill() {
+            if (chapterStats.isCleared) return;
+            const now = performance.now();
+            if (now < cdSkill3) return;
+            if (player.mp < 35) {
+                logTx("⚠️ 魔法不足 35 点，无法施展【破釜沉舟】！", "error");
+                return;
+            }
+
+            cdSkill3 = now + 4500; // 4.5s CD
+            player.mp -= 35;
+            updateHudBars();
+            chapterStats.skillsUsed++;
+            statSkills.innerText = chapterStats.skillsUsed;
+
+            sfx.playPoFu();
+            screenShake = 9;
+
+            const heroPx = player.x * TILE_PX + TILE_PX * 0.5;
+            const heroPy = player.y * TILE_PX + TILE_PX * 0.5;
+            swordSlash = { x: heroPx, y: heroPy, time: now, type: 'pofu' };
+
+            logTx("🌪️ 气贯长虹！施展【破釜沉舟】引爆环形风暴剑阵！", "sent");
+
+            // 对周围 3.5 格内的所有怪兽实施范围打击
+            const baseDmg = Math.floor(Math.random() * 25) + 120 + Math.floor(player.equipPower * 0.6);
+            let hitCount = 0;
+
+            monsters.forEach(m => {
+                if (m.hp <= 0) return;
+                const dist = Math.hypot(m.x - player.x, m.y - player.y);
+                if (dist <= 3.8) {
+                    m.hitFlash = 6;
+                    applyDamageToMonster(m, baseDmg, true);
+                    hitCount++;
+                }
+            });
+
+            if (hitCount > 0) {
+                sfx.playHit();
+            }
+        }
+
+        function applyDamageToMonster(target, damage, isCrit = false) {
+            target.hp = Math.max(0, target.hp - damage);
             chapterStats.totalDamage += damage;
             statDamage.innerText = chapterStats.totalDamage;
 
-            showBattleToast(`💥 剑气暴击！对【${target.name}】造成 ${damage} 点物理伤害！`);
-            logTx(`⚔️ 命中 ${target.name} (-${damage} 伤害) [关内聚合暂存]`, "sent");
+            const mx = target.x * TILE_PX + TILE_PX * 0.5;
+            const my = target.y * TILE_PX + TILE_PX * 0.5;
+            addFloatingDamage(mx, my, damage, isCrit);
 
             if (target.hp <= 0) {
                 chapterStats.monstersSlain++;
                 killProgressText.innerText = `${chapterStats.monstersSlain} / ${monsters.length}`;
-                logTx(`🎉 斩灭【${target.name}】！关卡进度更新`, "success");
+                logTx(`🎉 剑侠客力斩【${target.name}】！关卡进度推进`, "success");
 
-                // 检查是否全歼通关！
+                // 击败怪兽回补 25 点 MP
+                player.mp = Math.min(player.maxMp, player.mp + 25);
+                updateHudBars();
+                addFloatingDamage(player.visualX * TILE_PX, player.visualY * TILE_PX, 25, false, true);
+
+                if (target.isBoss) {
+                    chapterStats.bossDefeated = true;
+                    logTx("👑 震撼三界！【大雁塔镇塔妖王】轰然倒塌！", "success");
+                }
+
+                // 检验是否全部荡平
                 if (chapterStats.monstersSlain >= monsters.length) {
                     triggerStageClearance();
                 }
@@ -624,16 +1354,22 @@
         }
 
         // =========================================================================
-        // 6. 章节大捷与全链合并清算 (Batch Settle on Monad)
+        // 8. 关底合并清算与下一章节过渡 (Batch Settle on Monad V2)
         // =========================================================================
         function triggerStageClearance() {
             chapterStats.isCleared = true;
-            document.getElementById('summaryDamage').innerText = chapterStats.totalDamage + ' 点';
-            document.getElementById('summaryKills').innerText = chapterStats.monstersSlain + ' 只';
+            sfx.playVictory();
+
+            document.getElementById('summaryDamage').innerText = chapterStats.totalDamage;
+            document.getElementById('summaryKills').innerText = chapterStats.monstersSlain;
+            document.getElementById('summarySkills').innerText = chapterStats.skillsUsed + ' 次';
             document.getElementById('summarySteps').innerText = chapterStats.stepsTaken + ' 步';
 
+            const cfg = CHAPTER_CONFIGS[currentChapter];
+            clearanceTitle.innerText = `${cfg.title} • 大捷！`;
             clearanceOverlay.style.display = 'flex';
-            logTx("🏆 第一章妖魔已全数荡平！请点击弹窗一键奏请天庭合并结算！", "success");
+
+            logTx(`🏆 ${cfg.title} 已全数肃清！请点击一键奏请天庭合并结算！`, "success");
         }
 
         async function doSettleOnChain() {
@@ -642,37 +1378,40 @@
             btn.disabled = true;
             spinner.classList.remove('hidden');
 
-            const clearSeconds = Math.round((performance.now() - chapterStats.startTime) / 1000);
+            const clearSeconds = Math.max(1, Math.round((performance.now() - chapterStats.startTime) / 1000));
             const summary = {
                 chapterId: currentChapter,
                 totalDamage: chapterStats.totalDamage,
                 monstersSlain: chapterStats.monstersSlain,
+                skillsUsed: chapterStats.skillsUsed,
                 stepsTaken: chapterStats.stepsTaken,
-                clearTimeSeconds: clearSeconds
+                clearTimeSeconds: clearSeconds,
+                bossDefeated: chapterStats.bossDefeated
             };
 
-            logTx("📜 正在将本章全部战斗数据合并打包为单笔交易发往 Monad...", "pending");
+            logTx(`📜 正在将第 ${currentChapter} 章战斗与技能数据合并打包为原子交易广播至 Monad...`, "pending");
 
             try {
-                // 单笔交易一次性完成：通关核验 + 升级结算 + 神兵 NFT 铸造！
                 const tx = await contract.settleChapter(summary, { gasLimit: 400000n });
-                logTx(`📡 章节清算交易已广播: ${tx.hash.slice(0, 10)}...`, "sent", tx.hash);
+                logTx(`📡 清算交易已广播: ${tx.hash.slice(0, 12)}...`, "sent", tx.hash);
 
                 const rc = await tx.wait();
-                logTx(`🎉 恭喜少侠！第一章全链清算落块完毕！(区块 #${rc.blockNumber}, 仅耗单笔 Gas)`, "success", tx.hash);
+                logTx(`🎉 恭喜少侠！第 ${currentChapter} 章全链落块完毕！(区块 #${rc.blockNumber})`, "success", tx.hash);
 
-                // 刷新藏宝阁
+                // 重新同步神兵背包与装备账本
                 await refreshLootInventory();
+                await syncEquippedState();
 
-                // 升级显示
-                document.getElementById('playerLevelBadge').innerText = "Lv.2";
-                spinner.innerHTML = "✅ 清算与神兵铸造圆满完成！已落入藏宝阁！";
-                btn.innerHTML = "🚀 踏入下一章：江南野外追凶";
-                btn.disabled = false;
-                btn.onclick = () => {
-                    alert("进入第二章：江南野外（关卡重载中...）");
-                    window.location.reload();
-                };
+                spinner.innerHTML = "✅ 关卡清算成功！神兵已自动落入藏宝阁！";
+
+                if (currentChapter < 3) {
+                    btn.innerHTML = `🚀 立即踏入第 ${currentChapter + 1} 章：${CHAPTER_CONFIGS[currentChapter + 1].title}`;
+                    btn.disabled = false;
+                    btn.onclick = () => loadNextChapter(currentChapter + 1);
+                } else {
+                    btn.innerHTML = "👑 降妖圆满 • 少侠已登临三界之巅！";
+                    btn.disabled = false;
+                }
             } catch (err) {
                 console.error(err);
                 logTx(`❌ 清算失败: ${err.shortMessage || err.message}`, "error");
@@ -681,8 +1420,49 @@
             }
         }
 
+        function loadNextChapter(chapterId) {
+            currentChapter = chapterId;
+            const cfg = CHAPTER_CONFIGS[chapterId];
+
+            currentObstacles = cfg.obstacles;
+            monsters = cfg.monsters.map(m => ({ ...m, hp: m.maxHp, hitFlash: 0 }));
+
+            player.x = 15;
+            player.y = 15;
+            player.visualX = 15;
+            player.visualY = 15;
+
+            chapterStats = {
+                chapterId: chapterId,
+                totalDamage: 0,
+                monstersSlain: 0,
+                skillsUsed: 0,
+                stepsTaken: 0,
+                startTime: performance.now(),
+                isCleared: false,
+                bossDefeated: false
+            };
+
+            // 刷新 HUD
+            chapterTitleBadge.innerText = cfg.badge;
+            stageHintText.innerText = cfg.hint;
+            killProgressText.innerText = `0 / ${monsters.length}`;
+            statDamage.innerText = '0';
+            statSkills.innerText = '0';
+
+            // 刷新 NPC
+            npcName.innerText = cfg.npcName + ':';
+            npcAvatar.innerText = cfg.npcAvatar;
+            npcText.innerText = cfg.npcText;
+            npcDialogueBox.style.display = 'flex';
+
+            clearanceOverlay.style.display = 'none';
+
+            logTx(`🗺️ 已踏入【${cfg.title}】！拔剑降妖！`, "info");
+        }
+
         // =========================================================================
-        // 7. 藏宝阁 NFT 背包同步
+        // 9. 藏宝阁神兵背包与一键穿戴同步系统
         // =========================================================================
         async function refreshLootInventory() {
             if (!contract || !signer) return;
@@ -690,30 +1470,50 @@
                 const loot = await contract.getPlayerLoot(signer.address);
                 const ids = loot[0];
                 const chapterIds = loot[1];
-                const names = loot[2];
-                const rarities = loot[3];
-                const powers = loot[4];
+                const itemTypes = loot[2];
+                const names = loot[3];
+                const rarities = loot[4];
+                const powers = loot[5];
 
-                nftTotalDisplay.innerText = `${ids.length} 件`;
+                nftTotalDisplay.innerText = `已拥有 ${ids.length} 件`;
 
                 if (ids.length > 0) {
                     nftListContainer.innerHTML = '';
+                    const typeLabels = ["武器", "宝甲", "法宝"];
+                    const typeIcons = ["🗡️", "🛡️", "📿"];
+
                     for (let i = ids.length - 1; i >= 0; i--) {
+                        const tid = Number(ids[i]);
+                        const chId = Number(chapterIds[i]);
+                        const iType = Number(itemTypes[i]);
+                        const pName = names[i];
+                        const rName = rarities[i];
+                        const cPower = Number(powers[i]);
+
+                        const isCurrentlyEquipped = (equippedItems[iType] && equippedItems[iType].name === pName);
+
                         const itemDiv = document.createElement('div');
-                        itemDiv.className = "p-2.5 rounded-xl bg-black/40 border border-yellow-500/40 flex items-center justify-between animate-loot";
+                        itemDiv.className = `p-2.5 rounded-xl bg-black/50 border ${isCurrentlyEquipped ? 'border-amber-400 shadow-md shadow-amber-500/10' : 'border-yellow-600/30'} flex items-center justify-between transition-all`;
                         itemDiv.innerHTML = `
-                            <div class="flex items-center space-x-3">
-                                <div class="w-9 h-9 rounded-lg bg-amber-900/80 border border-amber-400 flex items-center justify-center text-lg shadow">
-                                    ${i % 2 === 0 ? '🔱' : '🗡️'}
+                            <div class="flex items-center space-x-2.5">
+                                <div class="w-9 h-9 rounded-lg bg-amber-950/80 border border-amber-500/70 flex items-center justify-center text-base shadow">
+                                    ${typeIcons[iType] || '🔱'}
                                 </div>
                                 <div>
-                                    <div class="font-bold font-xy text-sm text-yellow-300">${names[i]}</div>
-                                    <div class="text-[10px] text-amber-200/70 font-mono">第 ${chapterIds[i]} 章通关 • 战力 +${powers[i]} • ${rarities[i]}</div>
+                                    <div class="font-bold font-xy text-sm text-yellow-300 flex items-center gap-1.5">
+                                        <span>${pName}</span>
+                                        ${isCurrentlyEquipped ? '<span class="text-[9px] px-1 py-0.2 rounded bg-amber-500 text-black font-mono font-bold">已着装</span>' : ''}
+                                    </div>
+                                    <div class="text-[10px] text-amber-200/70 font-mono">
+                                        第 ${chId} 章 • ${typeLabels[iType]} • 战力 +${cPower} • ${rName}
+                                    </div>
                                 </div>
                             </div>
-                            <span class="px-2 py-1 bg-amber-950 text-amber-300 border border-amber-600/50 rounded text-[10px] font-mono">
-                                链上拥有
-                            </span>
+                            <div class="flex items-center space-x-1.5">
+                                <button onclick="equipNFT(${tid}, ${iType}, '${pName}', ${cPower})" class="px-2.5 py-1 ${isCurrentlyEquipped ? 'bg-amber-600/50 text-amber-200/60' : 'bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-black font-bold'} rounded text-[10px] font-xy border border-amber-400 shadow transition-transform active:scale-95">
+                                    ${isCurrentlyEquipped ? '已穿戴' : '穿戴'}
+                                </button>
+                            </div>
                         `;
                         nftListContainer.appendChild(itemDiv);
                     }
@@ -723,11 +1523,31 @@
             }
         }
 
-        function showBattleToast(text) {
-            battleToast.innerText = text;
-            battleToast.style.opacity = '1';
-            setTimeout(() => { battleToast.style.opacity = '0'; }, 2000);
-        }
+        window.equipNFT = async function(tokenId, slot, name, power) {
+            sfx.playEquip();
+
+            // 本地即时响应生效 (零时延)
+            equippedItems[slot] = { id: tokenId, name: name, power: power };
+            player.equipPower = equippedItems.reduce((sum, item) => sum + (item ? item.power : 0), 0);
+            headerPowerDisplay.innerText = '+' + player.equipPower;
+
+            if (slot === 0) slotWeaponName.innerText = name.replace(/[【】]/g, '').slice(0, 4);
+            if (slot === 1) slotArmorName.innerText = name.replace(/[【】]/g, '').slice(0, 4);
+            if (slot === 2) slotRelicName.innerText = name.replace(/[【】]/g, '').slice(0, 4);
+
+            logTx(`🛡️ 穿戴神兵【${name}】！全身总战力提升至 +${player.equipPower} 点`, "info");
+            refreshLootInventory();
+
+            // 异步后台同步至 Monad 全链账本
+            try {
+                const tx = await contract.equipItem(tokenId, slot, { gasLimit: 200000n });
+                logTx(`📡 装备穿戴上链同步中: ${tx.hash.slice(0, 10)}...`, "sent", tx.hash);
+                await tx.wait();
+                logTx(`✅ 装备【${name}】已永久铭刻至 Monad 全链装备槽位！`, "success", tx.hash);
+            } catch (err) {
+                console.warn("On-chain equip sync failed:", err);
+            }
+        };
 
         function logTx(msg, type = "info", hash = "") {
             const row = document.createElement('div');
@@ -748,24 +1568,23 @@
             txLogContainer.prepend(row);
         }
 
-        // Keyboard Listeners
-        window.addEventListener('keydown', (e) => {
-            const key = e.key.toLowerCase();
-            if (key === 'w' || key === 'arrowup') tryMove(0, -1);
-            else if (key === 's' || key === 'arrowdown') tryMove(0, 1);
-            else if (key === 'a' || key === 'arrowleft') tryMove(-1, 0);
-            else if (key === 'd' || key === 'arrowright') tryMove(1, 0);
-            else if (key === ' ' || e.code === 'Space') {
-                e.preventDefault();
-                doAttack();
-            }
+        // Button Click Listeners
+        document.getElementById('btnSkill1').addEventListener('click', doNormalAttack);
+        document.getElementById('btnSkill2').addEventListener('click', doHengSaoSkill);
+        document.getElementById('btnSkill3').addEventListener('click', doPoFuSkill);
+        document.getElementById('btnSettleOnChain').addEventListener('click', doSettleOnChain);
+        document.getElementById('btnDismissNpc').addEventListener('click', () => {
+            npcDialogueBox.style.display = 'none';
         });
 
-        window.addEventListener('keyup', () => { player.isMoving = false; });
-        document.getElementById('btnAttackManual').addEventListener('click', doAttack);
-        document.getElementById('btnSettleOnChain').addEventListener('click', doSettleOnChain);
+        // 音效切换
+        document.getElementById('btnAudioToggle').addEventListener('click', () => {
+            sfx.muted = !sfx.muted;
+            document.getElementById('audioIcon').innerText = sfx.muted ? '🔇' : '🔊';
+            document.getElementById('audioText').innerText = sfx.muted ? '仙侠原声: 关' : '仙侠原声: 开';
+        });
 
-        // Bootstrap
+        // 启动引擎
         init();
         render();
     </script>
