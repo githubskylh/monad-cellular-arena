@@ -1,0 +1,15 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Environment variables & Private Keys (STRICT SECURITY)
+.env
+*.env
+*.key
+*.pem
+
+# Local OS & Editor artifacts
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

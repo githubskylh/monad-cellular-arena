@@ -1,0 +1,17 @@
+{
+  "name": "monad-cellular-arena",
+  "version": "1.0.0",
+  "description": "> **High-Concurrency Autonomous World & Parallel On-Chain Survival Benchmark** >  > *专为 Monad 并行 EVM 量身定制的亚秒级、高并发全链生存沙盘与性能基准测试系统*",
+  "main": "swarm.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "ethers": "^6.17.0",
+    "solc": "^0.8.20"
+  }
+}

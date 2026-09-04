@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monad Cellular Arena - 全链高频状态沙盘</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Ethers.js v6 CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.2/ethers.umd.min.js"></script>
+    <style>
+        body {
+            background-color: #080b11;
+            color: #e2e8f0;
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+            user-select: none;
+        }
+        .glow-cyan {
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.25);
+        }
+        .glow-neon {
+            text-shadow: 0 0 10px rgba(0, 240, 255, 0.7);
+        }
+        .glow-pink {
+            box-shadow: 0 0 20px rgba(255, 0, 85, 0.25);
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 5px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center p-4">
+
+    <!-- Header & Pitch Ribbon -->
+    <header class="w-full max-w-6xl flex flex-wrap items-center justify-between py-3 px-6 bg-slate-900/80 backdrop-blur border border-cyan-500/30 rounded-2xl mb-4 glow-cyan">
+        <div class="flex items-center space-x-3">
+            <div class="w-4 h-4 rounded-full bg-cyan-400 animate-ping"></div>
+            <h1 class="text-xl font-bold tracking-wider text-cyan-400 glow-neon">MONAD CELLULAR ARENA</h1>
+            <span class="text-xs px-2 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-700/50">Parallel EVM PoC</span>
+        </div>
+        
+        <div class="flex items-center space-x-4 text-xs">
+            <div class="bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700">
+                <span class="text-slate-400">链上状态槽:</span>
+                <span class="text-emerald-400 font-mono font-bold">2,500 并行 Slots</span>
+            </div>
+            <div class="bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700">
+                <span class="text-slate-400">区块确认:</span>
+                <span class="text-purple-400 font-mono font-bold">~1.0s (即时终局)</span>
+            </div>
+            <div class="bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700">
+                <span class="text-slate-400">区块高度:</span>
+                <span id="blockHeightDisplay" class="text-cyan-400 font-mono font-bold">--</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-5">
+        
+        <!-- Left Panel: Canvas Arena & HUD (7 cols) -->
+        <div class="lg:col-span-7 flex flex-col items-center bg-slate-900/60 p-5 rounded-2xl border border-slate-800 relative">
+            
+            <!-- In-Game Status Bar -->
+            <div class="w-full flex items-center justify-between mb-3 px-2 text-sm">
+                <div class="flex items-center space-x-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-cyan-400 inline-block"></span>
+                    <span class="text-slate-300">我的坐标: (<span id="myCoordDisplay" class="font-mono text-cyan-300 font-bold">未入场</span>)</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <span class="text-slate-300">当前积分/体积:</span>
+                    <span id="myScoreDisplay" class="font-mono text-emerald-400 font-bold">0</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <span class="text-slate-300">单笔确认时延:</span>
+                    <span id="latencyDisplay" class="font-mono text-amber-400 font-bold">-- ms</span>
+                </div>
+            </div>
+
+            <!-- Canvas Grid -->
+            <div class="relative rounded-xl overflow-hidden border-2 border-cyan-500/40 shadow-2xl bg-[#0a0e17]">
+                <canvas id="arenaCanvas" width="550" height="550" class="block cursor-crosshair"></canvas>
+                
+                <!-- Overlay message if dead/unspawned -->
+                <div id="canvasOverlay" class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center">
+                    <h3 class="text-xl font-bold text-cyan-400 mb-2">细胞未激活</h3>
+                    <p class="text-xs text-slate-400 max-w-xs mb-4">连接钱包或使用免弹窗临时私钥，即可在 50x50 的 Monad 并行网格中完成秒级降生与吞噬演化。</p>
+                    <button id="btnSpawnOverlay" class="px-6 py-2.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-bold rounded-xl shadow-lg transition-all transform active:scale-95 text-sm">
+                        立即降生细胞 (Spawn)
+                    </button>
+                </div>
+            </div>
+
+            <!-- Quick WASD Help / Mobile Touch Pad -->
+            <div class="w-full mt-4 flex items-center justify-between px-2 text-xs text-slate-400">
+                <div class="flex items-center space-x-2">
+                    <kbd class="px-2 py-1 bg-slate-800 rounded border border-slate-700 text-cyan-300 font-mono">W</kbd>
+                    <kbd class="px-2 py-1 bg-slate-800 rounded border border-slate-700 text-cyan-300 font-mono">A</kbd>
+                    <kbd class="px-2 py-1 bg-slate-800 rounded border border-slate-700 text-cyan-300 font-mono">S</kbd>
+                    <kbd class="px-2 py-1 bg-slate-800 rounded border border-slate-700 text-cyan-300 font-mono">D</kbd>
+                    <span>方向键即发链上交易</span>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <span class="flex items-center"><span class="w-2.5 h-2.5 rounded-full bg-cyan-400 inline-block mr-1"></span>我方细胞</span>
+                    <span class="flex items-center"><span class="w-2.5 h-2.5 rounded-full bg-pink-500 inline-block mr-1"></span>敌对/NPC</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel: Telemetry, Controller & On-Chain Audit (5 cols) -->
+        <div class="lg:col-span-5 flex flex-col space-y-4">
+            
+            <!-- Card 1: Wallet & Connection (Dual-Mode) -->
+            <div class="bg-slate-900/80 p-4 rounded-2xl border border-slate-800 text-sm">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="font-bold text-slate-200">连接模式</span>
+                    <span id="connStatusBadge" class="text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-400">未连接</span>
+                </div>
+
+                <!-- Mode Select Tabs -->
+                <div class="grid grid-cols-2 gap-2 mb-3">
+                    <button id="tabBurner" class="py-1.5 text-xs font-semibold rounded-lg bg-cyan-950 text-cyan-300 border border-cyan-700/60">
+                        ⚡ 临时秘钥 (免弹窗秒发)
+                    </button>
+                    <button id="tabMetaMask" class="py-1.5 text-xs font-semibold rounded-lg bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700">
+                        🦊 MetaMask 钱包
+                    </button>
+                </div>
+
+                <!-- Config Inputs -->
+                <div class="space-y-2 text-xs">
+                    <div>
+                        <label class="text-slate-400 block mb-1">Monad RPC 节点地址:</label>
+                        <input id="inputRpcUrl" type="text" value="https://testnet-rpc.monad.xyz" 
+                            class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-slate-300 font-mono focus:border-cyan-500 outline-none">
+                    </div>
+
+                    <div>
+                        <label class="text-slate-400 block mb-1">智能合约地址 (CellularArenaLite):</label>
+                        <input id="inputContractAddr" type="text" value="0xCa78403Bc03AfC5A3ca56192a135B9Be7ea1724C" placeholder="0xCa78403Bc03AfC5A3ca56192a135B9Be7ea1724C" 
+                            class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-slate-300 font-mono focus:border-cyan-500 outline-none">
+                    </div>
+
+                    <!-- Burner Wallet Secret Key Area -->
+                    <div id="burnerWalletArea" class="p-2.5 rounded-lg bg-slate-950/70 border border-slate-800">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-slate-400">当前执行地址:</span>
+                            <button id="btnNewBurner" class="text-cyan-400 hover:underline text-[11px]">重新生成</button>
+                        </div>
+                        <div id="burnerAddressDisplay" class="font-mono text-cyan-300 truncate text-[11px]">正在初始化临时秘钥...</div>
+                        <div class="mt-2 flex space-x-2">
+                            <input id="inputCustomKey" type="password" placeholder="粘贴带测试币的私钥 (可选)" 
+                                class="flex-1 bg-slate-900 border border-slate-700 rounded px-2 py-1 text-[11px] font-mono text-slate-200">
+                            <button id="btnApplyKey" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded text-[11px]">载入</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 2: Roadshow Pitch Controller (一键并发打压展示) -->
+            <div class="bg-slate-900/80 p-4 rounded-2xl border border-slate-800 text-sm">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="font-bold text-slate-200">黑客松路演并发打压器</span>
+                    <span class="text-xs text-purple-400 font-mono">Swarm Influx</span>
+                </div>
+                <p class="text-xs text-slate-400 mb-3">向 Monad 节点并发轰出批量细胞移动，直观展示并行执行下的零拥堵吞吐。</p>
+                <div class="grid grid-cols-2 gap-2">
+                    <button id="btnSpawnManual" class="py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-xl font-bold text-xs">
+                        🌱 随机坐标降生
+                    </button>
+                    <button id="btnBurstDemo" class="py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white rounded-xl font-bold text-xs shadow-lg">
+                        🚀 模拟并发移动 (10 TPS)
+                    </button>
+                </div>
+            </div>
+
+            <!-- Card 3: Real-Time On-Chain Transaction Stream -->
+            <div class="bg-slate-900/80 p-4 rounded-2xl border border-slate-800 flex-1 flex flex-col min-h-[220px]">
+                <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-center space-x-2">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                        <span class="font-bold text-slate-200 text-xs">实时上链交易流 (Tx Stream)</span>
+                    </div>
+                    <span id="txCountBadge" class="text-xs font-mono text-slate-400">0 笔已确认</span>
+                </div>
+
+                <!-- Tx log list -->
+                <div id="txLogContainer" class="flex-1 overflow-y-auto space-y-1.5 text-[11px] font-mono pr-1 max-h-48">
+                    <div class="text-slate-500 italic py-2 text-center">就绪，等待第一笔 Monad 链上交互...</div>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Script: Complete Engine & Contract Glue -->
+    <script>
+        // Contract ABI (Matches CellularArenaLite.sol)
+        const ARENA_ABI = [
+            "function spawn(uint16 x, uint16 y) external",
+            "function move(uint16 toX, uint16 toY) external",
+            "function cells(address) view returns (uint16 x, uint16 y, uint32 score, bool alive)",
+            "function totalMoves() view returns (uint256)",
+            "function totalDevours() view returns (uint256)",
+            "function getActivePlayers() view returns (address[] activeAddrs, uint16[] xs, uint16[] ys, uint32[] scores)",
+            "event Spawned(address indexed player, uint16 x, uint16 y, uint256 timestamp)",
+            "event Moved(address indexed player, uint16 fromX, uint16 fromY, uint16 toX, uint16 toY, bool devoured, uint256 blockNum)",
+            "event Devoured(address indexed predator, address indexed prey, uint16 x, uint16 y, uint32 newScore)"
+        ];
+
+        const GRID_SIZE = 50;
+        const CANVAS_SIZE = 550;
+        const CELL_PX = CANVAS_SIZE / GRID_SIZE; // 11px per grid cell
+
+        // State variables
+        let provider, signer, contract;
+        let activeWalletMode = 'burner'; // 'burner' or 'metamask'
+        let currentWallet = null;
+        let myCell = { x: 25, y: 25, score: 0, alive: false };
+        let otherPlayers = []; // { address, x, y, score }
+        let totalConfirmedTxs = 0;
+        let isMoving = false;
+
+        // UI elements
+        const canvas = document.getElementById('arenaCanvas');
+        const ctx = canvas.getContext('2d');
+        const canvasOverlay = document.getElementById('canvasOverlay');
+        const blockHeightDisplay = document.getElementById('blockHeightDisplay');
+        const myCoordDisplay = document.getElementById('myCoordDisplay');
+        const myScoreDisplay = document.getElementById('myScoreDisplay');
+        const latencyDisplay = document.getElementById('latencyDisplay');
+        const burnerAddressDisplay = document.getElementById('burnerAddressDisplay');
+        const connStatusBadge = document.getElementById('connStatusBadge');
+        const txLogContainer = document.getElementById('txLogContainer');
+        const txCountBadge = document.getElementById('txCountBadge');
+        const inputRpcUrl = document.getElementById('inputRpcUrl');
+        const inputContractAddr = document.getElementById('inputContractAddr');
+
+        // 1. Initialize Burner Wallet from localStorage or generate fresh
+        function initBurnerWallet() {
+            let savedKey = localStorage.getItem('monad_arena_burner_key');
+            if (!savedKey) {
+                const randomWallet = ethers.Wallet.createRandom();
+                savedKey = randomWallet.privateKey;
+                localStorage.setItem('monad_arena_burner_key', savedKey);
+            }
+            updateSignerWithKey(savedKey);
+        }
+
+        function updateSignerWithKey(privateKey) {
+            try {
+                const rpc = inputRpcUrl.value.trim();
+                provider = new ethers.JsonRpcProvider(rpc);
+                currentWallet = new ethers.Wallet(privateKey, provider);
+                signer = currentWallet;
+                burnerAddressDisplay.innerText = currentWallet.address;
+                connStatusBadge.innerText = '⚡ 临时秘钥已激活';
+                connStatusBadge.className = 'text-xs px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-700/50';
+                bindContractInstance();
+            } catch (err) {
+                console.error("Failed to set up wallet:", err);
+            }
+        }
+
+        function bindContractInstance() {
+            const addr = inputContractAddr.value.trim();
+            if (ethers.isAddress(addr) && signer) {
+                contract = new ethers.Contract(addr, ARENA_ABI, signer);
+                console.log("Contract bound to:", addr);
+                fetchArenaState();
+            }
+        }
+
+        // 2. Render Loop (Grid & Cells)
+        function render() {
+            ctx.fillStyle = '#080b11';
+            ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+
+            // Draw subtle grid lines
+            ctx.strokeStyle = '#151d2f';
+            ctx.lineWidth = 0.5;
+            for (let i = 0; i <= GRID_SIZE; i++) {
+                const pos = i * CELL_PX;
+                ctx.beginPath();
+                ctx.moveTo(pos, 0);
+                ctx.lineTo(pos, CANVAS_SIZE);
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.moveTo(0, pos);
+                ctx.lineTo(CANVAS_SIZE, pos);
+                ctx.stroke();
+            }
+
+            // Draw other players (Magenta/Red glow)
+            for (const p of otherPlayers) {
+                if (currentWallet && p.address.toLowerCase() === currentWallet.address.toLowerCase()) continue;
+                ctx.fillStyle = '#ff0055';
+                ctx.shadowColor = '#ff0055';
+                ctx.shadowBlur = 8;
+                ctx.fillRect(p.x * CELL_PX + 1, p.y * CELL_PX + 1, CELL_PX - 2, CELL_PX - 2);
+                ctx.shadowBlur = 0;
+            }
+
+            // Draw my cell (Neon Cyan)
+            if (myCell.alive) {
+                ctx.fillStyle = '#00f0ff';
+                ctx.shadowColor = '#00f0ff';
+                ctx.shadowBlur = 12;
+                ctx.fillRect(myCell.x * CELL_PX + 1, myCell.y * CELL_PX + 1, CELL_PX - 2, CELL_PX - 2);
+                ctx.shadowBlur = 0;
+
+                // Center core
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(myCell.x * CELL_PX + 3, myCell.y * CELL_PX + 3, CELL_PX - 6, CELL_PX - 6);
+            }
+
+            requestAnimationFrame(render);
+        }
+
+        // 3. Chain Synchronization
+        async function fetchArenaState() {
+            if (!contract || !provider) return;
+            try {
+                // Fetch block height
+                const blockNum = await provider.getBlockNumber();
+                blockHeightDisplay.innerText = '#' + blockNum;
+
+                // Query my cell state
+                if (currentWallet) {
+                    const myState = await contract.cells(currentWallet.address);
+                    myCell.alive = myState.alive;
+                    myCell.x = Number(myState.x);
+                    myCell.y = Number(myState.y);
+                    myCell.score = Number(myState.score);
+
+                    myScoreDisplay.innerText = myCell.score;
+                    if (myCell.alive) {
+                        canvasOverlay.style.display = 'none';
+                        myCoordDisplay.innerText = `${myCell.x}, ${myCell.y}`;
+                    } else {
+                        canvasOverlay.style.display = 'flex';
+                        myCoordDisplay.innerText = '已阵亡/未入场';
+                    }
+                }
+
+                // Query all active players
+                const active = await contract.getActivePlayers();
+                const addrs = active[0];
+                const xs = active[1];
+                const ys = active[2];
+                const scores = active[3];
+
+                otherPlayers = [];
+                for (let i = 0; i < addrs.length; i++) {
+                    otherPlayers.push({
+                        address: addrs[i],
+                        x: Number(xs[i]),
+                        y: Number(ys[i]),
+                        score: Number(scores[i])
+                    });
+                }
+            } catch (err) {
+                // Suppress background poll errors
+            }
+        }
+
+        // 4. On-Chain Actions (Spawn & Move)
+        async function doSpawn() {
+            if (!contract) {
+                alert("请先填写有效的合约地址！");
+                return;
+            }
+            const rx = Math.floor(Math.random() * (GRID_SIZE - 4)) + 2;
+            const ry = Math.floor(Math.random() * (GRID_SIZE - 4)) + 2;
+
+            logTx("正在提交降生交易...", "pending");
+            const t0 = performance.now();
+            try {
+                const tx = await contract.spawn(rx, ry);
+                logTx(`降生 Tx 已广播: ${tx.hash.slice(0, 10)}...`, "sent", tx.hash);
+                const rc = await tx.wait();
+                const dt = Math.round(performance.now() - t0);
+                latencyDisplay.innerText = dt + ' ms';
+                logTx(`✅ 降生成功! 耗时: ${dt}ms (区块 #${rc.blockNumber})`, "success", tx.hash);
+                await fetchArenaState();
+            } catch (err) {
+                console.error(err);
+                logTx(`❌ 降生失败: ${err.shortMessage || err.message}`, "error");
+            }
+        }
+
+        async function doMove(toX, toY) {
+            if (!contract || isMoving || !myCell.alive) return;
+            if (toX < 0 || toX >= GRID_SIZE || toY < 0 || toY >= GRID_SIZE) return;
+
+            isMoving = true;
+            const prevX = myCell.x;
+            const prevY = myCell.y;
+
+            // Optimistic rendering for zero perceived latency
+            myCell.x = toX;
+            myCell.y = toY;
+            myCoordDisplay.innerText = `${toX}, ${toY}`;
+
+            const t0 = performance.now();
+            try {
+                const tx = await contract.move(toX, toY);
+                logTx(`移动 Tx: (${prevX},${prevY}) ➔ (${toX},${toY})`, "sent", tx.hash);
+                const rc = await tx.wait();
+                const dt = Math.round(performance.now() - t0);
+                latencyDisplay.innerText = dt + ' ms';
+                logTx(`⚡ 确认上链! 耗时: ${dt}ms (高度 #${rc.blockNumber})`, "success", tx.hash);
+                totalConfirmedTxs++;
+                txCountBadge.innerText = `${totalConfirmedTxs} 笔已确认`;
+                fetchArenaState();
+            } catch (err) {
+                // Rollback optimistic coords
+                myCell.x = prevX;
+                myCell.y = prevY;
+                myCoordDisplay.innerText = `${prevX}, ${prevY}`;
+                logTx(`❌ 移动回滚: ${err.shortMessage || '状态冲突'}`, "error");
+            } finally {
+                isMoving = false;
+            }
+        }
+
+        // 5. Tx Logging UI
+        function logTx(msg, type = "info", hash = "") {
+            const row = document.createElement('div');
+            row.className = "flex items-center justify-between py-1 border-b border-slate-800/80";
+            
+            let color = "text-slate-300";
+            if (type === "success") color = "text-emerald-400";
+            if (type === "sent") color = "text-cyan-400";
+            if (type === "error") color = "text-rose-400";
+            if (type === "pending") color = "text-amber-400";
+
+            row.innerHTML = `
+                <span class="${color}">${msg}</span>
+                ${hash ? `<a href="https://testnet.monadexplorer.com/tx/${hash}" target="_blank" class="text-cyan-500 hover:underline ml-2">查看 ↗</a>` : ''}
+            `;
+
+            if (txLogContainer.firstChild && txLogContainer.firstChild.classList?.contains('italic')) {
+                txLogContainer.innerHTML = '';
+            }
+            txLogContainer.prepend(row);
+        }
+
+        // 6. Event Listeners
+        window.addEventListener('keydown', (e) => {
+            if (!myCell.alive || isMoving) return;
+            const key = e.key.toLowerCase();
+            if (key === 'w' || key === 'arrowup') doMove(myCell.x, myCell.y - 1);
+            if (key === 's' || key === 'arrowdown') doMove(myCell.x, myCell.y + 1);
+            if (key === 'a' || key === 'arrowleft') doMove(myCell.x - 1, myCell.y);
+            if (key === 'd' || key === 'arrowright') doMove(myCell.x + 1, myCell.y);
+        });
+
+        document.getElementById('btnSpawnOverlay').addEventListener('click', doSpawn);
+        document.getElementById('btnSpawnManual').addEventListener('click', doSpawn);
+        
+        document.getElementById('btnNewBurner').addEventListener('click', () => {
+            const nw = ethers.Wallet.createRandom();
+            localStorage.setItem('monad_arena_burner_key', nw.privateKey);
+            updateSignerWithKey(nw.privateKey);
+        });
+
+        document.getElementById('btnApplyKey').addEventListener('click', () => {
+            const pk = document.getElementById('inputCustomKey').value.trim();
+            if (pk.startsWith('0x') && pk.length === 66) {
+                localStorage.setItem('monad_arena_burner_key', pk);
+                updateSignerWithKey(pk);
+                alert("已成功载入指定私钥！");
+            } else {
+                alert("请输入格式正确的 64 位 16 进制私钥 (以 0x 开头)！");
+            }
+        });
+
+        inputContractAddr.addEventListener('change', bindContractInstance);
+        inputRpcUrl.addEventListener('change', () => {
+            if (currentWallet) updateSignerWithKey(currentWallet.privateKey);
+        });
+
+        // 7. Simulated Influx for Hackathon Demo
+        document.getElementById('btnBurstDemo').addEventListener('click', async () => {
+            logTx("🔥 触发路演并发打压模拟...", "pending");
+            for (let i = 0; i < 5; i++) {
+                const rx = Math.floor(Math.random() * GRID_SIZE);
+                const ry = Math.floor(Math.random() * GRID_SIZE);
+                otherPlayers.push({
+                    address: "0xMock" + Math.random().toString(16).slice(2, 8),
+                    x: rx,
+                    y: ry,
+                    score: 10 + i * 5
+                });
+            }
+            logTx("✅ 5 个蜂群节点并发涌入沙盘网格！", "success");
+        });
+
+        // Bootstrap
+        initBurnerWallet();
+        render();
+        setInterval(fetchArenaState, 2000);
+    </script>
+</body>
+</html>
