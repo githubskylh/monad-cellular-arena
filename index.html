@@ -342,8 +342,8 @@
             <div class="sk-panel p-2.5 text-xs flex items-center justify-between text-slate-400 font-mono text-[11px]">
                 <div>
                     <span>合约: </span>
-                    <a href="https://testnet.monadexplorer.com/address/0xFF8C132525E5aa50f9D549959c4cc5DD448CE430" target="_blank" class="text-yellow-400 hover:underline">
-                        0xFF8C...E430 ↗
+                    <a href="https://testnet.monadexplorer.com/address/0xFD83796156D677B83266Ba7CD86a077040a0166c" target="_blank" class="text-yellow-400 hover:underline">
+                        0xFD83...166c ↗
                     </a>
                 </div>
                 <div>
@@ -358,21 +358,22 @@
 
     <!-- Script: Soul Knight Engine, Auto-Mint Claiming & Audio Engine -->
     <script>
-        const CONTRACT_ADDR = "0xFF8C132525E5aa50f9D549959c4cc5DD448CE430";
+        const CONTRACT_ADDR = "0xFD83796156D677B83266Ba7CD86a077040a0166c";
         const CONTRACT_ABI = [
             "function registerPlayer(uint8 sect) external",
             "function switchSect(uint8 newSect) external",
-            "function settleChapter(tuple(uint16 chapterId, uint32 totalDamage, uint16 monstersSlain, uint16 skillsUsed, uint16 stepsTaken, uint32 clearTimeSeconds, bool bossDefeated) summary) external returns (uint256 mintedTokenId)",
+            "function settleChapter(tuple(uint16 chapterId, uint32 totalDamage, uint16 monstersSlain, uint16 skillsUsed, uint16 stepsTaken, uint32 clearTimeSeconds, bool bossDefeated) summary, bytes32 sessionId) external returns (uint256 mintedTokenId)",
+            "function forgeUpgradeItem(uint256 tokenId) external",
             "function equipItem(uint256 tokenId, uint8 slot) external",
             "function unequipItem(uint8 slot) external",
             "function listLoot(uint256 tokenId, uint256 price) external",
             "function cancelListing(uint256 tokenId) external",
             "function buyLoot(uint256 tokenId) external payable",
             "function getActiveListings() external view returns (uint256[] tokenIds, address[] sellers, uint256[] prices, string[] names, string[] rarities, uint32[] powers, uint8[] itemTypes)",
-            "function getEquippedDetails(address player) external view returns (uint256[3] tokenIds, string[3] names, string[3] rarities, uint32[3] powers, uint32 totalEquipPower)",
-            "function getPlayerLoot(address player) external view returns (uint256[] tokenIds, uint16[] chapterIds, uint8[] itemTypes, string[] names, string[] rarities, uint32[] powers)",
+            "function getEquippedDetails(address player) external view returns (uint256[3] tokenIds, string[3] names, string[3] rarities, uint32[3] powers, uint8[3] starLevels, uint32 totalEquipPower)",
+            "function getPlayerLoot(address player) external view returns (uint256[] tokenIds, uint16[] chapterIds, uint8[] itemTypes, uint8[] starLevels, string[] names, string[] rarities, uint32[] powers)",
             "function recordArenaVictory(address opponent, uint32 points) external",
-            "function profiles(address) view returns (uint8 sect, uint16 level, uint32 totalExp, uint16 maxChapterUnlocked, uint32 totalDamageDealt, uint16 totalMonstersKilled, uint32 totalSkillsCast, uint32 arenaWins, bool isRegistered)"
+            "function profiles(address) view returns (uint8 sect, uint16 level, uint32 totalExp, uint16 maxChapterUnlocked, uint32 totalDamageDealt, uint16 totalMonstersKilled, uint32 totalSkillsCast, uint32 arenaWins, uint32 totalForges, bool isRegistered)"
         ];
 
         const MAP_SIZE = 28;
@@ -463,6 +464,60 @@
                     osc.start(now); osc.stop(now + 0.35);
                 });
             }
+            playShatter() { // 击碎木箱或陶罐
+                if (this.muted) return; this.init();
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(320, now);
+                osc.frequency.exponentialRampToValueAtTime(60, now + 0.08);
+                gain.gain.setValueAtTime(0.35, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+                osc.connect(gain); gain.connect(this.ctx.destination);
+                osc.start(now); osc.stop(now + 0.08);
+            }
+            playAltar() { // 三宗玄坛祈福神圣音
+                if (this.muted) return; this.init();
+                const notes = [440, 554.37, 659.25, 880];
+                notes.forEach((freq, idx) => {
+                    const now = this.ctx.currentTime + idx * 0.08;
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, now);
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+                    osc.connect(gain); gain.connect(this.ctx.destination);
+                    osc.start(now); osc.stop(now + 0.4);
+                });
+            }
+            playHurt() { // 主角受击与护甲吸收
+                if (this.muted) return; this.init();
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(130, now);
+                osc.frequency.exponentialRampToValueAtTime(35, now + 0.14);
+                gain.gain.setValueAtTime(0.4, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
+                osc.connect(gain); gain.connect(this.ctx.destination);
+                osc.start(now); osc.stop(now + 0.14);
+            }
+            playBulletFire() { // Boss 恶魔弹幕呼啸
+                if (this.muted) return; this.init();
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(580, now);
+                osc.frequency.exponentialRampToValueAtTime(180, now + 0.18);
+                gain.gain.setValueAtTime(0.25, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+                osc.connect(gain); gain.connect(this.ctx.destination);
+                osc.start(now); osc.stop(now + 0.18);
+            }
         }
         const sfx = new SoundFX();
 
@@ -473,7 +528,10 @@
         let player = {
             x: 14, y: 14, visualX: 14, visualY: 14, facing: 1, isMoving: false,
             hp: 300, maxHp: 300, shield: 80, maxShield: 80, mp: 150, maxMp: 150,
-            baseAtk: 75, equipPower: 85, weaponAngle: 0, isAttacking: false, attackProgress: 0
+            baseAtk: 75, equipPower: 85, weaponAngle: 0, isAttacking: false, attackProgress: 0,
+            invincibleTimer: 0, // 18 帧无敌受击保护 (i-frames)
+            activeBuff: null,   // 神殿祈福 Buff: { name, type, icon }
+            lastDamageTime: 0   // 上次受伤时间 (用于护甲 3.5 秒后自然自愈)
         };
 
         let equippedItems = [
@@ -483,8 +541,14 @@
         ];
 
         let screenShake = 0;
+        let hitstopFrames = 0;   // 打击顿帧 (2帧普攻, 5帧暴击)
+        let inputBuffer = null;  // 8-tick 输入缓冲
         let floatingTexts = [];
-        let groundLootOrbs = []; // 地面掉落等待拾取的宝物球
+        let groundLootOrbs = []; // 地面掉落等待拾取的宝物球/回血回蓝气丸
+        let dungeonProps = [];   // 地牢可破坏木箱/陶罐
+        let altarProp = null;    // 三宗玄坛神像
+        let bossBullets = [];    // Boss 环形恶魔弹幕
+        let lastBossBarrageTime = 0; // Boss 弹幕计时
         let portalActive = false; // 是否开启传送门
         let portalPos = { x: 14, y: 14 };
 
@@ -510,10 +574,17 @@
                 wallColor: "#334155",
                 torchColor: "#f59e0b",
                 monsters: [
-                    { id: 1, name: "地牢刺壳海龟", type: "turtle", x: 18, y: 14, hp: 110, maxHp: 110, hitFlash: 0 },
-                    { id: 2, name: "剧毒珊瑚蛙", type: "frog", x: 10, y: 15, hp: 120, maxHp: 120, hitFlash: 0 },
-                    { id: 3, name: "地牢骷髅海盗", type: "bandit", x: 15, y: 19, hp: 140, maxHp: 140, hitFlash: 0 }
-                ]
+                    { id: 1, name: "地牢刺壳海龟", type: "turtle", x: 18, y: 14, hp: 110, maxHp: 110, hitFlash: 0, lastMove: 0 },
+                    { id: 2, name: "剧毒珊瑚蛙", type: "frog", x: 10, y: 15, hp: 120, maxHp: 120, hitFlash: 0, lastMove: 0 },
+                    { id: 3, name: "地牢骷髅海盗", type: "bandit", x: 15, y: 19, hp: 140, maxHp: 140, hitFlash: 0, lastMove: 0 }
+                ],
+                props: [
+                    { id: 1, type: 'crate', x: 7, y: 8, hp: 1 },
+                    { id: 2, type: 'crate', x: 21, y: 8, hp: 1 },
+                    { id: 3, type: 'pot', x: 8, y: 20, hp: 1 },
+                    { id: 4, type: 'pot', x: 20, y: 20, hp: 1 }
+                ],
+                altar: null
             },
             2: {
                 title: "STAGE 1-2 • 江南野外墓穴",
@@ -523,11 +594,18 @@
                 wallColor: "#3b5340",
                 torchColor: "#22c55e",
                 monsters: [
-                    { id: 4, name: "嗜血獠牙野猪", type: "boar", x: 18, y: 12, hp: 160, maxHp: 160, hitFlash: 0 },
-                    { id: 5, name: "幽冥地牢骷髅", type: "skeleton", x: 10, y: 17, hp: 170, maxHp: 170, hitFlash: 0 },
-                    { id: 6, name: "古树精守卫", type: "treant", x: 19, y: 18, hp: 200, maxHp: 200, hitFlash: 0 },
-                    { id: 7, name: "荒野暗杀者", type: "bandit", x: 12, y: 20, hp: 180, maxHp: 180, hitFlash: 0 }
-                ]
+                    { id: 4, name: "嗜血獠牙野猪", type: "boar", x: 18, y: 12, hp: 160, maxHp: 160, hitFlash: 0, lastMove: 0 },
+                    { id: 5, name: "幽冥地牢骷髅", type: "skeleton", x: 10, y: 17, hp: 170, maxHp: 170, hitFlash: 0, lastMove: 0 },
+                    { id: 6, name: "古树精守卫", type: "treant", x: 19, y: 18, hp: 200, maxHp: 200, hitFlash: 0, lastMove: 0 },
+                    { id: 7, name: "荒野暗杀者", type: "bandit", x: 12, y: 20, hp: 180, maxHp: 180, hitFlash: 0, lastMove: 0 }
+                ],
+                props: [
+                    { id: 5, type: 'crate', x: 6, y: 7, hp: 1 },
+                    { id: 6, type: 'pot', x: 22, y: 7, hp: 1 },
+                    { id: 7, type: 'pot', x: 7, y: 21, hp: 1 },
+                    { id: 8, type: 'crate', x: 21, y: 21, hp: 1 }
+                ],
+                altar: { x: 14, y: 7, used: false }
             },
             3: {
                 title: "STAGE 1-3 • 大雁塔古殿决战",
@@ -537,14 +615,23 @@
                 wallColor: "#4a3b5c",
                 torchColor: "#a855f7",
                 monsters: [
-                    { id: 8, name: "幻魔羊角怪", type: "goat", x: 11, y: 14, hp: 220, maxHp: 220, hitFlash: 0 },
-                    { id: 9, name: "夺命妖花", type: "flower", x: 17, y: 13, hp: 240, maxHp: 240, hitFlash: 0 },
-                    { id: 10, name: "【大雁塔镇塔妖王】", type: "boss", x: 14, y: 20, hp: 550, maxHp: 550, hitFlash: 0, isBoss: true }
-                ]
+                    { id: 8, name: "幻魔羊角怪", type: "goat", x: 11, y: 14, hp: 220, maxHp: 220, hitFlash: 0, lastMove: 0 },
+                    { id: 9, name: "夺命妖花", type: "flower", x: 17, y: 13, hp: 240, maxHp: 240, hitFlash: 0, lastMove: 0 },
+                    { id: 10, name: "【大雁塔镇塔妖王】", type: "boss", x: 14, y: 20, hp: 550, maxHp: 550, hitFlash: 0, lastMove: 0, isBoss: true }
+                ],
+                props: [
+                    { id: 9, type: 'pot', x: 6, y: 6, hp: 1 },
+                    { id: 10, type: 'pot', x: 22, y: 6, hp: 1 },
+                    { id: 11, type: 'crate', x: 6, y: 22, hp: 1 },
+                    { id: 12, type: 'crate', x: 22, y: 22, hp: 1 }
+                ],
+                altar: { x: 14, y: 7, used: false }
             }
         };
 
         let monsters = CHAPTER_CONFIGS[1].monsters;
+        dungeonProps = JSON.parse(JSON.stringify(CHAPTER_CONFIGS[1].props));
+        altarProp = CHAPTER_CONFIGS[1].altar;
 
         // UI 引用
         const canvas = document.getElementById('gameCanvas');
@@ -603,11 +690,12 @@
                 const eq = await contract.getEquippedDetails(signer.address);
                 const names = eq[1];
                 const powers = eq[3];
-                const totalPow = Number(eq[4]);
+                const stars = eq[4];
+                const totalPow = Number(eq[5]);
 
-                equippedItems[0] = { id: Number(eq[0][0]), name: names[0], power: Number(powers[0]) };
-                equippedItems[1] = { id: Number(eq[0][1]), name: names[1], power: Number(powers[1]) };
-                equippedItems[2] = { id: Number(eq[0][2]), name: names[2], power: Number(powers[2]) };
+                equippedItems[0] = { id: Number(eq[0][0]), name: names[0], power: Number(powers[0]), star: Number(stars[0]) };
+                equippedItems[1] = { id: Number(eq[0][1]), name: names[1], power: Number(powers[1]), star: Number(stars[1]) };
+                equippedItems[2] = { id: Number(eq[0][2]), name: names[2], power: Number(powers[2]), star: Number(stars[2]) };
 
                 player.equipPower = totalPow;
                 headerPowerDisplay.innerText = '+' + totalPow;
@@ -629,6 +717,28 @@
             const now = performance.now();
             const time = (now - startTime) * 0.001;
 
+            // 1. 打击顿帧 (Hitstop: 普攻 2 帧，暴击 5 帧)
+            if (hitstopFrames > 0) {
+                hitstopFrames--;
+                requestAnimationFrame(render);
+                return;
+            }
+
+            // 2. 护甲脱战自然自愈 (脱战 3.5 秒后每 2 帧恢复 1 点护甲)
+            if (now - player.lastDamageTime > 3500 && player.shield < player.maxShield) {
+                player.shield = Math.min(player.maxShield, player.shield + 0.4);
+                updateHudBars();
+            }
+
+            // 3. 8-Tick 输入缓冲队列执行
+            if (inputBuffer && (now - inputBuffer.time < 160) && !player.isAttacking) {
+                const act = inputBuffer.action;
+                inputBuffer = null;
+                if (act === 1) doNormalAttack();
+                else if (act === 2) doSkillAttack(2);
+                else if (act === 3) doSkillAttack(3);
+            }
+
             updateContinuousInput();
 
             ctx.save();
@@ -639,23 +749,76 @@
                 screenShake = Math.max(0, screenShake - 0.5);
             }
 
-            // 1. 地牢砖石地板绘制 (Soul Knight Dungeon Grid)
+            // 地牢砖石地板
             drawDungeonFloor(ctx, CHAPTER_CONFIGS[currentChapter]);
 
-            // 2. 地牢外围石墙与火炬
+            // 地牢外围石墙与火炬
             drawDungeonWallsAndTorches(ctx, time);
 
-            // 3. 传送门绘制 (如果已全歼妖兽)
+            // 地牢可破坏木箱与陶罐 (Breakable Props)
+            drawDungeonProps(ctx, time);
+
+            // 三宗玄坛神像 (Altar of the Three Sects)
+            if (altarProp) {
+                drawAltar(ctx, altarProp, time);
+                // 踏入神坛祈福
+                if (!altarProp.used) {
+                    const distAltar = Math.hypot(player.x - altarProp.x, player.y - altarProp.y);
+                    if (distAltar <= 1.4) {
+                        prayAtAltar();
+                    }
+                }
+            }
+
+            // 传送门绘制
             if (portalActive) {
                 drawSoulKnightPortal(ctx, portalPos.x * TILE_PX + TILE_PX * 0.5, portalPos.y * TILE_PX + TILE_PX * 0.5, time);
             }
 
-            // 4. 地面掉落神兵光球 (Ground Loot Orbs)
+            // 地面掉落宝物球与灵药回血丸 (带 Ease-Out 磁吸效果)
             drawGroundLootOrbs(ctx, time);
 
-            // 5. 绘制野怪 (萌系像素怪物)
+            // 怪物追击 AI 与伤害判定
             monsters.forEach(m => {
                 if (m.hp <= 0) return;
+
+                // 怪物小步巡弋向玩家靠近
+                if (now - (m.lastMove || 0) > (m.isBoss ? 750 : 1000)) {
+                    m.lastMove = now;
+                    const distX = player.x - m.x;
+                    const distY = player.y - m.y;
+                    if (Math.abs(distX) + Math.abs(distY) > 1) {
+                        const stepX = distX !== 0 ? Math.sign(distX) : 0;
+                        const stepY = distY !== 0 ? Math.sign(distY) : 0;
+                        if (Math.random() > 0.4) m.x += stepX;
+                        else m.y += stepY;
+                    }
+                }
+
+                // 紧贴攻击判定 (主角紧缩 Hurtbox 0.7 格)
+                const distToHero = Math.hypot(player.visualX - m.x, player.visualY - m.y);
+                if (distToHero <= 0.75) {
+                    takePlayerDamage(m.isBoss ? 35 : 18);
+                }
+
+                // Chapter 3 镇塔妖王狂暴环形恶魔弹幕
+                if (m.isBoss && m.hp <= 320 && now - lastBossBarrageTime > 2600) {
+                    lastBossBarrageTime = now;
+                    sfx.playBulletFire();
+                    screenShake = 5;
+                    const bulletCount = 8;
+                    for (let b = 0; b < bulletCount; b++) {
+                        const angle = (b / bulletCount) * Math.PI * 2;
+                        bossBullets.push({
+                            x: m.x, y: m.y,
+                            vx: Math.cos(angle) * 0.15,
+                            vy: Math.sin(angle) * 0.15,
+                            life: 85
+                        });
+                    }
+                    showItemToast("⚠️ 镇塔妖王狂暴！释放八荒魔火环形弹幕！");
+                }
+
                 const mx = m.x * TILE_PX + TILE_PX * 0.5;
                 const my = m.y * TILE_PX + TILE_PX * 0.5;
 
@@ -683,7 +846,10 @@
                 ctx.fillText(m.name, mx, my - (m.isBoss ? 36 : 24));
             });
 
-            // 6. 剑侠客平滑插值移动与元气像素小人手绘
+            // 更新与绘制 Boss 恶魔弹幕
+            updateAndDrawBossBullets(ctx, time);
+
+            // 剑侠客平滑插值移动与元气像素小人手绘
             player.visualX += (player.x - player.visualX) * 0.38;
             player.visualY += (player.y - player.visualY) * 0.38;
 
@@ -691,7 +857,7 @@
             const heroPy = player.visualY * TILE_PX + TILE_PX * 0.5;
             drawSoulKnightHero(ctx, heroPx, heroPy, player.facing, time, player.isMoving, player.isAttacking, player.attackProgress);
 
-            // 7. 伤害数字与浮字跳跃
+            // 伤害跳字
             drawFloatingTexts(ctx);
 
             ctx.restore();
@@ -784,11 +950,187 @@
         }
 
         // =========================================================================
+        // 5.1 地牢木箱、陶罐与玄坛神像绘制 (Props & Sacred Altar)
+        // =========================================================================
+        function drawDungeonProps(ctx, time) {
+            dungeonProps.forEach(p => {
+                const px = p.x * TILE_PX + TILE_PX * 0.5;
+                const py = p.y * TILE_PX + TILE_PX * 0.5;
+
+                ctx.save();
+                ctx.translate(px, py);
+
+                if (p.hp <= 0) {
+                    // 破碎碎屑 (Debris)
+                    ctx.fillStyle = p.type === 'crate' ? '#78350f' : '#b45309';
+                    ctx.fillRect(-6, 2, 4, 3);
+                    ctx.fillRect(3, 4, 3, 2);
+                    ctx.fillRect(-2, 5, 4, 2);
+                    ctx.restore();
+                    return;
+                }
+
+                // 影子
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+                ctx.beginPath();
+                ctx.ellipse(0, 8, 8, 3.5, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                if (p.type === 'crate') { // 坚固木箱
+                    ctx.fillStyle = '#b45309';
+                    ctx.fillRect(-8, -8, 16, 16);
+                    ctx.strokeStyle = '#451a03';
+                    ctx.lineWidth = 1.5;
+                    ctx.strokeRect(-8, -8, 16, 16);
+                    // 木箱对角线加强木条
+                    ctx.beginPath();
+                    ctx.moveTo(-8, -8); ctx.lineTo(8, 8);
+                    ctx.moveTo(8, -8); ctx.lineTo(-8, 8);
+                    ctx.stroke();
+                } else { // 陶罐/古瓮
+                    ctx.fillStyle = '#d97706';
+                    ctx.beginPath();
+                    ctx.arc(0, 0, 7.5, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = '#78350f';
+                    ctx.fillRect(-4, -9, 8, 3);
+                    // 封印符咒
+                    ctx.fillStyle = '#ef4444';
+                    ctx.fillRect(-2, -3, 4, 6);
+                }
+                ctx.restore();
+            });
+        }
+
+        function drawAltar(ctx, altar, time) {
+            const ax = altar.x * TILE_PX + TILE_PX * 0.5;
+            const ay = altar.y * TILE_PX + TILE_PX * 0.5;
+
+            ctx.save();
+            ctx.translate(ax, ay);
+
+            // 基座石台
+            ctx.fillStyle = '#334155';
+            ctx.fillRect(-14, 2, 28, 10);
+            ctx.fillStyle = '#475569';
+            ctx.fillRect(-11, -2, 22, 5);
+
+            // 悬浮旋转三宗玉牒神符
+            const floatBob = Math.sin(time * 4) * 3;
+            ctx.save();
+            ctx.translate(0, -12 + floatBob);
+            ctx.fillStyle = altar.used ? '#64748b' : '#facc15';
+            ctx.shadowColor = altar.used ? '#475569' : '#eab308';
+            ctx.shadowBlur = altar.used ? 0 : 12;
+            ctx.beginPath();
+            ctx.moveTo(0, -9); ctx.lineTo(7, 0); ctx.lineTo(0, 9); ctx.lineTo(-7, 0);
+            ctx.closePath();
+            ctx.fill();
+
+            // 神圣符文核心
+            ctx.fillStyle = altar.used ? '#334155' : '#ffffff';
+            ctx.fillRect(-2, -2, 4, 4);
+            ctx.restore();
+
+            // 待祈福引导提示
+            if (!altar.used) {
+                ctx.fillStyle = '#fef08a';
+                ctx.font = 'bold 9px VT323, monospace';
+                ctx.textAlign = 'center';
+                ctx.fillText("三宗玄坛 (靠近祈福)", 0, -26);
+
+                // 旋转神光
+                ctx.strokeStyle = 'rgba(234, 179, 8, 0.4)';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.ellipse(0, 7, 16, 6, 0, 0, Math.PI * 2);
+                ctx.stroke();
+            } else {
+                ctx.fillStyle = '#94a3b8';
+                ctx.font = '9px VT323, monospace';
+                ctx.textAlign = 'center';
+                ctx.fillText("已承玄坛造化", 0, -24);
+            }
+
+            ctx.restore();
+        }
+
+        function updateAndDrawBossBullets(ctx, time) {
+            for (let i = bossBullets.length - 1; i >= 0; i--) {
+                const b = bossBullets[i];
+                b.x += b.vx;
+                b.y += b.vy;
+                b.life--;
+
+                const bx = b.x * TILE_PX + TILE_PX * 0.5;
+                const by = b.y * TILE_PX + TILE_PX * 0.5;
+
+                // 撞墙或生命耗尽销毁
+                if (b.life <= 0 || b.x <= 1 || b.x >= MAP_SIZE - 1 || b.y <= 1 || b.y >= MAP_SIZE - 1) {
+                    bossBullets.splice(i, 1);
+                    continue;
+                }
+
+                // 触碰主角 (紧缩 Hurtbox 0.75 格)
+                const distHero = Math.hypot(player.visualX - b.x, player.visualY - b.y);
+                if (distHero <= 0.75) {
+                    takePlayerDamage(24);
+                    bossBullets.splice(i, 1);
+                    continue;
+                }
+
+                // 绘制恶魔烈焰弹丸
+                ctx.save();
+                ctx.fillStyle = '#ef4444';
+                ctx.shadowColor = '#f87171';
+                ctx.shadowBlur = 8;
+                ctx.beginPath();
+                ctx.arc(bx, by, 4.5, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.fillStyle = '#fef08a';
+                ctx.beginPath();
+                ctx.arc(bx, by, 2.2, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        // =========================================================================
         // 6. 元气骑士萌系像素小人 (Jian Xiake in Soul Knight Chibi Style)
         // =========================================================================
         function drawSoulKnightHero(ctx, x, y, facing, time, isMoving, isAttacking, attackProg) {
             ctx.save();
             ctx.translate(x, y);
+
+            // 18 帧无敌受击保护闪烁 (Damage i-frames flash)
+            if (player.invincibleTimer > 0) {
+                player.invincibleTimer--;
+                if (Math.floor(player.invincibleTimer / 2) % 2 === 1) {
+                    ctx.globalAlpha = 0.35;
+                }
+            }
+
+            // 神殿祈福 Buff 光环 (Altar Blessing Aura)
+            if (player.activeBuff) {
+                ctx.save();
+                if (player.activeBuff.type === 'lifesteal') {
+                    ctx.strokeStyle = 'rgba(239, 68, 68, 0.8)';
+                    ctx.shadowColor = '#ef4444';
+                } else if (player.activeBuff.type === 'speed') {
+                    ctx.strokeStyle = 'rgba(34, 197, 94, 0.8)';
+                    ctx.shadowColor = '#22c55e';
+                } else {
+                    ctx.strokeStyle = 'rgba(234, 179, 8, 0.8)';
+                    ctx.shadowColor = '#eab308';
+                }
+                ctx.lineWidth = 2;
+                ctx.shadowBlur = 8;
+                ctx.beginPath();
+                ctx.ellipse(0, 10, 13, 5, 0, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.restore();
+            }
 
             // 移动上下弹跳 (Soul Knight Iconic Bobbing)
             const bob = isMoving ? Math.abs(Math.sin(time * 14)) * 3 : Math.sin(time * 3) * 0.8;
@@ -946,43 +1288,98 @@
                 power: power,
                 itemType: itemType,
                 time: performance.now(),
-                bounced: false
+        // =========================================================================
+        // 8. 地面神兵掉落与气丸光球 (Ease-Out Vacuum Magnet System)
+        // =========================================================================
+        function spawnLootOrb(x, y, name, rarity, power, itemType) {
+            groundLootOrbs.push({
+                x: x, y: y,
+                name: name,
+                rarity: rarity,
+                power: power,
+                itemType: itemType,
+                isRecovery: false,
+                time: performance.now()
             });
             logTx(`💎 妖兽爆出神兵光球【${name}】！走近即可自动拾取！`, "info");
+        }
+
+        function spawnRecoveryOrb(x, y, type) {
+            groundLootOrbs.push({
+                x: x, y: y,
+                name: type === 'hp' ? '地牢灵丹' : '聚气灵丹',
+                isRecovery: true,
+                recoveryType: type,
+                amount: type === 'hp' ? 35 : 45,
+                time: performance.now()
+            });
         }
 
         function drawGroundLootOrbs(ctx, time) {
             for (let i = groundLootOrbs.length - 1; i >= 0; i--) {
                 const orb = groundLootOrbs[i];
-                const px = orb.x * TILE_PX + TILE_PX * 0.5;
-                const py = orb.y * TILE_PX + TILE_PX * 0.5;
                 const floatY = Math.sin(time * 5 + i) * 3;
 
-                // 拾取磁吸判定 (吸附到主角)
-                const dist = Math.hypot(player.x - orb.x, player.y - orb.y);
-                if (dist <= 1.2) {
+                // 非线性 Ease-Out 磁吸吸附物理 (Soul Knight Vacuum Magnet)
+                const dist = Math.hypot(player.visualX - orb.x, player.visualY - orb.y);
+                if (dist <= 3.8) {
+                    const angle = Math.atan2(player.visualY - orb.y, player.visualX - orb.x);
+                    const pullSpeed = Math.min(0.32, 0.06 + (3.8 - dist) * 0.075);
+                    orb.x += Math.cos(angle) * pullSpeed;
+                    orb.y += Math.sin(angle) * pullSpeed;
+                }
+
+                // 触碰拾取判定 (0.85 格触及)
+                if (dist <= 0.85) {
                     sfx.playPickup();
-                    showItemToast(`✨ 拾取到通关神兵【${orb.name}】(战力 +${orb.power})！`);
-                    logTx(`🎒 获得神兵【${orb.name}】！进入传送门将自动认领 Mint 上链！`, "success");
+                    if (orb.isRecovery) {
+                        if (orb.recoveryType === 'hp') {
+                            player.hp = Math.min(player.maxHp, player.hp + orb.amount);
+                            addFloatingDamage(player.visualX * TILE_PX + TILE_PX * 0.5, player.visualY * TILE_PX - 10, `+${orb.amount} HP`, '#4ade80', false);
+                            showItemToast(`💚 拾取地牢灵丹！气血恢复 +${orb.amount}`);
+                        } else {
+                            player.mp = Math.min(player.maxMp, player.mp + orb.amount);
+                            addFloatingDamage(player.visualX * TILE_PX + TILE_PX * 0.5, player.visualY * TILE_PX - 10, `+${orb.amount} MP`, '#38bdf8', false);
+                            showItemToast(`💙 拾取聚气灵泉！法力恢复 +${orb.amount}`);
+                        }
+                        updateHudBars();
+                    } else {
+                        showItemToast(`✨ 拾取到通关神兵【${orb.name}】(战力 +${orb.power})！`);
+                        logTx(`🎒 获得神兵【${orb.name}】！进入传送门将自动认领 Mint 上链！`, "success");
+                    }
                     groundLootOrbs.splice(i, 1);
                     continue;
                 }
 
+                const px = orb.x * TILE_PX + TILE_PX * 0.5;
+                const py = orb.y * TILE_PX + TILE_PX * 0.5;
+
                 ctx.save();
                 ctx.translate(px, py + floatY);
 
-                // 金色灵气光环
-                ctx.strokeStyle = 'rgba(250, 204, 21, 0.7)';
-                ctx.lineWidth = 2;
-                ctx.beginPath(); ctx.arc(0, 0, 9, 0, Math.PI * 2); ctx.stroke();
+                if (orb.isRecovery) {
+                    // 翠绿或天蓝恢复药丸
+                    const col = orb.recoveryType === 'hp' ? '#22c55e' : '#38bdf8';
+                    ctx.fillStyle = col;
+                    ctx.shadowColor = col;
+                    ctx.shadowBlur = 8;
+                    ctx.beginPath(); ctx.arc(0, 0, 5.5, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = '#ffffff';
+                    ctx.beginPath(); ctx.arc(-1.5, -1.5, 2, 0, Math.PI * 2); ctx.fill();
+                } else {
+                    // 金色灵气光环
+                    ctx.strokeStyle = 'rgba(250, 204, 21, 0.7)';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath(); ctx.arc(0, 0, 9, 0, Math.PI * 2); ctx.stroke();
 
-                ctx.fillStyle = '#f59e0b';
-                ctx.beginPath(); ctx.arc(0, 0, 6, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = '#f59e0b';
+                    ctx.beginPath(); ctx.arc(0, 0, 6, 0, Math.PI * 2); ctx.fill();
 
-                ctx.fillStyle = '#fef08a';
-                ctx.font = 'bold 9px VT323, monospace';
-                ctx.textAlign = 'center';
-                ctx.fillText(orb.name, 0, -12);
+                    ctx.fillStyle = '#fef08a';
+                    ctx.font = 'bold 9px VT323, monospace';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(orb.name, 0, -12);
+                }
 
                 ctx.restore();
             }
@@ -1027,19 +1424,25 @@
         }
 
         // =========================================================================
-        // 9. 移动与攻击输入 (WASD 平滑微步 + 自动认领传送门)
+        // 9. 移动与受击判定 (WASD 走位 + 护甲吸收 + 三宗祈福)
         // =========================================================================
         const keysDown = {};
         let lastMoveStepTime = 0;
-        const MOVE_COOLDOWN = 110; // ms
 
         window.addEventListener('keydown', (e) => {
             keysDown[e.key.toLowerCase()] = true;
             if (e.code === 'Space') e.preventDefault();
 
-            if (e.key === '1' || e.code === 'Space') doNormalAttack();
-            else if (e.key === '2' || e.key.toLowerCase() === 'q') doSkillAttack(2);
-            else if (e.key === '3' || e.key.toLowerCase() === 'e') doSkillAttack(3);
+            if (e.key === '1' || e.code === 'Space') {
+                if (player.isAttacking) inputBuffer = { action: 1, time: performance.now() };
+                else doNormalAttack();
+            } else if (e.key === '2' || e.key.toLowerCase() === 'q') {
+                if (player.isAttacking) inputBuffer = { action: 2, time: performance.now() };
+                else doSkillAttack(2);
+            } else if (e.key === '3' || e.key.toLowerCase() === 'e') {
+                if (player.isAttacking) inputBuffer = { action: 3, time: performance.now() };
+                else doSkillAttack(3);
+            }
         });
 
         window.addEventListener('keyup', (e) => {
@@ -1049,7 +1452,8 @@
         function updateContinuousInput() {
             if (chapterStats.isCleared) return;
             const now = performance.now();
-            if (now - lastMoveStepTime < MOVE_COOLDOWN) return;
+            const moveCooldown = player.activeBuff?.type === 'speed' ? 75 : 110;
+            if (now - lastMoveStepTime < moveCooldown) return;
 
             let dx = 0, dy = 0;
             if (keysDown['w'] || keysDown['arrowup']) dy -= 1;
@@ -1069,7 +1473,7 @@
             const nextX = player.x + dx;
             const nextY = player.y + dy;
 
-            // 地牢边界判定 (避免穿墙)
+            // 地牢边界判定
             if (nextX <= 0 || nextX >= MAP_SIZE - 1 || nextY <= 0 || nextY >= MAP_SIZE - 1) return;
 
             player.x = nextX;
@@ -1085,8 +1489,68 @@
             }
         }
 
+        function takePlayerDamage(amt) {
+            if (chapterStats.isCleared || player.invincibleTimer > 0) return;
+            player.invincibleTimer = 18; // 18 帧无敌受击保护 (~300ms)
+            player.lastDamageTime = performance.now();
+            sfx.playHurt();
+            screenShake = 5;
+
+            let actualDmg = amt;
+            if (player.activeBuff?.type === "shield") {
+                actualDmg = Math.max(1, Math.floor(amt * 0.6)); // 金刚减伤 40%
+            }
+
+            if (player.shield > 0) {
+                if (player.shield >= actualDmg) {
+                    player.shield -= actualDmg;
+                    addFloatingDamage(player.visualX * TILE_PX + TILE_PX * 0.5, player.visualY * TILE_PX - 10, `-${actualDmg} 护甲`, '#38bdf8', false);
+                } else {
+                    const rem = actualDmg - player.shield;
+                    player.shield = 0;
+                    player.hp = Math.max(0, player.hp - rem);
+                    addFloatingDamage(player.visualX * TILE_PX + TILE_PX * 0.5, player.visualY * TILE_PX - 10, `-${rem} HP`, '#ef4444', true);
+                }
+            } else {
+                player.hp = Math.max(0, player.hp - actualDmg);
+                addFloatingDamage(player.visualX * TILE_PX + TILE_PX * 0.5, player.visualY * TILE_PX - 10, `-${actualDmg} HP`, '#ef4444', true);
+            }
+            updateHudBars();
+
+            if (player.hp <= 0) {
+                showItemToast("💀 少侠力竭倒地！地牢已重置！");
+                logTx("💀 气血耗尽！正在重新凝聚元神...", "error");
+                setTimeout(() => {
+                    player.hp = player.maxHp;
+                    player.shield = player.maxShield;
+                    loadNextDungeon(currentChapter);
+                }, 1000);
+            }
+        }
+
+        function prayAtAltar() {
+            if (!altarProp || altarProp.used) return;
+            altarProp.used = true;
+            sfx.playAltar();
+            screenShake = 4;
+
+            const buffs = [
+                { name: "嗜血玄印", type: "lifesteal", icon: "🩸", desc: "斩击吸取 20% 伤害恢复自身气血" },
+                { name: "疾风破影", type: "speed", icon: "⚡", desc: "踏步如风，移动冷却缩减至 75ms" },
+                { name: "金刚法相", type: "shield", icon: "🛡️", desc: "伤害减免 40%，护甲瞬间拉满" }
+            ];
+            const chosen = buffs[Math.floor(Math.random() * buffs.length)];
+            player.activeBuff = chosen;
+            if (chosen.type === "shield") {
+                player.shield = player.maxShield;
+                updateHudBars();
+            }
+            showItemToast(`🏛️ 获得玄坛祈福【${chosen.name}】！${chosen.desc}`);
+            logTx(`✨ 参悟玄坛秘法【${chosen.name}】(${chosen.desc})！`, "info");
+        }
+
         // =========================================================================
-        // 10. 战斗招式与打击 (Combat Mechanics)
+        // 10. 战斗招式与打击 (Asymmetric Hitbox & Life Steal)
         // =========================================================================
         function doNormalAttack() {
             if (chapterStats.isCleared) return;
@@ -1096,14 +1560,35 @@
             player.attackProgress = 1.0;
             setTimeout(() => { player.isAttacking = false; }, 180);
 
-            const target = monsters.find(m => m.hp > 0 && Math.abs(m.x - player.x) <= 2 && Math.abs(m.y - player.y) <= 2);
+            // 1. 击碎附近木箱与陶罐 (宽容判定 2.3 格)
+            dungeonProps.forEach(p => {
+                if (p.hp > 0 && Math.hypot(p.x - player.x, p.y - player.y) <= 2.3) {
+                    p.hp = 0;
+                    sfx.playShatter();
+                    screenShake = 3;
+                    spawnRecoveryOrb(p.x, p.y, Math.random() > 0.5 ? 'hp' : 'mp');
+                }
+            });
+
+            // 2. 斩击怪物 (非对称 Hitbox 宽容半径 2.3 格，115% 范围)
+            const target = monsters.find(m => m.hp > 0 && Math.hypot(m.x - player.x, m.y - player.y) <= 2.3);
             if (!target) return;
 
             sfx.playHit();
+            hitstopFrames = 2; // 打击顿帧 2 帧
             target.hitFlash = 5;
             screenShake = 3;
 
             const dmg = Math.floor(Math.random() * 20) + player.baseAtk + Math.floor(player.equipPower * 0.5);
+
+            // 嗜血吸血
+            if (player.activeBuff?.type === "lifesteal") {
+                const steal = Math.max(2, Math.floor(dmg * 0.2));
+                player.hp = Math.min(player.maxHp, player.hp + steal);
+                addFloatingDamage(player.visualX * TILE_PX + TILE_PX * 0.5, player.visualY * TILE_PX - 12, `+${steal} 吸血`, '#ef4444', false);
+                updateHudBars();
+            }
+
             applyMonsterDamage(target, dmg, false);
         }
 
@@ -1119,18 +1604,37 @@
             chapterStats.skillsUsed++;
 
             sfx.playSlash();
-            sfx.playHit();
-            screenShake = 6;
-
             player.isAttacking = true;
             player.attackProgress = 1.2;
             setTimeout(() => { player.isAttacking = false; }, 220);
 
-            const target = monsters.find(m => m.hp > 0 && Math.abs(m.x - player.x) <= 3 && Math.abs(m.y - player.y) <= 3);
+            // 击碎大范围木箱陶罐
+            dungeonProps.forEach(p => {
+                if (p.hp > 0 && Math.hypot(p.x - player.x, p.y - player.y) <= 2.8) {
+                    p.hp = 0;
+                    sfx.playShatter();
+                    screenShake = 4;
+                    spawnRecoveryOrb(p.x, p.y, Math.random() > 0.5 ? 'hp' : 'mp');
+                }
+            });
+
+            const target = monsters.find(m => m.hp > 0 && Math.hypot(m.x - player.x, m.y - player.y) <= 2.8);
             if (!target) return;
 
+            sfx.playHit();
+            hitstopFrames = 5; // 技能暴击顿帧 5 帧
+            screenShake = 6;
             target.hitFlash = 6;
+
             const dmg = Math.floor((player.baseAtk + player.equipPower) * (slot === 2 ? 1.8 : 2.4));
+
+            if (player.activeBuff?.type === "lifesteal") {
+                const steal = Math.max(5, Math.floor(dmg * 0.2));
+                player.hp = Math.min(player.maxHp, player.hp + steal);
+                addFloatingDamage(player.visualX * TILE_PX + TILE_PX * 0.5, player.visualY * TILE_PX - 12, `+${steal} 吸血`, '#ef4444', false);
+                updateHudBars();
+            }
+
             applyMonsterDamage(target, dmg, true);
         }
 
@@ -1169,9 +1673,9 @@
 
         function updateHudBars() {
             hpBarFill.style.width = `${(player.hp / player.maxHp) * 100}%`;
-            hpText.innerText = `${player.hp}/${player.maxHp}`;
+            hpText.innerText = `${Math.floor(player.hp)}/${player.maxHp}`;
             shieldBarFill.style.width = `${(player.shield / player.maxShield) * 100}%`;
-            shieldText.innerText = `${player.shield}/${player.maxShield}`;
+            shieldText.innerText = `${Math.floor(player.shield)}/${player.maxShield}`;
             mpBarFill.style.width = `${(player.mp / player.maxMp) * 100}%`;
             mpText.innerText = `${player.mp}/${player.maxMp}`;
         }
@@ -1199,11 +1703,17 @@
                 bossDefeated: chapterStats.bossDefeated
             };
 
-            logTx(`📜 踏入传送门！正在 Monad 上自动认领并 Mint NFT 道具...`, "pending");
+            // 生成唯一会话凭据防重放
+            const sessionId = ethers.keccak256(ethers.toUtf8Bytes("dungeon_session_" + Date.now() + "_" + Math.random()));
+            logTx(`📜 踏入传送门！正在 Monad 上自动认领并 Mint NFT 道具 (Session: ${sessionId.slice(0, 10)}...)...`, "pending");
 
             try {
-                // 单笔合并交易：自动认领 + 经验升级 + NFT 铸造落块！
-                const tx = await contract.settleChapter(summary, { gasLimit: 400000n });
+                const fee = await provider.getFeeData();
+                const tx = await contract.settleChapter(summary, sessionId, {
+                    gasLimit: 450000n,
+                    type: 0,
+                    gasPrice: fee.gasPrice || 102000000000n
+                });
                 logTx(`📡 自动 Mint 交易已广播: ${tx.hash.slice(0, 12)}...`, "sent", tx.hash);
 
                 const rc = await tx.wait();
@@ -1235,7 +1745,10 @@
             currentChapter = chapterId;
             const cfg = CHAPTER_CONFIGS[chapterId];
 
-            monsters = cfg.monsters.map(m => ({ ...m, hp: m.maxHp, hitFlash: 0 }));
+            monsters = cfg.monsters.map(m => ({ ...m, hp: m.maxHp, hitFlash: 0, lastMove: 0 }));
+            dungeonProps = JSON.parse(JSON.stringify(cfg.props || []));
+            altarProp = cfg.altar ? { ...cfg.altar } : null;
+            bossBullets = [];
             portalActive = false;
             groundLootOrbs = [];
 
@@ -1283,9 +1796,10 @@
                 const ids = loot[0];
                 const chapterIds = loot[1];
                 const itemTypes = loot[2];
-                const names = loot[3];
-                const rarities = loot[4];
-                const powers = loot[5];
+                const starLevels = loot[3];
+                const names = loot[4];
+                const rarities = loot[5];
+                const powers = loot[6];
 
                 nftTotalDisplay.innerText = `(${ids.length})`;
                 tabContentBackpack.innerHTML = '';
@@ -1302,10 +1816,13 @@
                     const tid = Number(ids[i]);
                     const chId = Number(chapterIds[i]);
                     const iType = Number(itemTypes[i]);
+                    const sLevel = Number(starLevels[i]);
                     const pName = names[i];
                     const rName = rarities[i];
                     const cPower = Number(powers[i]);
                     const isEquipped = (equippedItems[iType] && equippedItems[iType].name === pName);
+
+                    const starsHtml = sLevel > 0 ? ('⭐'.repeat(sLevel)) : '0星';
 
                     const div = document.createElement('div');
                     div.className = `p-2 rounded-lg bg-black/60 border ${isEquipped ? 'border-yellow-400' : 'border-slate-800'} flex items-center justify-between`;
@@ -1316,12 +1833,14 @@
                                 <div class="font-bold font-xy text-yellow-300 text-xs flex items-center gap-1">
                                     <span>${pName}</span>
                                     <span class="text-[9px] px-1 bg-amber-950 text-amber-300 rounded font-pixel">#${tid}</span>
+                                    <span class="text-[9px] px-1 bg-yellow-950 text-yellow-400 rounded font-pixel font-bold">${starsHtml}</span>
                                     ${isEquipped ? '<span class="text-[8px] bg-yellow-400 text-black px-1 rounded font-bold">已着装</span>' : ''}
                                 </div>
                                 <div class="text-[9px] text-slate-400 font-mono">第 ${chId} 层 • 战力 +${cPower} • ${rName}</div>
                             </div>
                         </div>
                         <div class="flex items-center space-x-1">
+                            ${sLevel < 5 ? `<button onclick="forgeNFT(${tid}, '${pName}')" class="px-2 py-1 bg-yellow-600 hover:bg-yellow-500 text-black font-bold rounded text-[9px] font-xy" title="天机玄炉锻造升星 (+25战力)">升星</button>` : ''}
                             <button onclick="equipNFT(${tid}, ${iType}, '${pName}', ${cPower})" class="px-2 py-1 ${isEquipped ? 'bg-slate-700 text-slate-400' : 'bg-amber-600 hover:bg-amber-500 text-black font-bold'} rounded text-[9px] font-xy">
                                 ${isEquipped ? '已穿' : '穿戴'}
                             </button>
@@ -1335,6 +1854,28 @@
             }
         }
 
+        window.forgeNFT = async function(tokenId, name) {
+            sfx.playHit();
+            logTx(`🔨 正在将神兵【${name}】送入天机玄炉锻造升星...`, "info");
+            try {
+                const fee = await provider.getFeeData();
+                const tx = await contract.forgeUpgradeItem(tokenId, {
+                    gasLimit: 250000n,
+                    type: 0,
+                    gasPrice: fee.gasPrice || 102000000000n
+                });
+                logTx(`📡 锻造升星交易已发送: ${tx.hash.slice(0, 12)}...`, "sent", tx.hash);
+                await tx.wait();
+                sfx.playPickup();
+                showItemToast(`⭐ 神兵【${name}】升星成功！战力 +25！`);
+                logTx(`🎉 神兵【${name}】升星成功！星级提升，战力激增 +25！`, "success", tx.hash);
+                await refreshLootInventory();
+                await syncEquippedState();
+            } catch (err) {
+                logTx(`❌ 锻造失败: ${err.shortMessage || err.message}`, "error");
+            }
+        };
+
         window.equipNFT = async function(tokenId, slot, name, power) {
             sfx.playPickup();
             equippedItems[slot] = { id: tokenId, name: name, power: power };
@@ -1346,7 +1887,12 @@
             refreshLootInventory();
 
             try {
-                const tx = await contract.equipItem(tokenId, slot, { gasLimit: 200000n });
+                const fee = await provider.getFeeData();
+                const tx = await contract.equipItem(tokenId, slot, {
+                    gasLimit: 200000n,
+                    type: 0,
+                    gasPrice: fee.gasPrice || 102000000000n
+                });
                 await tx.wait();
                 logTx(`✅ 装备【${name}】全链穿戴铭刻完毕！`, "success", tx.hash);
             } catch (err) {
@@ -1361,8 +1907,13 @@
             sfx.playPickup();
             logTx(`🏷️ 正在将【${name}】以 ${priceStr} MON 挂单至寄售行...`, "info");
             try {
+                const fee = await provider.getFeeData();
                 const weiPrice = ethers.parseEther(priceStr);
-                const tx = await contract.listLoot(tokenId, weiPrice, { gasLimit: 250000n });
+                const tx = await contract.listLoot(tokenId, weiPrice, {
+                    gasLimit: 250000n,
+                    type: 0,
+                    gasPrice: fee.gasPrice || 102000000000n
+                });
                 await tx.wait();
                 logTx(`🎉 挂单成功！【${name}】已进入全链集市！`, "success", tx.hash);
                 refreshLootInventory();
@@ -1426,13 +1977,19 @@
         window.cancelListing = async function(tokenId) {
             logTx(`⏳ 正在撤销 #${tokenId} 的寄售单...`, "info");
             try {
-                const tx = await contract.cancelListing(tokenId, { gasLimit: 200000n });
+                const fee = await provider.getFeeData();
+                const tx = await contract.cancelListing(tokenId, {
+                    gasLimit: 200000n,
+                    type: 0,
+                    gasPrice: fee.gasPrice || 102000000000n
+                });
                 await tx.wait();
                 logTx(`✅ 撤单成功！神兵已退回背包！`, "success", tx.hash);
                 refreshLootInventory();
                 refreshBazaarListings();
             } catch (e) {
                 console.error(e);
+                logTx(`❌ 撤单失败: ${e.shortMessage || e.message}`, "error");
             }
         };
 
