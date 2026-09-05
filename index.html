@@ -144,6 +144,9 @@
             <button id="btnWalletModeToggle" class="px-2 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 text-[10px] font-mono hidden sm:flex items-center space-x-1" title="切换免密试玩 / 外部Web3钱包">
                 <span id="walletModeBadge" class="text-yellow-400">⚡ 试玩模式</span>
             </button>
+            <button id="btnAutoGaslessToggle" class="px-2 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-amber-500/50 text-[10px] font-xy hidden sm:flex items-center space-x-1" title="点击切换：全自动极速秒铸(0弹窗) / 私人钱包手动确权(每关弹窗)">
+                <span id="autoGaslessBadge" class="text-amber-300">⚡ 代付秒铸: 关</span>
+            </button>
             <button id="btnAudioToggle" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 text-amber-300 flex items-center space-x-1">
                 <span id="audioIcon">🔊</span>
                 <span id="audioText" class="text-[11px] font-xy">音效: 开</span>
@@ -779,6 +782,8 @@
         const btnWalletModeToggle = document.getElementById('btnWalletModeToggle');
         const walletModeBadge = document.getElementById('walletModeBadge');
         const accountModeBadge = document.getElementById('accountModeBadge');
+        const btnAutoGaslessToggle = document.getElementById('btnAutoGaslessToggle');
+        const autoGaslessBadge = document.getElementById('autoGaslessBadge');
 
         function getActiveAddress() {
             if (currentWalletMode === 'external' && externalAddress) return externalAddress;
@@ -890,9 +895,11 @@
                     logTx(`⚠️ 用户取消了 ${brand.name} 授权`, "error");
                     return;
                 }
+
+                // 在用户连接钱包交互链路中立即切换并锁定 Monad Testnet (10143)
                 await checkAndSwitchMonadNetwork();
 
-                externalBrowserProvider = new ethers.BrowserProvider(activeInjectedProvider);
+                externalBrowserProvider = new ethers.BrowserProvider(activeInjectedProvider, "any");
                 externalSigner = await externalBrowserProvider.getSigner();
                 externalAddress = await externalSigner.getAddress();
 
@@ -901,8 +908,8 @@
                 currentWalletMode = "external";
 
                 updateWalletUI();
-                logTx(`${brand.icon} ${brand.name} 已连接: ${externalAddress.slice(0, 6)}...${externalAddress.slice(-4)}，已切至真实 Web3 模式！`, "success");
-                showItemToast(`${brand.icon} ${brand.name} 已连接！已切至真实 Web3 模式！`);
+                logTx(`${brand.icon} ${brand.name} 已连接: ${externalAddress.slice(0, 6)}...${externalAddress.slice(-4)}，网络锁定 Monad Testnet！`, "success");
+                showItemToast(`${brand.icon} ${brand.name} 已连接！网络锁定 Monad Testnet！`);
 
                 await checkAndAirdropGasIfNeeded(externalAddress);
                 await updateWalletBalance();
@@ -1020,6 +1027,22 @@
                 if (btnWalletModeToggle) {
                     btnWalletModeToggle.addEventListener('click', toggleWalletMode);
                 }
+                if (btnAutoGaslessToggle) {
+                    btnAutoGaslessToggle.addEventListener('click', () => {
+                        isGaslessAutoMintActive = !isGaslessAutoMintActive;
+                        if (isGaslessAutoMintActive) {
+                            autoGaslessBadge.innerText = "⚡ 代付秒铸: 开";
+                            autoGaslessBadge.className = "text-emerald-400 font-bold";
+                            showItemToast("⚡ 已开启【全自动代付秒铸】！通关由平台代付 1 秒秒铸！");
+                            logTx("⚡ 已开启【全自动代付秒铸】！通关由平台代付 1 秒秒铸！", "success");
+                        } else {
+                            autoGaslessBadge.innerText = "⚡ 代付秒铸: 关";
+                            autoGaslessBadge.className = "text-amber-300";
+                            showItemToast("🪙 已恢复【外部钱包手动签名】模式！");
+                            logTx("🪙 已恢复【外部钱包手动签名】模式！", "info");
+                        }
+                    });
+                }
 
                 // 监听外部钱包事件 (EIP-1193)
                 const injected = activeInjectedProvider || getInjectedProvider();
@@ -1028,9 +1051,9 @@
                         if (accounts.length === 0) {
                             switchToTrialWallet();
                         } else if (currentWalletMode === 'external') {
-                            externalAddress = accounts[0];
-                            externalBrowserProvider = new ethers.BrowserProvider(injected);
+                            externalBrowserProvider = new ethers.BrowserProvider(injected, "any");
                             externalSigner = await externalBrowserProvider.getSigner();
+                            externalAddress = await externalSigner.getAddress();
                             signer = externalSigner;
                             contract = new ethers.Contract(CONTRACT_ADDR, CONTRACT_ABI, signer);
                             updateWalletUI();
@@ -1038,12 +1061,22 @@
                             await syncEquippedState();
                             await refreshLootInventory();
                             const brand = getWalletBrandInfo(injected);
-                            logTx(`${brand.icon} 钱包账号变更为: ${accounts[0].slice(0, 6)}...${accounts[0].slice(-4)}`, "info");
+                            logTx(`${brand.icon} 钱包账号变更为: ${externalAddress.slice(0, 6)}...${externalAddress.slice(-4)}`, "info");
                         }
                     });
-                    injected.on('chainChanged', (chainId) => {
-                        if (currentWalletMode === 'external' && chainId.toLowerCase() !== MONAD_CHAIN_ID_HEX) {
-                            logTx("⚠️ 检测到非 Monad 测试网，请切回 Monad Testnet (Chain ID 10143)！", "error");
+                    injected.on('chainChanged', async (chainId) => {
+                        if (currentWalletMode === 'external') {
+                            if (chainId && chainId.toLowerCase() !== MONAD_CHAIN_ID_HEX) {
+                                logTx("⚠️ 检测到网络变更为非 Monad 测试网，请切换回 Monad Testnet (Chain ID 10143)！", "error");
+                                showItemToast("⚠️ 请在钱包中切回 Monad Testnet (10143)！");
+                            } else {
+                                externalBrowserProvider = new ethers.BrowserProvider(injected, "any");
+                                externalSigner = await externalBrowserProvider.getSigner();
+                                signer = externalSigner;
+                                contract = new ethers.Contract(CONTRACT_ADDR, CONTRACT_ABI, signer);
+                                await updateWalletBalance();
+                                logTx("✅ 钱包网络已锁定 Monad Testnet！", "success");
+                            }
                         }
                     });
                 }
@@ -2867,6 +2900,7 @@
         // =========================================================================
         let currentClearanceSummary = null;
         let currentClearanceSessionId = null;
+        let isGaslessAutoMintActive = false;
 
         async function triggerAutoMintClaim() {
             if (chapterStats.autoMintTriggered) return;
@@ -2897,7 +2931,7 @@
             currentClearanceSessionId = ethers.keccak256(ethers.toUtf8Bytes("dungeon_session_" + Date.now() + "_" + Math.random()));
             logTx(`📜 踏入传送门！正在 Monad 上自动认领并 Mint NFT 道具 (Session: ${currentClearanceSessionId.slice(0, 10)}...)...`, "pending");
 
-            if (currentWalletMode === 'trial') {
+            if (currentWalletMode === 'trial' || isGaslessAutoMintActive) {
                 mintActionContainer.classList.add('hidden');
                 mintStatusText.innerHTML = "⏳ 正在通过 Monad 极速节点广播单笔原子清算与自动 Mint 交易 (落块约 1.0 秒)...";
                 await executeMintTransaction(trialWallet, currentClearanceSummary, currentClearanceSessionId);
@@ -2905,17 +2939,9 @@
                 // 外部钱包模式 (OKX / MetaMask / Rabby 等)
                 const brand = getWalletBrandInfo(activeInjectedProvider);
                 mintActionContainer.classList.remove('hidden');
-                btnTriggerWalletSign.innerHTML = `<span>${brand.icon} 唤起 ${brand.name} 确认签名 (区块落块)</span>`;
-                mintStatusText.innerHTML = `👉 <b>关卡已通关！</b> 请点击下方绿色按钮唤起 ${brand.name} 窗口完成签名落块：`;
-
-                // 预先自动检查并补给测试 Gas、校验网络
-                await checkAndSwitchMonadNetwork();
-                if (externalAddress) {
-                    await checkAndAirdropGasIfNeeded(externalAddress);
-                }
-
-                // 尝试直接唤起钱包 (若浏览器因手势限制未自动抢焦置顶，下方绿色高光按钮随时可供少侠一键置顶唤起)
-                await executeMintTransaction(signer, currentClearanceSummary, currentClearanceSessionId);
+                btnTriggerWalletSign.innerHTML = `<span>${brand.icon} 立即点击唤起 ${brand.name} 签名确认</span>`;
+                mintStatusText.innerHTML = `👉 浏览器限制后台脚本弹窗，请<b>点击下方绿色按钮</b>立即拉起 ${brand.name} 确认签名：`;
+                // 绝不在后台自动调用 executeMintTransaction(signer, ...)，彻底杜绝无手势死锁与未决挂起！
             }
         }
 
@@ -2923,23 +2949,23 @@
             btnNextLevel.classList.add('hidden');
             const brand = getWalletBrandInfo(activeInjectedProvider);
             try {
-                let gasLimit = 340000n;
+                let gasLimit = 360000n;
                 const targetContract = new ethers.Contract(CONTRACT_ADDR, CONTRACT_ABI, targetSigner);
-                try {
-                    const est = await targetContract.settleChapter.estimateGas(summary, sessionId);
-                    gasLimit = est + (est / 10n); // 依 Monad 规范附加 10% 缓冲
-                } catch (e) {
-                    console.warn("Gas estimation fallback to 340,000:", e);
-                }
-
-                logTx(`📡 正在向 Monad 广播 settleChapter 交易 (gasLimit: ${gasLimit})...`, "pending");
 
                 let tx;
-                if (currentWalletMode === 'external') {
-                    // 外部插件钱包（OKX / MetaMask）使用自身的实时动态 gas 评估，仅传入合理的 gasLimit，防止因硬编码低小费导致插件拦截
+                if (currentWalletMode === 'external' && targetSigner !== trialWallet) {
+                    // 外部插件钱包直接派发 360,000 gasLimit，跳过冗余 estimateGas 耗时，毫秒级响应确保浏览器保留原生点击手势！
+                    logTx(`📡 正在唤起 ${brand.name} 确认 settleChapter 交易...`, "pending");
                     tx = await targetContract.settleChapter(summary, sessionId, { gasLimit });
                 } else {
+                    try {
+                        const est = await targetContract.settleChapter.estimateGas(summary, sessionId);
+                        gasLimit = est + (est / 10n);
+                    } catch (e) {
+                        console.warn("Gas estimation fallback to 360,000:", e);
+                    }
                     const feeOpts = await getOptimalMonadFee(gasLimit);
+                    logTx(`📡 正在向 Monad 广播 settleChapter 交易 (gasLimit: ${gasLimit})...`, "pending");
                     tx = await targetContract.settleChapter(summary, sessionId, feeOpts);
                 }
 
@@ -2970,8 +2996,14 @@
             } catch (err) {
                 console.error("executeMintTransaction error:", err);
                 const isUserRejection = err?.code === 4001 || err?.message?.includes("rejected") || err?.message?.includes("User denied") || err?.message?.includes("cancelled");
+                const isAlreadyPending = err?.code === -32002 || err?.message?.includes("already pending") || err?.message?.includes("Pending request");
+                // 重新生成 sessionId 防止重试时出现 SessionAlreadyConsumed
+                currentClearanceSessionId = ethers.keccak256(ethers.toUtf8Bytes("dungeon_session_" + Date.now() + "_" + Math.random()));
                 if (isUserRejection) {
                     mintStatusText.innerHTML = `⚠️ 少侠取消了 ${brand.name} 签名！请点击下方绿色按钮重新唤起，或切换为【免 Gas 代付秒铸】！`;
+                } else if (isAlreadyPending) {
+                    mintStatusText.innerHTML = `⚠️ <b>${brand.name} 窗口已在后台打开或有待处理请求！</b><br/><span class="text-xs text-amber-300">请查看浏览器右上角 ${brand.name} 插件图标（点击角标确认），或直接切换下方【免 Gas 代付秒铸】！</span>`;
+                    logTx(`⚠️ ${brand.name} 中已有待决签名请求，请在插件中点击确认或切换代付秒铸！`, "warning");
                 } else {
                     mintStatusText.innerHTML = `❌ 上链遇阻: ${err.shortMessage || err.message || err}。请点击下方绿色按钮重试，或切换免 Gas 代付！`;
                 }
@@ -2988,15 +3020,9 @@
                 btnTriggerWalletSign.disabled = true;
                 const originalHtml = btnTriggerWalletSign.innerHTML;
                 btnTriggerWalletSign.innerHTML = `<span>⏳ 正在唤起 ${brand.name} 窗口...</span>`;
+                mintStatusText.innerHTML = `${brand.icon} 正在唤起 ${brand.name}，请在弹出的窗口中点击【确认】...`;
                 try {
-                    if (!externalSigner) {
-                        await connectExternalWallet();
-                    }
                     await checkAndSwitchMonadNetwork();
-                    if (externalAddress) {
-                        await checkAndAirdropGasIfNeeded(externalAddress);
-                    }
-                    mintStatusText.innerHTML = `${brand.icon} 正在唤起 ${brand.name}，请在弹出的窗口中点击【确认】...`;
                     await executeMintTransaction(signer, currentClearanceSummary, currentClearanceSessionId);
                 } finally {
                     btnTriggerWalletSign.disabled = false;
@@ -3007,7 +3033,13 @@
 
         if (btnFallbackTrialMint) {
             btnFallbackTrialMint.addEventListener('click', async () => {
-                logTx("⚡ 切换为平台免 Gas 节点代付秒铸...", "info");
+                isGaslessAutoMintActive = true;
+                if (autoGaslessBadge) {
+                    autoGaslessBadge.innerText = "⚡ 代付秒铸: 开";
+                    autoGaslessBadge.className = "text-emerald-400 font-bold";
+                }
+                logTx("⚡ 已开启【免 Gas 代付全自动秒铸】模式，后续关卡将 1 秒免签自动落块！", "info");
+                showItemToast("⚡ 已切换为免 Gas 代付秒铸！");
                 mintStatusText.innerHTML = "⏳ 正在通过 Monad 极速代付节点广播单笔原子清算 (落块约 1.0 秒)...";
                 mintActionContainer.classList.add('hidden');
                 await executeMintTransaction(trialWallet, currentClearanceSummary, currentClearanceSessionId);
