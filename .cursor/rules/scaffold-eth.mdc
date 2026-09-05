@@ -1,0 +1,20 @@
+---
+description: Scaffold-ETH 2 and Monad Blitz Hackathon Rules for Cellular Arena & Fantasy Westward
+globs: **/*
+---
+
+# Scaffold-ETH & Monad Blitz Development Rules
+
+- **Framework Standard**: Scaffold-ETH 2 specification for EVM dApps with Monad Testnet integration.
+- **Chain Targeting**: Monad Testnet (Chain ID: 10143, RPC: https://testnet-rpc.monad.xyz).
+- **Parallel EVM Concurrency**:
+  - Eliminate global storage collisions (no monotonic counters like nextTokenId++ or totalCount++).
+  - Use deterministic salt/hash-based token identifiers for conflict-free parallel state commits.
+  - Rely on contract event streaming for off-chain indexing (Envio HyperIndex / Substreams).
+- **Monad Gas Rules**:
+  - Base fee >= 52 gwei (default minimum 50 gwei).
+  - Monad charges on full gas_limit, not just gas used. Keep gas limits tight and accurate.
+  - Maintain wallet balance above the 10 MON reserve floor to avoid consensus-level queuing delays.
+- **Deployment & Production**:
+  - Frontend hosted on Vercel with zero build friction (single-page static delivery).
+  - Public GitHub repository with one-click deploy workflows.
