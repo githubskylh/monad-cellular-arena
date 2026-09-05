@@ -543,6 +543,33 @@
                 osc.connect(gain); gain.connect(this.ctx.destination);
                 osc.start(now); osc.stop(now + 0.45);
             }
+            playShoot() { // 远程怪物吐珠/冥箭破空
+                if (this.muted) return; this.init();
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(440, now);
+                osc.frequency.exponentialRampToValueAtTime(180, now + 0.12);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+                osc.connect(gain); gain.connect(this.ctx.destination);
+                osc.start(now); osc.stop(now + 0.12);
+            }
+            playMonsterRoar() { // 怪物冲锋怒吼与重击
+                if (this.muted) return; this.init();
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(90, now);
+                osc.frequency.linearRampToValueAtTime(160, now + 0.15);
+                osc.frequency.exponentialRampToValueAtTime(40, now + 0.3);
+                gain.gain.setValueAtTime(0.35, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+                osc.connect(gain); gain.connect(this.ctx.destination);
+                osc.start(now); osc.stop(now + 0.3);
+            }
         }
         const sfx = new SoundFX();
 
@@ -608,15 +635,15 @@
         ];
 
         let screenShake = 0;
-        let hitstopFrames = 0;   // 打击顿帧 (2帧普攻, 5帧暴击)
-        let inputBuffer = null;  // 8-tick 输入缓冲
+        let hitstopFrames = 0;       // 打击顿帧 (2帧普攻, 5帧暴击)
+        let inputBuffer = null;      // 8-tick 输入缓冲
         let floatingTexts = [];
-        let groundLootOrbs = []; // 地面掉落等待拾取的宝物球/回血回蓝气丸
-        let dungeonProps = [];   // 地牢可破坏木箱/陶罐
-        let altarProp = null;    // 三宗玄坛神像
-        let bossBullets = [];    // Boss 环形恶魔弹幕
-        let lastBossBarrageTime = 0; // Boss 弹幕计时
-        let portalActive = false; // 是否开启传送门
+        let groundLootOrbs = [];     // 地面掉落等待拾取的宝物球/回血回蓝气丸
+        let dungeonProps = [];       // 地牢可破坏木箱/陶罐
+        let altarProp = null;        // 三宗玄坛神像
+        let enemyProjectiles = [];   // 全图怪物与Boss飞行物/弹幕系统 (Enemy Projectiles & Barrages)
+        let damageVignetteTimer = 0; // 受创屏幕暗红警示
+        let portalActive = false;    // 是否开启传送门
         let portalPos = { x: 14, y: 14 };
 
         // 关卡聚合统计
@@ -632,19 +659,19 @@
             bossDefeated: false
         };
 
-        // 地牢章节配置 (元气骑士地牢风格)
+        // 地牢章节梯度难度与自主战斗 AI 配置
         const CHAPTER_CONFIGS = {
             1: {
-                title: "STAGE 1-1 • 东海沉船地牢",
+                title: "STAGE 1-1 • 东海沉船地牢 (新手试炼)",
                 badge: "1-1 东海地牢",
                 floorColor: "#1a222d",
                 groutColor: "#11161f",
                 wallColor: "#334155",
                 torchColor: "#f59e0b",
                 monsters: [
-                    { id: 1, name: "地牢刺壳海龟", type: "turtle", x: 18, y: 14, hp: 110, maxHp: 110, hitFlash: 0, lastMove: 0 },
-                    { id: 2, name: "剧毒珊瑚蛙", type: "frog", x: 10, y: 15, hp: 120, maxHp: 120, hitFlash: 0, lastMove: 0 },
-                    { id: 3, name: "地牢骷髅海盗", type: "bandit", x: 15, y: 19, hp: 140, maxHp: 140, hitFlash: 0, lastMove: 0 }
+                    { id: 1, name: "地牢刺壳海龟", type: "turtle", x: 19, y: 13, visualX: 19, visualY: 13, hp: 220, maxHp: 220, atk: 22, moveSpeed: 480, atkType: "melee", atkRange: 1.3, lastMove: 0, lastAtk: 0, hitFlash: 0, telegraph: 0 },
+                    { id: 2, name: "剧毒珊瑚蛙", type: "frog", x: 9, y: 15, visualX: 9, visualY: 15, hp: 180, maxHp: 180, atk: 24, moveSpeed: 390, atkType: "spit", atkRange: 4.5, lastMove: 0, lastAtk: 0, hitFlash: 0, telegraph: 0 },
+                    { id: 3, name: "地牢骷髅海盗", type: "bandit", x: 15, y: 20, visualX: 15, visualY: 20, hp: 200, maxHp: 200, atk: 26, moveSpeed: 360, atkType: "melee", atkRange: 1.35, lastMove: 0, lastAtk: 0, hitFlash: 0, telegraph: 0 }
                 ],
                 props: [
                     { id: 1, type: 'crate', x: 7, y: 8, hp: 1 },
@@ -655,17 +682,17 @@
                 altar: null
             },
             2: {
-                title: "STAGE 1-2 • 江南野外墓穴",
+                title: "STAGE 1-2 • 江南野外墓穴 (战术围剿)",
                 badge: "1-2 江南野外",
                 floorColor: "#1c2b20",
                 groutColor: "#101812",
                 wallColor: "#3b5340",
                 torchColor: "#22c55e",
                 monsters: [
-                    { id: 4, name: "嗜血獠牙野猪", type: "boar", x: 18, y: 12, hp: 160, maxHp: 160, hitFlash: 0, lastMove: 0 },
-                    { id: 5, name: "幽冥地牢骷髅", type: "skeleton", x: 10, y: 17, hp: 170, maxHp: 170, hitFlash: 0, lastMove: 0 },
-                    { id: 6, name: "古树精守卫", type: "treant", x: 19, y: 18, hp: 200, maxHp: 200, hitFlash: 0, lastMove: 0 },
-                    { id: 7, name: "荒野暗杀者", type: "bandit", x: 12, y: 20, hp: 180, maxHp: 180, hitFlash: 0, lastMove: 0 }
+                    { id: 4, name: "嗜血獠牙野猪", type: "boar", x: 19, y: 11, visualX: 19, visualY: 11, hp: 360, maxHp: 360, atk: 38, moveSpeed: 350, atkType: "charge", atkRange: 5.5, lastMove: 0, lastAtk: 0, hitFlash: 0, telegraph: 0, isCharging: false },
+                    { id: 5, name: "幽冥地牢骷髅射手", type: "skeleton", x: 9, y: 18, visualX: 9, visualY: 18, hp: 250, maxHp: 250, atk: 28, moveSpeed: 380, atkType: "arrow", atkRange: 6.0, lastMove: 0, lastAtk: 0, hitFlash: 0, telegraph: 0 },
+                    { id: 6, name: "古树精守卫", type: "treant", x: 20, y: 19, visualX: 20, visualY: 19, hp: 420, maxHp: 420, atk: 32, moveSpeed: 460, atkType: "slam", atkRange: 2.2, lastMove: 0, lastAtk: 0, hitFlash: 0, telegraph: 0 },
+                    { id: 7, name: "荒野暗杀者", type: "bandit", x: 11, y: 21, visualX: 11, visualY: 21, hp: 280, maxHp: 280, atk: 34, moveSpeed: 270, atkType: "melee", atkRange: 1.35, lastMove: 0, lastAtk: 0, hitFlash: 0, telegraph: 0 }
                 ],
                 props: [
                     { id: 5, type: 'crate', x: 6, y: 7, hp: 1 },
@@ -676,16 +703,16 @@
                 altar: { x: 14, y: 7, used: false }
             },
             3: {
-                title: "STAGE 1-3 • 大雁塔古殿决战",
+                title: "STAGE 1-3 • 大雁塔古殿决战 (魔王降世)",
                 badge: "1-3 镇塔妖王殿",
                 floorColor: "#231f2d",
                 groutColor: "#14111a",
                 wallColor: "#4a3b5c",
                 torchColor: "#a855f7",
                 monsters: [
-                    { id: 8, name: "幻魔羊角怪", type: "goat", x: 11, y: 14, hp: 220, maxHp: 220, hitFlash: 0, lastMove: 0 },
-                    { id: 9, name: "夺命妖花", type: "flower", x: 17, y: 13, hp: 240, maxHp: 240, hitFlash: 0, lastMove: 0 },
-                    { id: 10, name: "【大雁塔镇塔妖王】", type: "boss", x: 14, y: 20, hp: 550, maxHp: 550, hitFlash: 0, lastMove: 0, isBoss: true }
+                    { id: 8, name: "幻魔羊角怪", type: "goat", x: 10, y: 13, visualX: 10, visualY: 13, hp: 380, maxHp: 380, atk: 36, moveSpeed: 290, atkType: "melee", atkRange: 1.4, lastMove: 0, lastAtk: 0, hitFlash: 0, telegraph: 0 },
+                    { id: 9, name: "夺命妖花", type: "flower", x: 18, y: 13, visualX: 18, visualY: 13, hp: 350, maxHp: 350, atk: 30, moveSpeed: 480, atkType: "fourway", atkRange: 5.5, lastMove: 0, lastAtk: 0, hitFlash: 0, telegraph: 0 },
+                    { id: 10, name: "【大雁塔镇塔妖王】", type: "boss", x: 14, y: 20, visualX: 14, visualY: 20, hp: 1200, maxHp: 1200, atk: 48, moveSpeed: 300, atkType: "boss", atkRange: 7.0, lastMove: 0, lastAtk: 0, hitFlash: 0, telegraph: 0, isBoss: true, phase2: false }
                 ],
                 props: [
                     { id: 9, type: 'pot', x: 6, y: 6, hp: 1 },
@@ -697,7 +724,7 @@
             }
         };
 
-        let monsters = CHAPTER_CONFIGS[1].monsters;
+        let monsters = JSON.parse(JSON.stringify(CHAPTER_CONFIGS[1].monsters));
         dungeonProps = JSON.parse(JSON.stringify(CHAPTER_CONFIGS[1].props));
         altarProp = CHAPTER_CONFIGS[1].altar;
 
@@ -1041,76 +1068,11 @@
             // 9. 剑侠客轻功步法流云残影 (Ghost Trails)
             updateAndDrawGhostTrails(ctx);
 
-            // 10. 怪物追击 AI、物理击退与伤害判定
-            monsters.forEach(m => {
-                if (m.hp <= 0) return;
+            // 10. 怪物战术 AI、自主巡弋拉扯、技能前摇与伤害判定
+            updateAndHandleMonsters(ctx, now, time);
 
-                // 怪物小步巡弋
-                if (now - (m.lastMove || 0) > (m.isBoss ? 750 : 1000)) {
-                    m.lastMove = now;
-                    const distX = player.x - m.x;
-                    const distY = player.y - m.y;
-                    if (Math.abs(distX) + Math.abs(distY) > 1) {
-                        const stepX = distX !== 0 ? Math.sign(distX) : 0;
-                        const stepY = distY !== 0 ? Math.sign(distY) : 0;
-                        if (Math.random() > 0.4) m.x += stepX;
-                        else m.y += stepY;
-                    }
-                }
-
-                // 紧贴攻击判定 (主角紧缩 Hurtbox 0.75 格)
-                const distToHero = Math.hypot(player.visualX - m.x, player.visualY - m.y);
-                if (distToHero <= 0.75) {
-                    takePlayerDamage(m.isBoss ? 35 : 18);
-                }
-
-                // Boss 狂暴环形弹幕
-                if (m.isBoss && m.hp <= 320 && now - lastBossBarrageTime > 2600) {
-                    lastBossBarrageTime = now;
-                    sfx.playBulletFire();
-                    screenShake = 6;
-                    const bulletCount = 8;
-                    for (let b = 0; b < bulletCount; b++) {
-                        const angle = (b / bulletCount) * Math.PI * 2;
-                        bossBullets.push({
-                            x: m.x, y: m.y,
-                            vx: Math.cos(angle) * 0.15,
-                            vy: Math.sin(angle) * 0.15,
-                            life: 85
-                        });
-                    }
-                    showItemToast("⚠️ 镇塔妖王狂暴！释放八荒魔火环形弹幕！");
-                }
-
-                const mx = m.x * TILE_PX + TILE_PX * 0.5;
-                const my = m.y * TILE_PX + TILE_PX * 0.5;
-
-                if (m.hitFlash > 0) {
-                    m.hitFlash--;
-                    ctx.filter = 'brightness(2.2) contrast(1.5)';
-                } else {
-                    ctx.filter = 'none';
-                }
-
-                drawPixelMonster(ctx, m, mx, my, time);
-                ctx.filter = 'none';
-
-                // 精雕血条
-                const hpPercent = m.hp / m.maxHp;
-                const barWidth = m.isBoss ? 54 : 26;
-                ctx.fillStyle = '#000000';
-                ctx.fillRect(mx - barWidth / 2 - 1, my - (m.isBoss ? 35 : 22) - 1, barWidth + 2, 6);
-                ctx.fillStyle = m.isBoss ? '#f59e0b' : (hpPercent > 0.35 ? '#22c55e' : '#ef4444');
-                ctx.fillRect(mx - barWidth / 2, my - (m.isBoss ? 35 : 22), barWidth * hpPercent, 4);
-
-                ctx.fillStyle = '#fef08a';
-                ctx.font = `${m.isBoss ? 'bold 11px' : '9px'} VT323, monospace`;
-                ctx.textAlign = 'center';
-                ctx.fillText(m.name, mx, my - (m.isBoss ? 39 : 25));
-            });
-
-            // 11. Boss 恶魔烈焰弹幕
-            updateAndDrawBossBullets(ctx, time);
+            // 11. 全图怪物远程飞弹、魔火与环形弹幕系统
+            updateAndDrawEnemyProjectiles(ctx, time);
 
             // 12. 剑侠客平滑插值移动与元气小人精绘
             player.visualX += (player.x - player.visualX) * 0.38;
@@ -1133,6 +1095,11 @@
             drawFloatingTexts(ctx);
 
             ctx.restore();
+
+            // 17. 受创全屏暗红呼吸光晕 (Damage Vignette Overlay)
+            if (damageVignetteTimer > 0) {
+                drawDamageVignette(ctx);
+            }
 
             requestAnimationFrame(render);
         }
@@ -1560,45 +1527,434 @@
             ctx.restore();
         }
 
-        function updateAndDrawBossBullets(ctx, time) {
-            for (let i = bossBullets.length - 1; i >= 0; i--) {
-                const b = bossBullets[i];
-                b.x += b.vx;
-                b.y += b.vy;
-                b.life--;
+        // =========================================================================
+        // 5.5 怪物自主移动、远程弹幕、战术拉扯与 Boss 狂暴引擎
+        // =========================================================================
+        function updateAndHandleMonsters(ctx, now, time) {
+            monsters.forEach(m => {
+                if (m.hp <= 0) return;
 
-                const bx = b.x * TILE_PX + TILE_PX * 0.5;
-                const by = b.y * TILE_PX + TILE_PX * 0.5;
+                // 1. 平滑坐标插值 (Smooth Visual Interpolation)
+                if (m.visualX === undefined) m.visualX = m.x;
+                if (m.visualY === undefined) m.visualY = m.y;
+                m.visualX += (m.x - m.visualX) * 0.24;
+                m.visualY += (m.y - m.visualY) * 0.24;
+
+                const distToHero = Math.hypot(player.visualX - m.visualX, player.visualY - m.visualY);
+                const logicalDist = Math.hypot(player.x - m.x, player.y - m.y);
+
+                // 2. 前摇倒计时与攻击结算 (Telegraph countdown & Attack Execution)
+                if (m.telegraph > 0) {
+                    m.telegraph--;
+                    if (m.telegraph === 0 && m.pendingAction) {
+                        executeMonsterAttack(m, now);
+                        m.pendingAction = null;
+                    }
+                }
+
+                // 3. 嗜血野猪狂暴冲撞物理推进 (Boar Charge Physics)
+                if (m.isCharging) {
+                    m.x += m.chargeVx * 0.38;
+                    m.y += m.chargeVy * 0.38;
+                    m.visualX = m.x;
+                    m.visualY = m.y;
+                    m.chargeDistLeft -= 0.38;
+
+                    // 冲撞主角判定
+                    if (distToHero <= 0.85) {
+                        takePlayerDamage(m.atk || 38);
+                        screenShake = 8;
+                        sfx.playHit();
+                        m.isCharging = false;
+                        m.x = Math.max(2, Math.min(MAP_SIZE - 3, Math.round(m.x)));
+                        m.y = Math.max(2, Math.min(MAP_SIZE - 3, Math.round(m.y)));
+                    }
+
+                    // 撞墙或冲刺距离耗尽
+                    if (m.chargeDistLeft <= 0 || m.x <= 1.5 || m.x >= MAP_SIZE - 2.5 || m.y <= 1.5 || m.y >= MAP_SIZE - 2.5) {
+                        m.isCharging = false;
+                        m.x = Math.max(2, Math.min(MAP_SIZE - 3, Math.round(m.x)));
+                        m.y = Math.max(2, Math.min(MAP_SIZE - 3, Math.round(m.y)));
+                        m.visualX = m.x;
+                        m.visualY = m.y;
+                    }
+                }
+
+                // 4. Boss 阶段二狂暴觉醒与召唤护法 (Boss Phase 2 Rage & Minion Summons)
+                if (m.isBoss && !m.phase2 && m.hp <= m.maxHp * 0.5) {
+                    m.phase2 = true;
+                    m.moveSpeed = 220; // 狂暴极速追击
+                    m.atk = Math.floor(m.atk * 1.25);
+                    screenShake = 12;
+                    sfx.playUlti();
+                    showItemToast("🔥【镇塔妖王狂暴】魔焰滔天！召唤双护法进犯！");
+                    logTx("🔥 妖王显化狂暴法相，魔气逼人！召唤幽冥护法！", "error");
+
+                    const spawnMinion = (sx, sy, idx) => {
+                        const nx = Math.max(2, Math.min(MAP_SIZE - 3, Math.round(sx)));
+                        const ny = Math.max(2, Math.min(MAP_SIZE - 3, Math.round(sy)));
+                        monsters.push({
+                            id: 100 + idx,
+                            name: `妖王护法-${idx}号`,
+                            type: 'skeleton',
+                            x: nx, y: ny,
+                            visualX: nx, visualY: ny,
+                            hp: 180, maxHp: 180,
+                            atk: 24, moveSpeed: 340,
+                            atkType: 'melee', atkRange: 1.35,
+                            lastMove: now, lastAtk: now,
+                            hitFlash: 0, telegraph: 0
+                        });
+                    };
+                    spawnMinion(m.x - 2, m.y, 1);
+                    spawnMinion(m.x + 2, m.y, 2);
+                }
+
+                // 5. 自主走位、拉扯风筝与战术追逐 AI (Autonomous Movement AI)
+                const moveInterval = m.moveSpeed || (m.isBoss ? 320 : 450);
+                if (now - (m.lastMove || 0) > moveInterval && m.telegraph <= 0 && !m.isCharging) {
+                    m.lastMove = now;
+
+                    if (m.atkType === "arrow" || m.atkType === "spit") {
+                        // 远程怪智能拉扯 AI (Kiting)
+                        if (logicalDist < 2.3) {
+                            // 玩家贴近，主动后撤
+                            const fleeX = Math.sign(m.x - player.x);
+                            const fleeY = Math.sign(m.y - player.y);
+                            const tryX = m.x + fleeX;
+                            const tryY = m.y + fleeY;
+                            if (tryX >= 2 && tryX <= MAP_SIZE - 3 && Math.random() > 0.3) m.x = tryX;
+                            else if (tryY >= 2 && tryY <= MAP_SIZE - 3) m.y = tryY;
+                        } else if (logicalDist >= 2.3 && logicalDist <= (m.atkRange || 5.5)) {
+                            // 最佳射程内：60% 几率侧向绕步拉扯，40% 原地瞄准
+                            if (Math.random() > 0.4) {
+                                const strafeAxis = Math.random() > 0.5 ? 'x' : 'y';
+                                const strafeDir = Math.random() > 0.5 ? 1 : -1;
+                                if (strafeAxis === 'x') {
+                                    const nextX = m.x + strafeDir;
+                                    if (nextX >= 2 && nextX <= MAP_SIZE - 3) m.x = nextX;
+                                } else {
+                                    const nextY = m.y + strafeDir;
+                                    if (nextY >= 2 && nextY <= MAP_SIZE - 3) m.y = nextY;
+                                }
+                            }
+                        } else {
+                            // 超出射程，主动逼近
+                            const stepX = Math.sign(player.x - m.x);
+                            const stepY = Math.sign(player.y - m.y);
+                            if (Math.random() > 0.4 && stepX !== 0) m.x += stepX;
+                            else if (stepY !== 0) m.y += stepY;
+                        }
+                    } else if (m.atkType === "charge") {
+                        // 野猪：逼近并寻觅冲锋直线
+                        const stepX = Math.sign(player.x - m.x);
+                        const stepY = Math.sign(player.y - m.y);
+                        if (Math.random() > 0.3 && stepX !== 0) m.x += stepX;
+                        else if (stepY !== 0) m.y += stepY;
+                    } else if (m.atkType === "fourway") {
+                        // 妖花：微步移动或原地扎根
+                        if (Math.random() > 0.6) {
+                            const stepX = Math.sign(player.x - m.x);
+                            const stepY = Math.sign(player.y - m.y);
+                            if (Math.random() > 0.5 && stepX !== 0) m.x += stepX;
+                            else if (stepY !== 0) m.y += stepY;
+                        }
+                    } else {
+                        // 近战追击 AI (海龟、骷髅、古树精、羊角怪、妖王)
+                        const distX = player.x - m.x;
+                        const distY = player.y - m.y;
+                        if (Math.abs(distX) + Math.abs(distY) > 1) {
+                            const stepX = distX !== 0 ? Math.sign(distX) : 0;
+                            const stepY = distY !== 0 ? Math.sign(distY) : 0;
+                            if (Math.abs(distX) >= Math.abs(distY)) {
+                                if (Math.random() > 0.25) m.x += stepX;
+                                else m.y += stepY;
+                            } else {
+                                if (Math.random() > 0.25) m.y += stepY;
+                                else m.x += stepX;
+                            }
+                        }
+                    }
+
+                    // 边界限制
+                    m.x = Math.max(2, Math.min(MAP_SIZE - 3, m.x));
+                    m.y = Math.max(2, Math.min(MAP_SIZE - 3, m.y));
+                }
+
+                // 6. 主动攻击判定与前摇蓄力 (Active Attack Triggering)
+                if (m.telegraph <= 0 && !m.isCharging) {
+                    if (m.atkType === "charge") {
+                        // 野猪冲锋检测：距离 <= 5.5，且同行/同列或接近直线
+                        if (logicalDist <= 5.5 && (Math.abs(player.x - m.x) <= 1 || Math.abs(player.y - m.y) <= 1) && now - (m.lastAtk || 0) > 2800) {
+                            m.telegraph = 18; // ~300ms 预警
+                            m.pendingAction = 'charge';
+                            const cDirX = Math.sign(player.x - m.x);
+                            const cDirY = Math.sign(player.y - m.y);
+                            m.targetDir = { x: cDirX === 0 && cDirY === 0 ? 1 : cDirX, y: cDirY };
+                            sfx.playMonsterRoar();
+                        }
+                    } else if (m.atkType === "spit") {
+                        // 珊瑚蛙剧毒水泡：射程 4.5
+                        if (distToHero <= 4.8 && now - (m.lastAtk || 0) > 1800) {
+                            m.telegraph = 14;
+                            m.pendingAction = 'spit';
+                        }
+                    } else if (m.atkType === "arrow") {
+                        // 骷髅幽冥冥火骨箭：射程 6.0
+                        if (distToHero <= 6.2 && now - (m.lastAtk || 0) > 1700) {
+                            m.telegraph = 13;
+                            m.pendingAction = 'arrow';
+                        }
+                    } else if (m.atkType === "fourway") {
+                        // 妖花四方散裂毒刺
+                        if (now - (m.lastAtk || 0) > 2200) {
+                            m.telegraph = 15;
+                            m.pendingAction = 'fourway';
+                        }
+                    } else if (m.atkType === "slam") {
+                        // 古树精地裂重击：近身 2.2 格
+                        if (distToHero <= 2.2 && now - (m.lastAtk || 0) > 2400) {
+                            m.telegraph = 20;
+                            m.pendingAction = 'slam';
+                            sfx.playMonsterRoar();
+                        }
+                    } else if (m.isBoss) {
+                        // 镇塔妖王攻击轮转
+                        if (m.phase2 && now - (m.lastRingBarrage || 0) > 3600) {
+                            // 狂暴 12 向灭世环形魔火弹幕
+                            m.lastRingBarrage = now;
+                            m.telegraph = 16;
+                            m.pendingAction = 'boss_ring';
+                            sfx.playBulletFire();
+                        } else if (distToHero <= 7.0 && now - (m.lastAtk || 0) > 1800) {
+                            // 三连熔岩火球
+                            m.telegraph = 12;
+                            m.pendingAction = 'boss_triple_fireball';
+                            sfx.playBulletFire();
+                        } else if (distToHero <= 1.8 && now - (m.lastAtk || 0) > 1000) {
+                            // 近战重踏
+                            m.telegraph = 10;
+                            m.pendingAction = 'melee';
+                        }
+                    } else {
+                        // 常规近战怪 (海龟、海盗、暗杀者、羊角怪、护法)
+                        if (distToHero <= (m.atkRange || 1.35) && now - (m.lastAtk || 0) > 1000) {
+                            m.telegraph = 11;
+                            m.pendingAction = 'melee';
+                        }
+                    }
+                }
+
+                // 7. 绘制怪物精灵与前摇光环
+                const mx = m.visualX * TILE_PX + TILE_PX * 0.5;
+                const my = m.visualY * TILE_PX + TILE_PX * 0.5;
+
+                // 前摇警示 (Telegraph Indicator: 危险红叹号与地面红圈)
+                if (m.telegraph > 0) {
+                    ctx.save();
+                    // 地面预警红圈
+                    const alertRadius = (m.atkRange || 1.4) * TILE_PX;
+                    ctx.strokeStyle = `rgba(239, 68, 68, ${0.35 + Math.sin(time * 20) * 0.25})`;
+                    ctx.lineWidth = 1.8;
+                    ctx.setLineDash([4, 3]);
+                    ctx.beginPath();
+                    ctx.arc(mx, my, alertRadius, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+
+                    // 跃动红叹号
+                    const bounce = Math.sin(time * 22) * 3.5;
+                    ctx.fillStyle = '#ef4444';
+                    ctx.shadowColor = '#f87171';
+                    ctx.shadowBlur = 8;
+                    ctx.font = 'bold 15px VT323, monospace';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('❗', mx, my - (m.isBoss ? 46 : 28) + bounce);
+                    ctx.restore();
+                }
+
+                // 受击高亮滤镜
+                if (m.hitFlash > 0) {
+                    m.hitFlash--;
+                    ctx.filter = 'brightness(2.2) contrast(1.5)';
+                } else {
+                    ctx.filter = 'none';
+                }
+
+                drawPixelMonster(ctx, m, mx, my, time);
+                ctx.filter = 'none';
+
+                // 精雕血条
+                const hpPercent = Math.max(0, m.hp / m.maxHp);
+                const barWidth = m.isBoss ? 56 : 26;
+                ctx.fillStyle = '#000000';
+                ctx.fillRect(mx - barWidth / 2 - 1, my - (m.isBoss ? 35 : 22) - 1, barWidth + 2, 6);
+                ctx.fillStyle = m.isBoss ? (m.phase2 ? '#dc2626' : '#f59e0b') : (hpPercent > 0.35 ? '#22c55e' : '#ef4444');
+                ctx.fillRect(mx - barWidth / 2, my - (m.isBoss ? 35 : 22), barWidth * hpPercent, 4);
+
+                ctx.fillStyle = m.isBoss && m.phase2 ? '#f87171' : '#fef08a';
+                ctx.font = `${m.isBoss ? 'bold 11px' : '9px'} VT323, monospace`;
+                ctx.textAlign = 'center';
+                ctx.fillText(m.isBoss && m.phase2 ? `🔥狂暴•${m.name}` : m.name, mx, my - (m.isBoss ? 39 : 25));
+            });
+        }
+
+        function executeMonsterAttack(m, now) {
+            m.lastAtk = now;
+            const distToHero = Math.hypot(player.visualX - m.visualX, player.visualY - m.visualY);
+
+            if (m.pendingAction === 'melee') {
+                if (distToHero <= (m.atkRange || 1.4)) {
+                    takePlayerDamage(m.atk || 22);
+                }
+            } else if (m.pendingAction === 'charge') {
+                m.isCharging = true;
+                m.chargeVx = m.targetDir?.x || 1;
+                m.chargeVy = m.targetDir?.y || 0;
+                m.chargeDistLeft = 5.0; // 冲撞 5 格
+                sfx.playMonsterRoar();
+            } else if (m.pendingAction === 'slam') {
+                screenShake = 8;
+                sfx.playMonsterRoar();
+                if (distToHero <= 2.2) {
+                    takePlayerDamage(m.atk || 32);
+                    showItemToast("💥 遭古树精地裂冲击！");
+                }
+            } else if (m.pendingAction === 'spit') {
+                const angle = Math.atan2(player.visualY - m.visualY, player.visualX - m.visualX);
+                const speed = 0.12;
+                enemyProjectiles.push({
+                    type: 'spit',
+                    x: m.visualX, y: m.visualY,
+                    vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed,
+                    dmg: m.atk || 24, life: 75,
+                    radius: 5, color: '#06b6d4', glow: '#67e8f9'
+                });
+                sfx.playShoot();
+            } else if (m.pendingAction === 'arrow') {
+                const angle = Math.atan2(player.visualY - m.visualY, player.visualX - m.visualX);
+                const speed = 0.17;
+                enemyProjectiles.push({
+                    type: 'arrow',
+                    x: m.visualX, y: m.visualY,
+                    vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed,
+                    dmg: m.atk || 28, life: 65,
+                    radius: 4, color: '#22c55e', glow: '#86efac'
+                });
+                sfx.playShoot();
+            } else if (m.pendingAction === 'fourway') {
+                const angles = [0, Math.PI * 0.5, Math.PI, Math.PI * 1.5];
+                const speed = 0.13;
+                angles.forEach(ang => {
+                    enemyProjectiles.push({
+                        type: 'fourway',
+                        x: m.visualX, y: m.visualY,
+                        vx: Math.cos(ang) * speed, vy: Math.sin(ang) * speed,
+                        dmg: m.atk || 28, life: 60,
+                        radius: 4.5, color: '#ec4899', glow: '#f472b6'
+                    });
+                });
+                sfx.playShoot();
+            } else if (m.pendingAction === 'boss_triple_fireball') {
+                const baseAng = Math.atan2(player.visualY - m.visualY, player.visualX - m.visualX);
+                [-0.24, 0, 0.24].forEach(offset => {
+                    const ang = baseAng + offset;
+                    const speed = 0.14;
+                    enemyProjectiles.push({
+                        type: 'fireball',
+                        x: m.visualX, y: m.visualY,
+                        vx: Math.cos(ang) * speed, vy: Math.sin(ang) * speed,
+                        dmg: m.atk || 36, life: 80,
+                        radius: 6, color: '#f97316', glow: '#fbbf24'
+                    });
+                });
+                sfx.playBulletFire();
+            } else if (m.pendingAction === 'boss_ring') {
+                const count = 12;
+                for (let i = 0; i < count; i++) {
+                    const ang = (i / count) * Math.PI * 2;
+                    const speed = 0.13;
+                    enemyProjectiles.push({
+                        type: 'boss_ring',
+                        x: m.visualX, y: m.visualY,
+                        vx: Math.cos(ang) * speed, vy: Math.sin(ang) * speed,
+                        dmg: 32, life: 85,
+                        radius: 5.5, color: '#dc2626', glow: '#f87171'
+                    });
+                }
+                sfx.playBulletFire();
+                showItemToast("⚠️ 八荒灭世魔火弹幕爆发！速速闪避！");
+            }
+        }
+
+        function updateAndDrawEnemyProjectiles(ctx, time) {
+            for (let i = enemyProjectiles.length - 1; i >= 0; i--) {
+                const p = enemyProjectiles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.life--;
+
+                const px = p.x * TILE_PX + TILE_PX * 0.5;
+                const py = p.y * TILE_PX + TILE_PX * 0.5;
 
                 // 撞墙或生命耗尽销毁
-                if (b.life <= 0 || b.x <= 1 || b.x >= MAP_SIZE - 1 || b.y <= 1 || b.y >= MAP_SIZE - 1) {
-                    bossBullets.splice(i, 1);
+                if (p.life <= 0 || p.x <= 1.2 || p.x >= MAP_SIZE - 1.2 || p.y <= 1.2 || p.y >= MAP_SIZE - 1.2) {
+                    enemyProjectiles.splice(i, 1);
                     continue;
                 }
 
                 // 触碰主角 (紧缩 Hurtbox 0.75 格)
-                const distHero = Math.hypot(player.visualX - b.x, player.visualY - b.y);
+                const distHero = Math.hypot(player.visualX - p.x, player.visualY - p.y);
                 if (distHero <= 0.75) {
-                    takePlayerDamage(24);
-                    bossBullets.splice(i, 1);
+                    takePlayerDamage(p.dmg || 24);
+                    enemyProjectiles.splice(i, 1);
                     continue;
                 }
 
-                // 绘制恶魔烈焰弹丸
+                // 绘制各流派光晕弹丸
                 ctx.save();
-                ctx.fillStyle = '#ef4444';
-                ctx.shadowColor = '#f87171';
-                ctx.shadowBlur = 8;
-                ctx.beginPath();
-                ctx.arc(bx, by, 4.5, 0, Math.PI * 2);
-                ctx.fill();
+                ctx.fillStyle = p.color;
+                ctx.shadowColor = p.glow;
+                ctx.shadowBlur = 10;
 
-                ctx.fillStyle = '#fef08a';
-                ctx.beginPath();
-                ctx.arc(bx, by, 2.2, 0, Math.PI * 2);
-                ctx.fill();
+                if (p.type === 'arrow') {
+                    // 骨箭拉长流线型
+                    const angle = Math.atan2(p.vy, p.vx);
+                    ctx.translate(px, py);
+                    ctx.rotate(angle);
+                    ctx.fillRect(-6, -1.5, 12, 3);
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(4, -1, 3, 2);
+                } else {
+                    // 毒泡 / 魔火 / 散裂毒刺
+                    ctx.beginPath();
+                    ctx.arc(px, py, p.radius, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // 核心亮斑
+                    ctx.fillStyle = '#ffffff';
+                    ctx.beginPath();
+                    ctx.arc(px, py, p.radius * 0.4, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
                 ctx.restore();
             }
+        }
+
+        function drawDamageVignette(ctx) {
+            damageVignetteTimer--;
+            const alpha = (damageVignetteTimer / 15) * 0.45;
+            ctx.save();
+            const grad = ctx.createRadialGradient(
+                canvas.width / 2, canvas.height / 2, canvas.width * 0.32,
+                canvas.width / 2, canvas.height / 2, canvas.width * 0.7
+            );
+            grad.addColorStop(0, 'rgba(239, 68, 68, 0)');
+            grad.addColorStop(1, `rgba(185, 28, 28, ${alpha})`);
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.restore();
         }
 
         // =========================================================================
@@ -1763,7 +2119,16 @@
                 ctx.beginPath(); ctx.arc(7, -2 - hop, 4 + puff * 0.5, 0, Math.PI * 2); ctx.fill();
                 ctx.fillStyle = '#fde047'; ctx.fillRect(-4, -10 - hop, 3.5, 4); ctx.fillRect(3, -10 - hop, 3.5, 4);
                 ctx.fillStyle = '#000'; ctx.fillRect(-3, -9 - hop, 2, 2); ctx.fillRect(4, -9 - hop, 2, 2);
-            } else if (m.type === "boar") { // 嗜血野猪 (弯曲尖长白獠牙 & 冲撞鬃毛)
+            } else if (m.type === "boar") { // 嗜血野猪 (冲刺烟尘、獠牙 & 冲撞鬃毛)
+                if (m.isCharging) {
+                    ctx.save();
+                    ctx.fillStyle = 'rgba(214, 211, 209, 0.65)';
+                    ctx.beginPath();
+                    ctx.arc(-14, 4, 4 + Math.random() * 3, 0, Math.PI * 2);
+                    ctx.arc(-20, 2, 3 + Math.random() * 2, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+                }
                 ctx.fillStyle = '#78350f';
                 ctx.fillRect(-10, -6, 20, 12);
                 ctx.fillStyle = '#1c1917';
@@ -1773,10 +2138,10 @@
                 ctx.beginPath();
                 ctx.moveTo(9, 2); ctx.lineTo(15, -4); ctx.lineTo(10, 4); ctx.closePath();
                 ctx.fill();
-                // 赤红小眼
+                // 赤红凶眼
                 ctx.fillStyle = '#ef4444';
                 ctx.fillRect(5, -4, 3, 2.5);
-            } else if (m.type === "skeleton") { // 幽冥骷髅 (双眸跳跃幽绿冥火 & 骨剑)
+            } else if (m.type === "skeleton") { // 幽冥骷髅 (冥火眼 & 骨弓/骨剑)
                 ctx.fillStyle = '#e2e8f0';
                 ctx.fillRect(-6, -11, 12, 9);
                 ctx.fillStyle = '#cbd5e1';
@@ -1790,28 +2155,111 @@
                 ctx.shadowBlur = 0;
                 ctx.fillStyle = '#94a3b8';
                 ctx.fillRect(-4, 2, 8, 8);
-                ctx.fillStyle = '#64748b';
-                ctx.fillRect(6, 1, 2, 9); // 生锈骨剑
-            } else if (m.type === "boss") { // 镇塔妖王 (巨型熔岩恶魔 & 魔核脉冲)
+                if (m.atkType === "arrow") {
+                    // 幽冥骨弓
+                    ctx.strokeStyle = '#e2e8f0';
+                    ctx.lineWidth = 2.2;
+                    ctx.beginPath();
+                    ctx.arc(8, 5, 7, -Math.PI * 0.4, Math.PI * 0.4);
+                    ctx.stroke();
+                    ctx.strokeStyle = '#4ade80';
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.moveTo(6, -1); ctx.lineTo(6, 11);
+                    ctx.stroke();
+                } else {
+                    ctx.fillStyle = '#64748b';
+                    ctx.fillRect(6, 1, 2, 9); // 生锈骨剑
+                }
+            } else if (m.type === "treant") { // 古树精守卫 (苍劲树身 & 荧光树眼)
+                const sway = Math.sin(time * 3) * 1.5;
+                ctx.fillStyle = '#451a03';
+                ctx.fillRect(-12, -14, 24, 26);
+                ctx.fillStyle = '#15803d'; // 茂密树冠
+                ctx.beginPath();
+                ctx.arc(0, -18 + sway * 0.5, 15, 0, Math.PI * 2);
+                ctx.arc(-11, -12, 10, 0, Math.PI * 2);
+                ctx.arc(11, -12, 10, 0, Math.PI * 2);
+                ctx.fill();
+                // 赤红古木洞眼
+                ctx.fillStyle = '#ef4444';
+                ctx.shadowColor = '#f87171';
+                ctx.shadowBlur = 8;
+                ctx.fillRect(-7, -6, 4, 3);
+                ctx.fillRect(3, -6, 4, 3);
+                ctx.shadowBlur = 0;
+                // 粗壮藤蔓臂
+                ctx.fillStyle = '#78350f';
+                ctx.fillRect(-16, -2, 5, 12);
+                ctx.fillRect(11, -2, 5, 12);
+            } else if (m.type === "flower") { // 夺命妖花 (毒刺花瓣 & 锯齿毒蕊)
+                const bloom = Math.sin(time * 6) * 2;
+                ctx.fillStyle = '#14532d'; // 墨绿根茎
+                ctx.fillRect(-2, 0, 4, 12);
+                // 4 瓣粉紫毒花瓣
+                ctx.fillStyle = '#c026d3';
+                ctx.beginPath();
+                ctx.ellipse(0, -9 - bloom, 6, 9 + bloom * 0.5, 0, 0, Math.PI * 2);
+                ctx.ellipse(0, 5 + bloom, 6, 9 + bloom * 0.5, 0, 0, Math.PI * 2);
+                ctx.ellipse(-9 - bloom, -2, 9 + bloom * 0.5, 6, 0, 0, Math.PI * 2);
+                ctx.ellipse(9 + bloom, -2, 9 + bloom * 0.5, 6, 0, 0, Math.PI * 2);
+                ctx.fill();
+                // 金黄剧毒花芯
+                ctx.fillStyle = '#facc15';
+                ctx.shadowColor = '#f472b6';
+                ctx.shadowBlur = 10;
+                ctx.beginPath();
+                ctx.arc(0, -2, 5, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            } else if (m.type === "goat") { // 幻魔羊角怪 (弯曲黑曜角 & 暗紫披风)
+                ctx.fillStyle = '#18181b';
+                ctx.fillRect(-8, -10, 16, 18);
+                ctx.fillStyle = '#581c87'; // 妖异紫纹
+                ctx.fillRect(-6, -4, 12, 10);
+                // 弯曲黑曜羊角
+                ctx.fillStyle = '#09090b';
+                ctx.beginPath();
+                ctx.moveTo(-6, -10); ctx.quadraticCurveTo(-15, -20, -18, -12); ctx.lineTo(-10, -8); ctx.closePath(); ctx.fill();
+                ctx.beginPath();
+                ctx.moveTo(6, -10); ctx.quadraticCurveTo(15, -20, 18, -12); ctx.lineTo(10, -8); ctx.closePath(); ctx.fill();
+                // 邪金山羊横瞳
+                ctx.fillStyle = '#facc15';
+                ctx.fillRect(-6, -7, 4, 2);
+                ctx.fillRect(2, -7, 4, 2);
+            } else if (m.type === "boss") { // 镇塔妖王 (巨型熔岩恶魔 & 狂暴魔焰)
                 const pulse = Math.sin(time * 7) * 2.5;
+
+                // 狂暴二阶段魔焰光环
+                if (m.phase2) {
+                    ctx.save();
+                    ctx.fillStyle = 'rgba(220, 38, 38, 0.25)';
+                    ctx.shadowColor = '#dc2626';
+                    ctx.shadowBlur = 24;
+                    ctx.beginPath();
+                    ctx.arc(0, -6, 32 + pulse, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+                }
+
                 ctx.fillStyle = '#18181b';
                 ctx.fillRect(-20, -22, 40, 34);
-                ctx.fillStyle = '#991b1b';
+                ctx.fillStyle = m.phase2 ? '#7f1d1d' : '#991b1b';
                 ctx.fillRect(-16, -18, 32, 26);
 
                 // 巨型熔岩赤金双角
-                ctx.fillStyle = '#dc2626';
+                ctx.fillStyle = m.phase2 ? '#f97316' : '#dc2626';
                 ctx.beginPath();
-                ctx.moveTo(-18, -22); ctx.lineTo(-26, -34); ctx.lineTo(-12, -26); ctx.closePath(); ctx.fill();
+                ctx.moveTo(-18, -22); ctx.lineTo(-28, -36); ctx.lineTo(-12, -26); ctx.closePath(); ctx.fill();
                 ctx.beginPath();
-                ctx.moveTo(18, -22); ctx.lineTo(26, -34); ctx.lineTo(12, -26); ctx.closePath(); ctx.fill();
+                ctx.moveTo(18, -22); ctx.lineTo(28, -36); ctx.lineTo(12, -26); ctx.closePath(); ctx.fill();
 
                 // 胸膛熔岩火核 (魔气奔腾)
-                ctx.fillStyle = '#facc15';
-                ctx.shadowColor = '#ef4444';
-                ctx.shadowBlur = 14;
+                ctx.fillStyle = m.phase2 ? '#ef4444' : '#facc15';
+                ctx.shadowColor = m.phase2 ? '#f87171' : '#ef4444';
+                ctx.shadowBlur = m.phase2 ? 22 : 14;
                 ctx.beginPath();
-                ctx.arc(0, -5, 6 + pulse * 0.8, 0, Math.PI * 2);
+                ctx.arc(0, -5, (m.phase2 ? 8 : 6) + pulse * 0.8, 0, Math.PI * 2);
                 ctx.fill();
                 ctx.shadowBlur = 0;
 
@@ -1819,9 +2267,12 @@
                 ctx.fillStyle = '#fef08a';
                 ctx.fillRect(-9, -12, 5, 4);
                 ctx.fillRect(4, -12, 5, 4);
-            } else { // 强盗
+            } else { // 强盗 / 刺客
                 ctx.fillStyle = '#e11d48'; ctx.fillRect(-6, -7, 12, 13);
                 ctx.fillStyle = '#1e1b4b'; ctx.fillRect(-6, -11, 12, 4);
+                // 刺客面巾与利刃
+                ctx.fillStyle = '#0f172a'; ctx.fillRect(-5, -4, 10, 4);
+                ctx.fillStyle = '#e2e8f0'; ctx.fillRect(6, 0, 2, 7);
             }
 
             ctx.restore();
@@ -2043,6 +2494,7 @@
             if (chapterStats.isCleared || player.invincibleTimer > 0) return;
             player.invincibleTimer = 18; // 18 帧无敌受击保护 (~300ms)
             player.lastDamageTime = performance.now();
+            damageVignetteTimer = 15; // 触发屏幕暗红受创呼吸光晕
             sfx.playHurt();
             screenShake = 5;
 
@@ -2139,7 +2591,7 @@
             });
 
             // 2. 斩击怪物 (宽容判定 2.3 格)
-            const target = monsters.find(m => m.hp > 0 && Math.hypot(m.x - player.x, m.y - player.y) <= 2.3);
+            const target = monsters.find(m => m.hp > 0 && Math.hypot((m.visualX ?? m.x) - player.x, (m.visualY ?? m.y) - player.y) <= 2.3);
             if (!target) return;
 
             sfx.playHit();
@@ -2147,14 +2599,15 @@
             target.hitFlash = 5;
             screenShake = 4;
 
-            const mx = target.x * TILE_PX + TILE_PX * 0.5;
-            const my = target.y * TILE_PX + TILE_PX * 0.5;
+            const mx = (target.visualX ?? target.x) * TILE_PX + TILE_PX * 0.5;
+            const my = (target.visualY ?? target.y) * TILE_PX + TILE_PX * 0.5;
 
             // 爆裂四散火花
             spawnHitSparks(mx, my, 8, player.equipPower >= 80 ? '#facc15' : '#38bdf8');
 
             // 怪物物理击退 (Knockback)
-            target.x = Math.max(1, Math.min(MAP_SIZE - 2, target.x + player.facing * 0.35));
+            target.x = Math.max(1, Math.min(MAP_SIZE - 2, target.x + player.facing * 0.4));
+            target.visualX = target.x;
 
             const dmg = Math.floor(Math.random() * 20) + player.baseAtk + Math.floor(player.equipPower * 0.5);
 
@@ -2241,7 +2694,7 @@
                 }
             });
 
-            const target = monsters.find(m => m.hp > 0 && Math.hypot(m.x - player.x, m.y - player.y) <= 2.8);
+            const target = monsters.find(m => m.hp > 0 && Math.hypot((m.visualX ?? m.x) - player.x, (m.visualY ?? m.y) - player.y) <= 2.8);
             if (!target) return;
 
             sfx.playHit();
@@ -2249,12 +2702,13 @@
             screenShake = slot === 2 ? 7 : 10;
             target.hitFlash = 6;
 
-            const mx = target.x * TILE_PX + TILE_PX * 0.5;
-            const my = target.y * TILE_PX + TILE_PX * 0.5;
+            const mx = (target.visualX ?? target.x) * TILE_PX + TILE_PX * 0.5;
+            const my = (target.visualY ?? target.y) * TILE_PX + TILE_PX * 0.5;
 
             // 技能切削爆裂火花与击退
             spawnHitSparks(mx, my, slot === 2 ? 14 : 18, slot === 2 ? '#ef4444' : '#fde047');
             target.x = Math.max(1, Math.min(MAP_SIZE - 2, target.x + player.facing * (slot === 2 ? 0.55 : 0.8)));
+            target.visualX = target.x;
 
             const dmg = Math.floor((player.baseAtk + player.equipPower) * (slot === 2 ? 1.8 : 2.4));
 
@@ -2272,8 +2726,8 @@
             target.hp = Math.max(0, target.hp - dmg);
             chapterStats.totalDamage += dmg;
 
-            const mx = target.x * TILE_PX + TILE_PX * 0.5;
-            const my = target.y * TILE_PX + TILE_PX * 0.5;
+            const mx = (target.visualX ?? target.x) * TILE_PX + TILE_PX * 0.5;
+            const my = (target.visualY ?? target.y) * TILE_PX + TILE_PX * 0.5;
             addFloatingDamage(mx, my, `-${dmg}`, isCrit ? '#facc15' : '#ef4444', isCrit);
 
             if (target.hp <= 0) {
@@ -2290,8 +2744,9 @@
                     logTx("👑 斩灭地牢镇塔妖王！", "success");
                 }
 
-                // 若房间怪物肃清，激活中央传送门！
-                if (chapterStats.monstersSlain >= monsters.length) {
+                // 若房间妖兽全歼，激活中央传送门！
+                const aliveCount = monsters.filter(m => m.hp > 0).length;
+                if (aliveCount === 0) {
                     portalActive = true;
                     portalPos = { x: 14, y: 14 };
                     sfx.playPortal();
@@ -2379,10 +2834,23 @@
             currentChapter = chapterId;
             const cfg = CHAPTER_CONFIGS[chapterId];
 
-            monsters = cfg.monsters.map(m => ({ ...m, hp: m.maxHp, hitFlash: 0, lastMove: 0 }));
+            monsters = cfg.monsters.map(m => ({
+                ...m,
+                visualX: m.x,
+                visualY: m.y,
+                hp: m.maxHp,
+                hitFlash: 0,
+                lastMove: 0,
+                lastAtk: 0,
+                telegraph: 0,
+                isCharging: false,
+                phase2: false
+            }));
             dungeonProps = JSON.parse(JSON.stringify(cfg.props || []));
             altarProp = cfg.altar ? { ...cfg.altar } : null;
+            enemyProjectiles = [];
             bossBullets = [];
+            damageVignetteTimer = 0;
             portalActive = false;
             groundLootOrbs = [];
 
