@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   test:
-    name: 🧪 Monad V5 E2E & Gas Audit
+    name: 🧪 Monad V6 E2E & Gas Audit
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -31,7 +31,7 @@ jobs:
         run: npm ci || npm install
 
       - name: Run E2E & Contract Verification Tests
-        run: node test_e2e_v5.js
+        run: node test_e2e_v6.js
         env:
           PRIVATE_KEY: ${{ secrets.PRIVATE_KEY || '0x7772a6e4dd2b096bedd60e95c760b8feea6fb146c1b23ec325ab71a106742855' }}
 

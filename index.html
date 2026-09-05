@@ -795,6 +795,14 @@
                         <span id="weaponSlotName" class="text-[9px] text-yellow-300 font-xy truncate max-w-[56px]">青锋剑</span>
                         <span class="absolute -top-1.5 -right-1 text-[8px] bg-red-900 text-amber-200 px-1 rounded border border-red-500 font-mono">武</span>
                     </div>
+                    <div class="flex flex-col space-y-1 shrink-0">
+                        <button onclick="switchTab('defi')" class="px-2 py-1 rounded bg-gradient-to-r from-cyan-900 to-blue-900 hover:from-cyan-800 hover:to-blue-800 text-cyan-200 border border-cyan-400/80 font-xy text-[10px] flex items-center space-x-1 shadow cursor-pointer transition-transform active:scale-95 animate-pulse" title="一键直达 AMM Swap 闪兑与年化金库">
+                            <span>🔄 AMM 闪兑/金库 ↗</span>
+                        </button>
+                        <button onclick="triggerAutoMintClaim()" class="px-2 py-1 rounded bg-gradient-to-r from-amber-900 to-yellow-900 hover:from-amber-800 hover:to-yellow-800 text-yellow-200 border border-yellow-500/80 font-xy text-[10px] flex items-center space-x-1 shadow cursor-pointer transition-transform active:scale-95" title="立即拉起关卡结算弹窗与装备资产清单">
+                            <span>🏆 关卡结算视窗 ↗</span>
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -1142,9 +1150,9 @@
                             <span>🛒 寄售行</span>
                             <span id="bazaarCountBadge" class="font-mono text-[9px] text-yellow-400 ml-0.5">(0)</span>
                         </button>
-                        <button id="tabBtnDefi" class="px-2.5 py-1 rounded bg-slate-800 text-slate-300 border border-slate-600 flex items-center space-x-1 hover:text-white">
-                            <span>🏦 灵石金库</span>
-                            <span id="xytBalanceBadge" class="font-mono text-[9px] text-cyan-400 ml-0.5">0 $XYT</span>
+                        <button id="tabBtnDefi" class="px-2.5 py-1 rounded bg-cyan-950/70 text-cyan-300 border border-cyan-500/80 flex items-center space-x-1 hover:text-white font-bold cursor-pointer">
+                            <span>🔄 闪兑金库</span>
+                            <span id="xytBalanceBadge" class="font-mono text-[9px] text-yellow-400 ml-0.5">0 $XYT</span>
                         </button>
                     </div>
                     <span class="text-[9px] px-1.5 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-700 font-mono hidden sm:inline">
@@ -1408,6 +1416,8 @@
         const CONTRACT_ADDR = "0xbeAF44AD57B7f55DAAdf07233E7927D08d103bfF";
         const CONTRACT_ABI = [
             "function registerPlayer(uint8 sect) external",
+            "function getPlayerTokens(address player) external view returns (uint256[] memory)",
+            "function nftDetails(uint256 tokenId) external view returns (string name, string rarity, uint32 combatPower, uint8 itemType, uint16 chapterId, uint8 enhancementLevel)",
             "function switchSect(uint8 newSect) external",
             "function settleChapter(tuple(uint16 chapterId, uint32 totalDamage, uint16 monstersSlain, uint16 skillsUsed, uint16 stepsTaken, uint32 clearTimeSeconds, bool bossDefeated) summary, bytes32 sessionId) external returns (uint256 mintedTokenId, uint256 xytPointsEarned)",
             "function forgeUpgradeItem(uint256 tokenId) external",
@@ -4373,8 +4383,13 @@
                     portalActive = true;
                     portalPos = { x: 14, y: 14 };
                     sfx.playPortal();
-                    showItemToast("🌀 地牢妖兽全歼！中央传送门开启，踏入即可自动 Mint NFT！");
-                    logTx("🌀 传送阵已在 (14, 14) 激发！走入光圈自动认领通关 NFT！", "info");
+                    showItemToast("🌀 地牢妖兽全歼！传送门开启，即将自动弹出通关结算视窗！");
+                    logTx("🌀 传送阵已在 (14, 14) 激发！1秒后自动弹出关卡大捷与双重资产入账视窗...", "info");
+                    setTimeout(() => {
+                        if (!chapterStats.isCleared) {
+                            triggerAutoMintClaim();
+                        }
+                    }, 1000);
                 }
             }
         }
@@ -4720,14 +4735,28 @@
             const addr = getActiveAddress();
             if (!contract || !addr) return;
             try {
-                const loot = await contract.getPlayerLoot(addr);
-                const ids = loot[0];
-                const chapterIds = loot[1];
-                const itemTypes = loot[2];
-                const starLevels = loot[3];
-                const names = loot[4];
-                const rarities = loot[5];
-                const powers = loot[6];
+                let ids = [], chapterIds = [], itemTypes = [], starLevels = [], names = [], rarities = [], powers = [];
+                if (contract.getPlayerTokens) {
+                    const tokenIds = await contract.getPlayerTokens(addr);
+                    for (let i = 0; i < tokenIds.length; i++) {
+                        const tid = tokenIds[i];
+                        try {
+                            const d = await contract.nftDetails(tid);
+                            ids.push(tid);
+                            names.push(d[0]);
+                            rarities.push(d[1]);
+                            powers.push(d[2]);
+                            itemTypes.push(d[3]);
+                            chapterIds.push(d[4]);
+                            starLevels.push(d[5]);
+                        } catch (e) {
+                            console.warn("nftDetails error for token", tid, e);
+                        }
+                    }
+                } else if (contract.getPlayerLoot) {
+                    const loot = await contract.getPlayerLoot(addr);
+                    ids = loot[0]; chapterIds = loot[1]; itemTypes = loot[2]; starLevels = loot[3]; names = loot[4]; rarities = loot[5]; powers = loot[6];
+                }
 
                 nftTotalDisplay.innerText = `(${ids.length})`;
                 tabContentBackpack.innerHTML = '';
