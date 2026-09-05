@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monad Blitz 惠州路演幻灯片 - 全链梦幻：元气地牢伏魔录</title>
+    <style>
+        :root {
+            --monad-purple: #836EF9;
+            --monad-purple-deep: #200052;
+            --monad-purple-glow: rgba(131, 110, 249, 0.45);
+            --cyan-accent: #00F0FF;
+            --gold-accent: #FFD700;
+            --emerald: #10B981;
+            --dark-bg: #0B0A14;
+            --panel-bg: rgba(22, 19, 43, 0.88);
+            --text-main: #F3F4F6;
+            --text-muted: #9CA3AF;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+            background: var(--dark-bg);
+            color: var(--text-main);
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-image: 
+                radial-gradient(circle at 15% 20%, rgba(131, 110, 249, 0.18) 0%, transparent 40%),
+                radial-gradient(circle at 85% 80%, rgba(0, 240, 255, 0.12) 0%, transparent 45%);
+        }
+
+        /* 顶部导航与倒计时 */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 28px;
+            background: rgba(11, 10, 20, 0.75);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(131, 110, 249, 0.25);
+            z-index: 100;
+        }
+
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-logo {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            border: 1px solid var(--monad-purple);
+            box-shadow: 0 0 10px var(--monad-purple-glow);
+        }
+
+        .header-title {
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            color: #FFF;
+        }
+
+        .header-badge {
+            background: rgba(131, 110, 249, 0.2);
+            color: var(--monad-purple);
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 999px;
+            border: 1px solid var(--monad-purple);
+            font-weight: 600;
+        }
+
+        .timer-box {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 4px 14px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .timer-display {
+            font-family: "SF Mono", "Consolas", monospace;
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--cyan-accent);
+            letter-spacing: 1px;
+        }
+
+        .timer-btn {
+            background: rgba(131, 110, 249, 0.25);
+            color: #FFF;
+            border: 1px solid var(--monad-purple);
+            padding: 3px 10px;
+            font-size: 11px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .timer-btn:hover {
+            background: var(--monad-purple);
+            box-shadow: 0 0 8px var(--monad-purple);
+        }
+
+        /* 幻灯片主舞台 */
+        #deck {
+            flex: 1;
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px 40px;
+        }
+
+        .slide {
+            position: absolute;
+            width: 92%;
+            max-width: 1300px;
+            height: 88%;
+            background: var(--panel-bg);
+            border: 1px solid rgba(131, 110, 249, 0.35);
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), 0 0 30px rgba(131, 110, 249, 0.15);
+            padding: 40px 50px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            opacity: 0;
+            transform: scale(0.96) translateY(20px);
+            pointer-events: none;
+            transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .slide.active {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+            pointer-events: auto;
+        }
+
+        /* 幻灯片元素规范 */
+        .slide-header {
+            margin-bottom: 20px;
+        }
+
+        .slide-tag {
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--cyan-accent);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+
+        .slide-tag::before {
+            content: "";
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: var(--cyan-accent);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--cyan-accent);
+        }
+
+        .slide-title {
+            font-size: 34px;
+            font-weight: 800;
+            color: #FFF;
+            line-height: 1.2;
+            background: linear-gradient(135deg, #FFFFFF 0%, #D1D5DB 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .slide-subtitle {
+            font-size: 16px;
+            color: var(--text-muted);
+            margin-top: 6px;
+        }
+
+        .slide-body {
+            flex: 1;
+            display: flex;
+            gap: 30px;
+            align-items: stretch;
+            min-height: 0;
+        }
+
+        /* 左右分栏与栅格 */
+        .col-half {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+            width: 100%;
+        }
+
+        .card-grid-2 {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            width: 100%;
+        }
+
+        .info-card {
+            background: rgba(11, 10, 20, 0.65);
+            border: 1px solid rgba(131, 110, 249, 0.25);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            transition: all 0.25s ease;
+        }
+
+        .info-card:hover {
+            border-color: var(--monad-purple);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(131, 110, 249, 0.2);
+        }
+
+        .card-icon {
+            font-size: 28px;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #FFF;
+        }
+
+        .card-desc {
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        .highlight-text {
+            color: var(--gold-accent);
+            font-weight: 700;
+        }
+
+        .highlight-cyan {
+            color: var(--cyan-accent);
+            font-weight: 700;
+        }
+
+        .highlight-purple {
+            color: var(--monad-purple);
+            font-weight: 700;
+        }
+
+        /* 代码与架构块 */
+        .code-box {
+            background: #06050C;
+            border: 1px solid rgba(131, 110, 249, 0.3);
+            border-radius: 10px;
+            padding: 16px;
+            font-family: "SF Mono", "Consolas", monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            color: #A5B4FC;
+            overflow-x: auto;
+        }
+
+        .code-box .keyword { color: #F43F5E; }
+        .code-box .func { color: #38BDF8; }
+        .code-box .comment { color: #64748B; font-style: italic; }
+        .code-box .string { color: #34D399; }
+
+        /* 图片容器 */
+        .slide-img-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid rgba(131, 110, 249, 0.3);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            background: #000;
+        }
+
+        .slide-img-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        /* 演讲备注浮层 (按 S 切换) */
+        #speaker-notes-panel {
+            position: fixed;
+            bottom: 64px;
+            right: 28px;
+            width: 440px;
+            max-height: 260px;
+            background: rgba(11, 10, 20, 0.95);
+            border: 1px solid var(--gold-accent);
+            border-radius: 10px;
+            padding: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+            z-index: 99;
+            overflow-y: auto;
+            display: none;
+        }
+
+        #speaker-notes-panel.visible {
+            display: block;
+        }
+
+        .notes-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--gold-accent);
+            text-transform: uppercase;
+        }
+
+        .notes-content {
+            font-size: 13px;
+            line-height: 1.6;
+            color: #E5E7EB;
+        }
+
+        /* 底部导航栏 */
+        footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 28px;
+            background: rgba(11, 10, 20, 0.75);
+            backdrop-filter: blur(12px);
+            border-top: 1px solid rgba(131, 110, 249, 0.25);
+            z-index: 100;
+        }
+
+        .nav-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .nav-btn {
+            background: rgba(131, 110, 249, 0.2);
+            color: #FFF;
+            border: 1px solid rgba(131, 110, 249, 0.4);
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .nav-btn:hover {
+            background: var(--monad-purple);
+            border-color: var(--monad-purple);
+        }
+
+        .nav-page-indicator {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+        }
+
+        .shortcuts-tip {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .kbd {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            font-family: monospace;
+            font-size: 11px;
+            color: #FFF;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 顶部常驻头 -->
+    <header>
+        <div class="header-brand">
+            <img src="logo.png" alt="Logo" class="header-logo" onerror="this.style.display='none'">
+            <span class="header-title">全链梦幻：元气地牢伏魔录</span>
+            <span class="header-badge">Monad Blitz 惠州 • 5-Min Dev Pitch</span>
+        </div>
+
+        <div class="timer-box">
+            <span style="font-size:12px; color:var(--text-muted);">⏱️ 演示倒计时:</span>
+            <span id="timer" class="timer-display">05:00</span>
+            <button id="timer-toggle-btn" class="timer-btn" onclick="toggleTimer()">开始</button>
+            <button class="timer-btn" onclick="resetTimer()">重置</button>
+        </div>
+    </header>
+
+    <!-- 主幻灯片舞台 -->
+    <main id="deck">
+
+        <!-- SLIDE 1: 封面 -->
+        <section class="slide active" data-notes="【开场 30 秒抓人】：大家下午好！我是项目负责人。今天我们带来的是《全链梦幻：元气地牢伏魔录》。我们在 Monad 测试网上打造了一款兼具元气骑士街机硬核手感、并行原生零冲突架构、踏入传送阵自动 Mint、以及内置全套 AMM 和 C2C 寄售的真正好玩的全链游戏！">
+            <div class="slide-header">
+                <div class="slide-tag">PROJECT PRESENTATION • MONAD TESTNET</div>
+                <h1 class="slide-title">🗡️ 全链梦幻：元气地牢伏魔录</h1>
+                <p class="slide-subtitle">专为 Monad 并行 EVM 量身打造的元气地牢动作 Roguelike × 全链神兵锻造 × 原生 DeFi 飞轮</p>
+            </div>
+
+            <div class="slide-body">
+                <div class="col-half">
+                    <div style="display:flex; flex-direction:column; gap:16px;">
+                        <div class="info-card" style="border-left: 4px solid var(--monad-purple);">
+                            <div class="card-title">⚡ 为什么是 Monad？</div>
+                            <div class="card-desc">
+                                传统区块链做动作游戏是死穴：高 Gas、12 秒出块、频繁弹窗。我们借力 Monad <span class="highlight-cyan">10,000 TPS 并行 EVM</span> 与 <span class="highlight-cyan">1 秒极速落块</span>，实现“地牢街机打怪 + 零打扰单笔清算落块铸造”的次世代 GameFi 体验。
+                            </div>
+                        </div>
+
+                        <div class="card-grid-2">
+                            <div class="info-card">
+                                <div class="card-title">🟢 Sourcify 认证</div>
+                                <div class="card-desc">V6 主合约已通过 Blockvision 官方 <span class="highlight-cyan">Perfect Match</span> 绿色满级验证。</div>
+                            </div>
+                            <div class="info-card">
+                                <div class="card-title">🛡️ 真正零冲突</div>
+                                <div class="card-desc">废除全局串行计数器，数千玩家同时通关提交 <span class="highlight-text">100% 真正并行</span>。</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-half" style="align-items:center;">
+                    <div style="width:260px; height:260px; border-radius:20px; overflow:hidden; border:2px solid var(--monad-purple); box-shadow:0 0 35px var(--monad-purple-glow);">
+                        <img src="logo.png" alt="Logo" style="width:100%; height:100%; object-fit:cover;">
+                    </div>
+                    <div style="margin-top:16px; font-size:13px; color:var(--cyan-accent); font-family:monospace;">
+                        Live Demo: githubskylh.github.io/monad-cellular-arena
+                    </div>
+                </div>
+            </div>
+
+            <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px; color:var(--text-muted); border-top:1px solid rgba(255,255,255,0.08); padding-top:12px;">
+                <span>团队: Monad Builder Alliance</span>
+                <span>智能合约: 0xbeAF...3bfF (Monad Testnet 10143)</span>
+            </div>
+        </section>
+
+        <!-- SLIDE 2: 开发者痛点：传统链游与并行EVM的陷阱 -->
+        <section class="slide" data-notes="【痛点剖析 45 秒】：很多团队在以太坊或 L2 做链游，或者把以太坊代码直接搬到 Monad，会遇到两大致命陷阱：第一是交互太卡，每走两步就要弹 MetaMask 钱包签名；第二，也是最致命的：传统 ERC-721 合约的 `nextTokenId++`。在 Monad 10,000 TPS 并发管道下，100 个玩家同时过关，因写入同一个 Storage Slot 产生读写争用，直接被底层强制回退成串行！失去了并行的意义。">
+            <div class="slide-header">
+                <div class="slide-tag">THE PROBLEM • DEVELOPER PERSPECTIVE</div>
+                <h1 class="slide-title">传统链游的三大死穴与并行 EVM 的“隐形暗礁”</h1>
+                <p class="slide-subtitle">为什么绝大多数 Web3 游戏既不好玩，又在并行链上跑不出真正的吞吐量？</p>
+            </div>
+
+            <div class="slide-body">
+                <div class="card-grid">
+                    <div class="info-card" style="border-top: 3px solid #EF4444;">
+                        <div class="card-icon">🐌</div>
+                        <div class="card-title">1. 动作手感被弹窗粉碎</div>
+                        <div class="card-desc">
+                            传统链游每捡一个宝箱、砍一只妖兽就强弹钱包签名。以太坊 12 秒出块等待，让原本刺激的动作地牢变成无聊的网页打卡“枯燥交互”。
+                        </div>
+                    </div>
+
+                    <div class="info-card" style="border-top: 3px solid #F59E0B;">
+                        <div class="card-icon">💥</div>
+                        <div class="card-title">2. nextTokenId++ 存储争用</div>
+                        <div class="card-desc">
+                            <span class="highlight-text">最致命的架构缺陷！</span> 传统合约使用全局累加器。在 Monad 高并发下，数百名玩家同时过关结算，由于争夺同一个 Storage Slot，导致交易被迫回退串行重执。
+                        </div>
+                    </div>
+
+                    <div class="info-card" style="border-top: 3px solid #8B5CF6;">
+                        <div class="card-icon">📉</div>
+                        <div class="card-title">3. 打金无限通胀的死结</div>
+                        <div class="card-desc">
+                            游戏内代币没有内生流动性与消耗闭环，玩家除了向中心化交易所抛售别无他用，经济模型陷入不可逆的“死亡螺旋”。
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="background:rgba(239, 68, 68, 0.1); border:1px solid rgba(239, 68, 68, 0.3); border-radius:8px; padding:10px 16px; font-size:13px; color:#FCA5A5;">
+                ⚠️ <b>核心认知：</b> 真正的 Monad 并行原生架构，绝不是简单的“移植以太坊合约”，而是必须在底层存储槽设计上做到 100% 解耦！
+            </div>
+        </section>
+
+        <!-- SLIDE 3: 架构破局：并行原生零冲突 -->
+        <section class="slide" data-notes="【硬核技术破局 60 秒】：针对上述死穴，我们在 V6 合约中彻底斩断了全局串行累加器！我们独创了基于 `keccak256(msg.sender, chapterId, sessionId, prevrandao)` 的确定性无碰撞 Token ID 派生算法。每个玩家过关只写自己的独立 Slot，实现 100% 真正并行管道并发！同时，我们引入了传送阵单笔落块机制：打怪掉神兵光球非线性吸附，踏入传送阵单笔合并交易，原子铸造 NFT + $XYT 灵石代币！">
+            <div class="slide-header">
+                <div class="slide-tag">PARALLEL-NATIVE ARCHITECTURE</div>
+                <h1 class="slide-title">彻底斩断全局串行：V6 并行原生状态架构</h1>
+                <p class="slide-subtitle">确定性哈希派生 + 踏入传送门零打扰单笔清算原子落块</p>
+            </div>
+
+            <div class="slide-body">
+                <div class="col-half">
+                    <div class="code-box">
+<span class="comment">// ❌ 传统串行方式：引起 Storage Slot 激烈争用</span>
+<span class="keyword">uint256</span> <span class="keyword">public</span> nextTokenId;
+<span class="keyword">function</span> <span class="func">mintLoot</span>() {
+    uint256 tid = nextTokenId++; <span class="comment">// 💥 并行回退死锁点</span>
+}
+
+<span class="comment">// ✅ 全链梦幻 V6：确定性无碰撞哈希派生 (100% 并行)</span>
+<span class="keyword">bytes32</span> sessionHash = <span class="func">keccak256</span>(abi.<span class="func">encodePacked</span>(
+    msg.sender, summary.chapterId, sessionId
+));
+<span class="func">require</span>(!consumedSessions[sessionHash], <span class="string">"Replay!"</span>);
+consumedSessions[sessionHash] = <span class="keyword">true</span>;
+
+<span class="keyword">uint256</span> newItemId = <span class="keyword">uint256</span>(<span class="func">keccak256</span>(abi.<span class="func">encodePacked</span>(
+    msg.sender, summary.chapterId, sessionId, block.prevrandao
+)));
+<span class="comment">// 独立槽位写入，零锁竞争，万级 TPS 畅行无阻</span>
+                    </div>
+                </div>
+
+                <div class="col-half">
+                    <div style="display:flex; flex-direction:column; gap:14px;">
+                        <div class="info-card">
+                            <div class="card-title">🌀 踏入传送阵 100% 自动 Mint</div>
+                            <div class="card-desc">
+                                房间妖兽全歼后激发中央传送门。玩家踏入光圈，前端自动组装单笔清算交易，<span class="highlight-cyan">1 秒内原子落块</span>铸造 ERC-721 神兵 NFT + ERC-20 $XYT 代币。
+                            </div>
+                        </div>
+
+                        <div class="info-card">
+                            <div class="card-title">⛽ 严守 Monad 50~52 gwei Gas 规约</div>
+                            <div class="card-desc">
+                                针对 Monad“按 gas_limit 全额扣除”底层机制，前端与合约对每次 Mint、升星、挂单实施严格紧凑的 GasLimit 约束，杜绝多余 MON 磨损。
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="font-size:12px; color:var(--text-muted); display:flex; justify-content:space-between;">
+                <span>防重放机制: SessionID 唯一性校验</span>
+                <span>测试网实测平均确认延迟: &lt; 1.0 秒</span>
+            </div>
+        </section>
+
+        <!-- SLIDE 4: 游戏手感：元气骑士动作宽容度体系 -->
+        <section class="slide" data-notes="【手感演示过渡 45 秒】：很多开发者以为链游没有操作感。我们按照《元气骑士》标准重铸了战斗引擎：普攻命中顿帧 2 帧，大招暴击顿帧 5 帧，带来扎实的卡肉感！玩家受击框紧缩 70% 便于精细走位，武器挥砍判定框扩大 115% 便于爽快扫荡！怪物不仅会走位，关底镇塔妖王在 50% 血量时还会激发二阶段狂暴 8 向环形弹幕！">
+            <div class="slide-header">
+                <div class="slide-tag">PARADIGM-E GAME FEEL</div>
+                <h1 class="slide-title">元气骑士级动作手感：拒绝枯燥网页交互</h1>
+                <p class="slide-subtitle">打击顿帧（Hitstop） • 非对称碰撞箱 • 受击缓冲 • 动态弹幕生态</p>
+            </div>
+
+            <div class="slide-body">
+                <div class="card-grid">
+                    <div class="info-card">
+                        <div class="card-icon">⚔️</div>
+                        <div class="card-title">打击卡肉感 (Hitstop)</div>
+                        <div class="card-desc">
+                            • 普攻挥砍命中：微顿帧 <span class="highlight-cyan">2 帧</span><br>
+                            • 门派绝技/暴击：顿帧 <span class="highlight-cyan">5 帧</span><br>
+                            • 配合屏幕微震，带来媲美主机街机的扎实打击反馈。
+                        </div>
+                    </div>
+
+                    <div class="info-card">
+                        <div class="card-icon">🛡️</div>
+                        <div class="card-title">非对称判定与受击保护</div>
+                        <div class="card-desc">
+                            • 玩家受击 Hurtbox 紧缩至 <span class="highlight-text">70%</span>（闪避丝滑）<br>
+                            • 攻击 Hitbox 宽容扩展至 <span class="highlight-text">115%~140%</span>（横扫群怪）<br>
+                            • 受击后获 <span class="highlight-cyan">18 帧无敌闪烁</span>，脱战 3.5s 护甲自愈。
+                        </div>
+                    </div>
+
+                    <div class="info-card">
+                        <div class="card-icon">👹</div>
+                        <div class="card-title">动态环境与 Boss 弹幕</div>
+                        <div class="card-desc">
+                            • 地牢木箱/陶罐斩碎掉落灵药（恢复 HP/MP）<br>
+                            • 三宗玄坛靠近受印（嗜血/疾风/金刚 Buff）<br>
+                            • 镇塔妖王半血触发 <span class="highlight-purple">二阶段八荒魔火环形弹幕</span>。
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="background:rgba(16, 185, 129, 0.1); border:1px solid rgba(16, 185, 129, 0.3); border-radius:8px; padding:10px 16px; font-size:13px; color:#A7F3D0;">
+                🎯 <b>手感哲学：</b> 只有让玩家在没有接触 Web3 之前就觉得“这游戏真好玩”，区块链赋能的资产所有权才有真正意义！
+            </div>
+        </section>
+
+        <!-- SLIDE 5: 经济闭环：全链升星 + 原生 MON 寄售 + 长安钱庄 DeFi -->
+        <section class="slide" data-notes="【商业与金融飞轮 60 秒】：在经济模型上，我们实现了闭环：打怪掉落的神兵，初始 0 星，可在背包送入【天机玄炉】全链升星（最高 5 星，战力+125）；不想用的神兵，直接在【藏宝阁】以原生 MON 自主标价挂单，点对点买卖，0 平台抽成！更绝的是，关卡产出的西游灵石 $XYT，内置了基于恒定乘积的【长安钱庄 AMM Swap】，可直接换成 MON；也能存入金库享受 36.5% APY，或者与 MON 注入池子享受 128% LP 头矿收益！彻底消灭了打金死亡螺旋！">
+            <div class="slide-header">
+                <div class="slide-tag">FULL-CHAIN ECONOMY & DEFI</div>
+                <h1 class="slide-title">全链神兵锻造 × 原生 MON 寄售 × 长安钱庄 DeFi</h1>
+                <p class="slide-subtitle">0~5 星级全链存证 • C2C 藏宝阁市场 • 内置 AMM 兑换 • 双重流动性收益农场</p>
+            </div>
+
+            <div class="slide-body">
+                <div class="col-half">
+                    <div style="display:flex; flex-direction:column; gap:14px;">
+                        <div class="info-card">
+                            <div class="card-title">🔨 天机玄炉：全链 0~5 星属性跃升</div>
+                            <div class="card-desc">
+                                消耗少量 Gas 链上锻造，每次升星稳固提升 <span class="highlight-cyan">+25 战力</span>，全身纸娃娃槽位即时联动，链上永久确权。
+                            </div>
+                        </div>
+
+                        <div class="info-card">
+                            <div class="card-title">🏪 藏宝阁：以原生 MON 实时点对点结算</div>
+                            <div class="card-desc">
+                                玩家自主以 MON 标价挂牌。合约安全托管，买家支付 MON 后资金秒级到账，<span class="highlight-text">零中间商、零抽成、全链去中心化</span>。
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-half">
+                    <div class="info-card" style="border: 1px solid var(--gold-accent); height:100%;">
+                        <div class="card-title">🏦 长安钱庄：解决打金通胀死结</div>
+                        <div class="card-desc" style="display:flex; flex-direction:column; gap:12px;">
+                            <div>
+                                <b>🔄 原生 AMM Swap (XiYou Swap)：</b><br>
+                                基于 $x \cdot y = k$ 恒定乘积公式，关卡产出 $XYT$ 可实时与原生 MON 双向秒级兑换。
+                            </div>
+                            <div>
+                                <b>💰 单币理财金库 (36.5% APY)：</b><br>
+                                质押关卡打怪积分，0 无常损失，按秒复利生息。
+                            </div>
+                            <div>
+                                <b>🚜 LP 流动性农场 (128.0% APY)：</b><br>
+                                存入 MON + XYT 组成 LP 凭证质押，享受超高头矿爆发收益，盘活整个游戏生态的链上流动性！
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="font-size:12px; color:var(--text-muted); display:flex; justify-content:space-between;">
+                <span>代币标准: ERC-721 (神兵) + ERC-20 (西游灵石 XYT)</span>
+                <span>链上做市底池: 已注入 0.21 MON / 190.5 XYT 初始流动性</span>
+            </div>
+        </section>
+
+        <!-- SLIDE 6: 认证凭证与实机 Live Demo 切换 -->
+        <section class="slide" data-notes="【实机演示切入 30 秒】：最后，我们所有的技术落地均已在 Monad 测试网完成。大家可以看到，我们的 V6 主合约已经通过了 Sourcify / Blockvision 的 Perfect Match 认证！前端完全开源部署在 GitHub Pages 与 Vercel。废话不多说，Talk is cheap, show me the code. 让我们直接进入实机 Live Demo！">
+            <div class="slide-header">
+                <div class="slide-tag">VERIFIED PROOFS & LIVE DEMO</div>
+                <h1 class="slide-title">官方认证全闭环 • 立即开启实机对决</h1>
+                <p class="slide-subtitle">Talk is cheap. Show me the game!</p>
+            </div>
+
+            <div class="slide-body">
+                <div class="col-half">
+                    <div style="display:flex; flex-direction:column; gap:14px;">
+                        <div class="info-card" style="border-left:4px solid var(--emerald);">
+                            <div class="card-title">🟢 Sourcify 官方满级认证</div>
+                            <div class="card-desc">
+                                合约地址：<span class="highlight-cyan" style="font-family:monospace;">0xbeAF44AD57B7f55DAAdf07233E7927D08d103bfF</span><br>
+                                认证状态：<span style="color:var(--emerald); font-weight:800;">Perfect Match (100% 源码元数据一致)</span>
+                            </div>
+                        </div>
+
+                        <div class="info-card">
+                            <div class="card-title">⚡ CI/CD 自动化流水线</div>
+                            <div class="card-desc">
+                                遵循 <span class="highlight-text">Scaffold-ETH 2 与 Monskills 规范</span>，GitHub Actions 自动化执行 E2E 链上只读与状态测试，一键部署全球边缘 CDN。
+                            </div>
+                        </div>
+
+                        <div class="info-card">
+                            <div class="card-title">🎮 现场试玩链接</div>
+                            <div class="card-desc" style="font-family:monospace; color:var(--cyan-accent); word-break:break-all;">
+                                👉 https://githubskylh.github.io/monad-cellular-arena/
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-half" style="align-items:center; justify-content:center;">
+                    <div style="text-align:center; padding:30px; background:rgba(131, 110, 249, 0.15); border:2px dashed var(--monad-purple); border-radius:16px;">
+                        <div style="font-size:48px; margin-bottom:10px;">🕹️</div>
+                        <h2 style="color:#FFF; font-size:26px; margin-bottom:10px;">进入 5 分钟实机演示环节</h2>
+                        <p style="color:var(--text-muted); font-size:14px; margin-bottom:20px;">展示：走位挥砍 → 传送阵自动 Mint → 藏宝阁升星寄售 → 长安钱庄 Swap</p>
+                        <a href="https://githubskylh.github.io/monad-cellular-arena/" target="_blank" style="background:var(--monad-purple); color:#FFF; text-decoration:none; padding:10px 24px; border-radius:8px; font-weight:700; display:inline-block; box-shadow:0 0 15px var(--monad-purple-glow);">
+                            🚀 立即打开游戏公网窗口
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div style="font-size:12px; color:var(--text-muted); text-align:center; border-top:1px solid rgba(255,255,255,0.08); padding-top:10px;">
+                感谢 Monad Blitz 惠州评审团与同侪开发者！欢迎交流与提问！
+            </div>
+        </section>
+
+    </main>
+
+    <!-- 演讲备注文案悬浮窗 (快捷键 S 开启) -->
+    <div id="speaker-notes-panel">
+        <div class="notes-header">
+            <span>🎙️ 演讲逐字提示词 (按 S 键隐藏/显示)</span>
+            <span id="notes-slide-num">SLIDE 1/6</span>
+        </div>
+        <div id="notes-content" class="notes-content"></div>
+    </div>
+
+    <!-- 底部控制栏 -->
+    <footer>
+        <div class="shortcuts-tip">
+            快捷键: <span class="kbd">←</span> <span class="kbd">→</span> 或 <span class="kbd">Space</span> 翻页 | <span class="kbd">S</span> 演讲提示 | <span class="kbd">F</span> 全屏
+        </div>
+
+        <div class="nav-controls">
+            <button class="nav-btn" onclick="prevSlide()">◀ 上一页</button>
+            <span id="page-indicator" class="nav-page-indicator">1 / 6</span>
+            <button class="nav-btn" onclick="nextSlide()">下一页 ▶</button>
+            <button class="nav-btn" style="border-color:var(--gold-accent); color:var(--gold-accent);" onclick="toggleNotes()">🎙️ 提词器</button>
+        </div>
+    </footer>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const pageIndicator = document.getElementById('page-indicator');
+        const notesPanel = document.getElementById('speaker-notes-panel');
+        const notesContent = document.getElementById('notes-content');
+        const notesSlideNum = document.getElementById('notes-slide-num');
+
+        function updateSlide() {
+            slides.forEach((slide, index) => {
+                slide.classList.toggle('active', index === currentSlide);
+            });
+            pageIndicator.innerText = `${currentSlide + 1} / ${slides.length}`;
+            
+            // 更新提词器内容
+            const activeSlide = slides[currentSlide];
+            const notes = activeSlide.getAttribute('data-notes') || '暂无本页提示词。';
+            notesContent.innerText = notes;
+            notesSlideNum.innerText = `SLIDE ${currentSlide + 1} / ${slides.length}`;
+        }
+
+        function nextSlide() {
+            if (currentSlide < slides.length - 1) {
+                currentSlide++;
+                updateSlide();
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlide > 0) {
+                currentSlide--;
+                updateSlide();
+            }
+        }
+
+        function toggleNotes() {
+            notesPanel.classList.toggle('visible');
+        }
+
+        // 键盘监听
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+                e.preventDefault();
+                nextSlide();
+            } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+                e.preventDefault();
+                prevSlide();
+            } else if (e.key === 's' || e.key === 'S') {
+                toggleNotes();
+            } else if (e.key === 'f' || e.key === 'F') {
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen().catch(err => {});
+                } else {
+                    document.exitFullscreen();
+                }
+            }
+        });
+
+        // 倒计时逻辑 (5 分钟)
+        let timeLeft = 300; // 300秒 = 5分钟
+        let timerInterval = null;
+        let isTimerRunning = false;
+        const timerDisplay = document.getElementById('timer');
+        const timerToggleBtn = document.getElementById('timer-toggle-btn');
+
+        function formatTime(sec) {
+            const m = Math.floor(sec / 60).toString().padStart(2, '0');
+            const s = (sec % 60).toString().padStart(2, '0');
+            return `${m}:${s}`;
+        }
+
+        function toggleTimer() {
+            if (isTimerRunning) {
+                clearInterval(timerInterval);
+                isTimerRunning = false;
+                timerToggleBtn.innerText = '继续';
+                timerToggleBtn.style.background = 'rgba(131, 110, 249, 0.25)';
+            } else {
+                isTimerRunning = true;
+                timerToggleBtn.innerText = '暂停';
+                timerToggleBtn.style.background = '#EF4444';
+                timerInterval = setInterval(() => {
+                    if (timeLeft > 0) {
+                        timeLeft--;
+                        timerDisplay.innerText = formatTime(timeLeft);
+                        if (timeLeft <= 60 && timeLeft > 30) {
+                            timerDisplay.style.color = '#F59E0B'; // 倒数 1 分钟黄色
+                        } else if (timeLeft <= 30) {
+                            timerDisplay.style.color = '#EF4444'; // 倒数 30 秒红色
+                        }
+                    } else {
+                        clearInterval(timerInterval);
+                        isTimerRunning = false;
+                        timerDisplay.innerText = '00:00 时间到';
+                        timerToggleBtn.innerText = '结束';
+                    }
+                }, 1000);
+            }
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            isTimerRunning = false;
+            timeLeft = 300;
+            timerDisplay.innerText = '05:00';
+            timerDisplay.style.color = 'var(--cyan-accent)';
+            timerToggleBtn.innerText = '开始';
+            timerToggleBtn.style.background = 'rgba(131, 110, 249, 0.25)';
+        }
+
+        // 初始化
+        updateSlide();
+    </script>
+</body>
+</html>
