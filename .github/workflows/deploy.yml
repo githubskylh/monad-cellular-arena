@@ -25,11 +25,10 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: 'yarn'
+          node-version: 22
 
       - name: Install dependencies
-        run: yarn install
+        run: npm ci || npm install
 
       - name: Run E2E & Contract Verification Tests
         run: node test_e2e_v5.js

@@ -24,8 +24,5 @@
   "dependencies": {
     "ethers": "^6.17.0",
     "solc": "^0.8.20"
-  },
-  "devDependencies": {
-    "vercel": "^59.11.7"
   }
 }
