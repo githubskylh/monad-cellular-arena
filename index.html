@@ -107,6 +107,578 @@
         }
         .animate-float { animation: float-orb 1.8s ease-in-out infinite; }
 
+        /* =========================================================================
+           POKÉ POCKET INSPIRED SKEWMORPHIC HARDWARE CONSOLE & CARTRIDGE SYSTEM
+           ========================================================================= */
+
+        /* 1. 西游神威掌机外壳 (Handheld Console Enclosure) */
+        .console-wrap {
+            --edition-color: #b91c1c;
+            width: 100%;
+            max-width: 610px;
+            margin: 0 auto;
+            position: relative;
+            user-select: none;
+        }
+
+        /* 顶部肩键 (Top Shoulder Triggers L / R) */
+        .console-shoulders {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            padding: 0 24px;
+            margin-bottom: -5px;
+            position: relative;
+            z-index: 1;
+        }
+        .console-shoulders .shoulder {
+            background: linear-gradient(180deg, #3b453a 0%, #1c241c 100%);
+            color: #94a3b8;
+            border: 2px solid #4a5c48;
+            border-bottom: none;
+            border-radius: 12px 12px 0 0;
+            padding: 5px 18px 7px;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            font-weight: bold;
+            box-shadow: inset 0 2px 0 rgba(255,255,255,0.2), 0 -2px 6px rgba(0,0,0,0.5);
+            cursor: pointer;
+            transition: all 0.1s;
+        }
+        .console-shoulders .shoulder:active {
+            transform: translateY(2px);
+            background: #151b15;
+            color: #facc15;
+        }
+        .shoulder-center-rib {
+            font-family: var(--font-pixel);
+            font-size: 7.5px;
+            letter-spacing: 1.5px;
+            color: #5c6e5a;
+            padding-bottom: 6px;
+        }
+
+        /* 掌机机身外壳 (Console Shell) */
+        .console-shell {
+            background: linear-gradient(160deg, #252e24 0%, #1a221a 45%, #121812 100%);
+            border: 3px solid #384636;
+            border-top: 3px solid #4b5d48;
+            border-radius: 26px;
+            padding: 12px 14px 16px;
+            box-shadow: 
+                inset 0 3px 0 rgba(255,255,255,0.15),
+                inset 0 -6px 0 rgba(0,0,0,0.6),
+                0 8px 0 #0d120d,
+                0 14px 24px rgba(0,0,0,0.7);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* 四角五金螺丝孔 (Screws) */
+        .shell-screw {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #0f130f;
+            border: 1px solid #3a4738;
+            border-radius: 50%;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.9), 0 1px 0 rgba(255,255,255,0.1);
+        }
+        .shell-screw::after {
+            content: '+';
+            display: block;
+            text-align: center;
+            line-height: 8px;
+            font-size: 8px;
+            color: #273026;
+            font-weight: bold;
+        }
+        .screw-top-left { top: 8px; left: 10px; }
+        .screw-top-right { top: 8px; right: 10px; }
+        .screw-bottom-left { bottom: 8px; left: 10px; }
+        .screw-bottom-right { bottom: 8px; right: 10px; }
+
+        /* 屏幕玻璃与边框 (Screen Frame) */
+        .screen-frame {
+            background: linear-gradient(145deg, #1d251e 0%, #0d120d 100%);
+            border: 2px solid #2d382c;
+            border-radius: 14px;
+            padding: 8px 10px 6px;
+            box-shadow: 
+                inset 0 2px 6px rgba(0,0,0,0.8),
+                0 1px 0 rgba(255,255,255,0.12),
+                0 0 0 3px #141a14;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .screen-frame-top {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: var(--font-mono);
+            font-size: 9px;
+            color: #748872;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+            padding: 0 4px;
+        }
+        .power-dot-text {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .led-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #10b981;
+            box-shadow: 0 0 8px #10b981;
+            display: inline-block;
+            animation: led-pulse 2s infinite ease-in-out;
+        }
+        @keyframes led-pulse {
+            0%, 100% { opacity: 0.8; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.2); box-shadow: 0 0 12px #34d399; }
+        }
+
+        .screen-filter-toggle {
+            background: #192219;
+            border: 1px solid #374735;
+            color: #8fa08c;
+            border-radius: 4px;
+            padding: 1px 6px;
+            font-size: 9px;
+            cursor: pointer;
+        }
+        .screen-filter-toggle:hover {
+            color: #facc15;
+            border-color: #ca8a04;
+        }
+
+        /* 屏幕玻璃与反射光晕 (Screen Glass & CRT Scanlines) */
+        .game-screen-wrapper {
+            position: relative;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.9);
+            background: #080c09;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .screen-glass {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.01) 40%, transparent 60%);
+            border-radius: inherit;
+        }
+        .screen-scanlines {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.28) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 255, 0, 0.03));
+            background-size: 100% 3px, 6px 100%;
+            z-index: 20;
+        }
+        .console-wordmark {
+            font-family: var(--font-pixel);
+            font-size: 9px;
+            letter-spacing: 2px;
+            color: #5c6e5a;
+            margin-top: 6px;
+        }
+        .console-wordmark b {
+            color: #8b9f87;
+        }
+
+        /* 底部操作面板：十字键、A/B功能键、喇叭孔、SELECT/START (Console Controls Bar) */
+        .console-controls-bar {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 6px 0;
+            gap: 8px;
+        }
+
+        /* 十字方向键 (Classic D-Pad) */
+        .dpad {
+            position: relative;
+            width: 92px;
+            height: 92px;
+            background: transparent;
+            flex-shrink: 0;
+        }
+        .dpad-btn {
+            position: absolute;
+            background: linear-gradient(180deg, #354033 0%, #1e251d 100%);
+            border: 1px solid #485845;
+            color: #8fa08c;
+            font-size: 11px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 3px 0 #10140f, inset 0 1px 0 rgba(255,255,255,0.15);
+            user-select: none;
+            transition: transform 0.05s, background 0.05s;
+        }
+        .dpad-btn:active, .dpad-btn.is-pressed {
+            background: #171d16;
+            box-shadow: 0 1px 0 #10140f;
+            transform: translateY(2px);
+            color: #facc15;
+        }
+        .dpad-up { top: 0; left: 30px; width: 32px; height: 32px; border-radius: 5px 5px 0 0; }
+        .dpad-down { bottom: 0; left: 30px; width: 32px; height: 32px; border-radius: 0 0 5px 5px; }
+        .dpad-left { top: 30px; left: 0; width: 32px; height: 32px; border-radius: 5px 0 0 5px; }
+        .dpad-right { top: 30px; right: 0; width: 32px; height: 32px; border-radius: 0 5px 5px 0; }
+        .dpad-center {
+            position: absolute;
+            top: 30px;
+            left: 30px;
+            width: 32px;
+            height: 32px;
+            background: #232b22;
+            pointer-events: none;
+        }
+        .dpad-center::after {
+            content: '';
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #151a14;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.8);
+        }
+
+        /* 中间：SELECT & START 橡胶条键 */
+        .small-buttons {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+        .small-buttons-row {
+            display: flex;
+            gap: 12px;
+        }
+        .small-btn-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+        }
+        .small-console-button {
+            width: 34px;
+            height: 10px;
+            background: #283126;
+            border: 1px solid #414f3e;
+            border-radius: 5px;
+            transform: rotate(-25deg);
+            box-shadow: 0 2px 0 #0f130e, inset 0 1px 0 rgba(255,255,255,0.1);
+            cursor: pointer;
+        }
+        .small-console-button:active {
+            transform: rotate(-25deg) translateY(1px);
+            background: #161c15;
+        }
+        .small-btn-group span {
+            font-family: var(--font-pixel);
+            font-size: 6.5px;
+            color: #6d7f6b;
+            letter-spacing: 0.5px;
+            margin-top: 2px;
+        }
+
+        /* 右侧：斜向 A / B 掌机按键 & 喇叭孔 (A/B Action Buttons) */
+        .console-right-panel {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .ab-buttons {
+            display: flex;
+            gap: 12px;
+            transform: rotate(-18deg);
+            background: rgba(18, 24, 18, 0.45);
+            padding: 5px 8px;
+            border-radius: 36px;
+            border: 1px solid rgba(71, 85, 68, 0.3);
+        }
+        .console-btn-circle {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-family: var(--font-pixel);
+            transition: all 0.08s;
+            user-select: none;
+        }
+        .action-b {
+            background: linear-gradient(135deg, #b91c1c 0%, #7f1d1d 100%);
+            border: 2px solid #ef4444;
+            color: #fef2f2;
+            box-shadow: 0 4px 0 #450a0a, inset 0 2px 0 rgba(255,255,255,0.35);
+        }
+        .action-b:active, .action-b.is-pressed {
+            transform: translateY(3px);
+            box-shadow: 0 1px 0 #450a0a;
+        }
+        .action-a {
+            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+            border: 2px solid #38bdf8;
+            color: #f0f9ff;
+            box-shadow: 0 4px 0 #082f49, inset 0 2px 0 rgba(255,255,255,0.35);
+        }
+        .action-a:active, .action-a.is-pressed {
+            transform: translateY(3px);
+            box-shadow: 0 1px 0 #082f49;
+        }
+        .console-btn-circle span {
+            font-size: 11px;
+            line-height: 1;
+        }
+        .console-btn-circle small {
+            font-family: var(--font-xy);
+            font-size: 9px;
+            opacity: 0.9;
+        }
+        .speaker-grille {
+            display: flex;
+            flex-direction: column;
+            gap: 3.5px;
+            transform: rotate(-25deg);
+        }
+        .speaker-grille i {
+            width: 24px;
+            height: 3px;
+            background: #101510;
+            border-radius: 2px;
+            box-shadow: inset 0 1px 1px rgba(0,0,0,0.8), 0 1px 0 rgba(255,255,255,0.06);
+        }
+
+        /* =========================================================================
+           2. POKÉ POCKET 风格实体卡带盘 (Physical Cartridge Vault & Tray)
+           ========================================================================= */
+        .cartridge-case {
+            position: relative;
+            background: linear-gradient(145deg, #1e261e 0%, #141a14 100%);
+            border: 2px solid #344332;
+            border-radius: 16px;
+            padding: 12px;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.1), 0 6px 14px rgba(0,0,0,0.5);
+        }
+        .cartridge-tray {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            padding: 10px;
+            background: linear-gradient(150deg, #171e17, #0e130e);
+            border: 1px solid #2a3629;
+            border-radius: 12px;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.7);
+        }
+
+        .tray-slot {
+            position: relative;
+            border-radius: 10px;
+            padding: 8px 5px 6px;
+            background: linear-gradient(150deg, #20281f, #161e16);
+            border: 1px solid #303d2f;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .tray-slot:hover {
+            background: #283427;
+            border-color: #556b53;
+            transform: translateY(-2px);
+        }
+        .tray-slot.is-selected {
+            background: linear-gradient(150deg, #2a3829, #1b261b);
+            border-color: #ca8a04;
+            box-shadow: 0 0 12px rgba(202, 138, 4, 0.35), inset 0 0 0 1px rgba(250, 204, 21, 0.4);
+        }
+
+        /* 实体卡带外观 (Physical Cartridge Body) */
+        .physical-cartridge {
+            position: relative;
+            width: 78px;
+            height: 86px;
+            padding: 5px 6px 4px;
+            border-radius: 5px 5px 7px 7px;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: linear-gradient(135deg, var(--cart-color, #991b1b) 0%, #151a14 100%);
+            box-shadow: 
+                inset 1px 1px 0 rgba(255,255,255,0.25),
+                inset -1px -1px 0 rgba(0,0,0,0.5),
+                0 4px 6px rgba(0,0,0,0.5);
+            transition: transform 0.2s, box-shadow 0.2s;
+            user-select: none;
+        }
+        .tray-slot:hover .physical-cartridge {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 10px rgba(0,0,0,0.6);
+        }
+        .tray-slot.is-selected .physical-cartridge {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 14px rgba(0,0,0,0.7), 0 0 8px var(--cart-color, #eab308);
+        }
+
+        .cart-plastic-top {
+            font-family: var(--font-pixel);
+            font-size: 4.5px;
+            color: rgba(255,255,255,0.8);
+            text-align: center;
+            background: rgba(0,0,0,0.35);
+            border-radius: 2px;
+            padding: 1.5px 0;
+            margin-bottom: 3px;
+            letter-spacing: -0.2px;
+        }
+
+        .cart-label {
+            height: 55px;
+            border-radius: 3px 3px 5px 5px;
+            background: radial-gradient(circle at 50% 20%, #fffbe8 0%, #fef08a 60%, #eab308 100%);
+            border: 1px solid #713f12;
+            padding: 2px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.6);
+            position: relative;
+            overflow: hidden;
+        }
+        .cart-label-brand {
+            font-family: var(--font-pixel);
+            font-size: 3.5px;
+            color: #713f12;
+            letter-spacing: -0.2px;
+        }
+        .cart-label-mascot {
+            font-size: 16px;
+            line-height: 1;
+            margin: 1px 0;
+            filter: drop-shadow(0 2px 2px rgba(0,0,0,0.3));
+        }
+        .cart-label strong {
+            font-family: var(--font-pixel);
+            font-size: 5.5px;
+            color: #451a03;
+            letter-spacing: 0.3px;
+        }
+        .cart-label small {
+            font-family: var(--font-xy);
+            font-size: 8px;
+            font-weight: bold;
+            color: #78350f;
+            line-height: 1;
+        }
+        .cart-label-seal {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            font-size: 6px;
+            color: #b45309;
+        }
+        .cart-label-serial {
+            position: absolute;
+            bottom: 1px;
+            right: 2px;
+            font-family: monospace;
+            font-size: 4.5px;
+            color: #78350f;
+            opacity: 0.85;
+        }
+
+        .cart-bottom {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 4px;
+            font-size: 6px;
+            color: #ca8a04;
+            margin-top: 2px;
+        }
+        .cart-bottom i {
+            width: 5px;
+            height: 2px;
+            background: #ca8a04;
+            display: inline-block;
+        }
+
+        .slot-nameplate {
+            margin-top: 6px;
+            text-align: center;
+            width: 100%;
+        }
+        .slot-nameplate .sect-title {
+            font-family: var(--font-xy);
+            font-size: 10.5px;
+            font-weight: bold;
+            color: #fef08a;
+            display: block;
+        }
+        .slot-nameplate .sect-spec {
+            font-family: monospace;
+            font-size: 8.5px;
+            color: #94a3b8;
+            display: block;
+        }
+        .slot-check-pill {
+            margin-top: 3px;
+            font-size: 8.5px;
+            padding: 1px 5px;
+            border-radius: 10px;
+            font-family: monospace;
+        }
+        .tray-slot.is-selected .slot-check-pill {
+            background: #ca8a04;
+            color: #000;
+            font-weight: bold;
+        }
+        .tray-slot:not(.is-selected) .slot-check-pill {
+            background: #1e293b;
+            color: #64748b;
+        }
+
+        /* 西游三界复古邮戳章 (Collection Postmark) */
+        .collection-postmark {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1px;
+            border: 1.5px dashed #ca8a04;
+            border-radius: 50%;
+            padding: 4px 10px;
+            color: #facc15;
+            transform: rotate(-4deg);
+            background: rgba(202, 138, 4, 0.08);
+        }
+        .collection-postmark span { font-family: monospace; font-size: 6.5px; letter-spacing: 0.5px; }
+        .collection-postmark strong { font-family: var(--font-pixel); font-size: 7.5px; letter-spacing: 0.5px; }
+        .collection-postmark small { font-family: monospace; font-size: 5.5px; }
+
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #111827; }
         ::-webkit-scrollbar-thumb { background: #ca8a04; border-radius: 4px; }
@@ -222,94 +794,163 @@
                 </div>
             </div>
 
-            <!-- The Game Map Canvas Container -->
-            <div class="relative rounded-xl overflow-hidden border-4 border-[#2d3748] bg-[#12151d] w-[550px] h-[550px] max-w-full aspect-square flex items-center justify-center shadow-2xl">
-                <canvas id="gameCanvas" width="550" height="550" class="block cursor-crosshair"></canvas>
-                
-                <!-- Floating Toast Notification -->
-                <div id="itemToast" class="pointer-events-none absolute top-4 left-1/2 transform -translate-x-1/2 opacity-0 transition-opacity duration-300 bg-amber-950/95 border-2 border-yellow-400 text-yellow-200 px-4 py-1.5 rounded-full text-xs font-xy font-bold shadow-2xl flex items-center space-x-1.5">
-                    <span>✨</span>
-                    <span id="itemToastText">已拾取地牢掉落物！</span>
+            <!-- POKÉ POCKET RETRO CONSOLE (经典复古掌机拟物外壳系统) -->
+            <div class="console-wrap">
+                <!-- 顶部物理肩键 (L / R Triggers) -->
+                <div class="console-shoulders">
+                    <button id="btnShoulderL" class="shoulder" title="左肩键：快速闪避/走位">L [SHIFT]</button>
+                    <div class="shoulder-center-rib">MONAD 10,000 TPS • CARTRIDGE SYSTEM</div>
+                    <button id="btnShoulderR" class="shoulder" title="右肩键：门派终极大招">R [E / 3]</button>
                 </div>
 
-                <!-- AUTO-MINT CLAIMING CELEBRATION MODAL (传送门自动认领与铸造弹窗) -->
-                <div id="clearanceOverlay" class="absolute inset-0 bg-black/90 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center transition-all duration-300 z-30" style="display: none;">
-                    <div class="w-20 h-20 rounded-2xl bg-gradient-to-b from-amber-500 to-yellow-600 border-4 border-yellow-300 flex items-center justify-center text-4xl shadow-2xl animate-float mb-3">
-                        🔮
-                    </div>
-                    <h2 id="clearanceTitle" class="text-2xl font-bold font-pixel tracking-wider text-yellow-300 mb-1">
-                        STAGE 1-1 CLEARED!
-                    </h2>
-                    <p class="text-xs text-amber-200/90 font-xy max-w-sm mb-3">
-                        少侠已肃清地牢妖兽并踏入传送门！系统正在 Monad 区块链上<b>自动认领并铸造</b>掉落神兵 NFT！
-                    </p>
+                <!-- 掌机机身外壳 (Console Shell) -->
+                <div class="console-shell">
+                    <!-- 四角五金螺丝孔 -->
+                    <div class="shell-screw screw-top-left"></div>
+                    <div class="shell-screw screw-top-right"></div>
+                    <div class="shell-screw screw-bottom-left"></div>
+                    <div class="shell-screw screw-bottom-right"></div>
 
-                    <!-- Dropped Loot NFT Card -->
-                    <div id="mintCard" class="w-full max-w-xs bg-[#161c24] p-3 rounded-xl border-2 border-yellow-500/80 mb-4 shadow-xl">
-                        <div class="text-[10px] text-yellow-400 font-pixel uppercase tracking-wider mb-1">⚡ MINTING NFT ITEM...</div>
-                        <div class="flex items-center space-x-3">
-                            <div class="w-12 h-12 rounded-lg bg-amber-950 border border-yellow-400 flex items-center justify-center text-2xl shadow" id="mintLootIcon">
-                                🔱
+                    <!-- 屏幕外框与状态栏 (Screen Frame) -->
+                    <div class="screen-frame">
+                        <div class="screen-frame-top">
+                            <div class="power-dot-text">
+                                <span class="led-dot"></span>
+                                <span>POWER • READY</span>
                             </div>
-                            <div class="text-left">
-                                <div class="font-bold font-xy text-sm text-yellow-300" id="mintLootName">【大唐青锋剑】</div>
-                                <div class="text-[10px] text-slate-400 font-mono" id="mintLootDesc">战力 +65 • 名品法宝</div>
+                            <div class="text-[9px] font-mono text-slate-400">
+                                <span>MONAD CELLULAR 60 FPS</span>
                             </div>
+                            <button id="btnToggleScanlines" class="screen-filter-toggle">CRT 点阵 [开]</button>
+                        </div>
+
+                        <!-- 游戏屏幕视口 (Game Screen Viewport) -->
+                        <div class="game-screen-wrapper">
+                            <canvas id="gameCanvas" width="550" height="550" class="block cursor-crosshair w-full max-w-[550px] aspect-square"></canvas>
+                            
+                            <!-- 拟物玻璃反光层与 CRT 扫描线 -->
+                            <div class="screen-glass"></div>
+                            <div id="screenScanlines" class="screen-scanlines"></div>
+
+                            <!-- Floating Toast Notification -->
+                            <div id="itemToast" class="pointer-events-none absolute top-4 left-1/2 transform -translate-x-1/2 opacity-0 transition-opacity duration-300 bg-amber-950/95 border-2 border-yellow-400 text-yellow-200 px-4 py-1.5 rounded-full text-xs font-xy font-bold shadow-2xl flex items-center space-x-1.5 z-30">
+                                <span>✨</span>
+                                <span id="itemToastText">已拾取地牢掉落物！</span>
+                            </div>
+
+                            <!-- AUTO-MINT CLAIMING CELEBRATION MODAL (传送门自动认领与铸造弹窗) -->
+                            <div id="clearanceOverlay" class="absolute inset-0 bg-black/90 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center transition-all duration-300 z-30" style="display: none;">
+                                <div class="w-20 h-20 rounded-2xl bg-gradient-to-b from-amber-500 to-yellow-600 border-4 border-yellow-300 flex items-center justify-center text-4xl shadow-2xl animate-float mb-3">
+                                    🔮
+                                </div>
+                                <h2 id="clearanceTitle" class="text-2xl font-bold font-pixel tracking-wider text-yellow-300 mb-1">
+                                    STAGE 1-1 CLEARED!
+                                </h2>
+                                <p class="text-xs text-amber-200/90 font-xy max-w-sm mb-3">
+                                    少侠已肃清地牢妖兽并踏入传送门！系统正在 Monad 区块链上<b>自动认领并铸造</b>掉落神兵 NFT！
+                                </p>
+
+                                <!-- Dropped Loot NFT Card -->
+                                <div id="mintCard" class="w-full max-w-xs bg-[#161c24] p-3 rounded-xl border-2 border-yellow-500/80 mb-4 shadow-xl">
+                                    <div class="text-[10px] text-yellow-400 font-pixel uppercase tracking-wider mb-1">⚡ MINTING NFT ITEM...</div>
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-12 h-12 rounded-lg bg-amber-950 border border-yellow-400 flex items-center justify-center text-2xl shadow" id="mintLootIcon">
+                                            🔱
+                                        </div>
+                                        <div class="text-left">
+                                            <div class="font-bold font-xy text-sm text-yellow-300" id="mintLootName">【大唐青锋剑】</div>
+                                            <div class="text-[10px] text-slate-400 font-mono" id="mintLootDesc">战力 +65 • 名品法宝</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Auto Minting Status Spinner -->
+                                <div id="mintStatusText" class="text-xs text-cyan-300 font-mono mb-3 animate-pulse">
+                                    ⏳ 正在广播单笔原子清算与自动 Mint 交易 (落块约 1.0 秒)...
+                                </div>
+
+                                <!-- External Wallet & Fallback Action Container -->
+                                <div id="mintActionContainer" class="w-full max-w-xs space-y-2 mb-3 hidden">
+                                    <button id="btnTriggerWalletSign" class="w-full px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-500 hover:from-emerald-500 hover:to-teal-400 text-white font-bold font-xy text-xs shadow-xl border-2 border-emerald-300 flex items-center justify-center space-x-2 animate-pulse transition-transform active:scale-95">
+                                        <span>🦊 唤起 MetaMask 确认签名 (区块落块)</span>
+                                    </button>
+                                    <div class="flex items-center justify-between text-[11px] font-xy px-1">
+                                        <button id="btnFallbackTrialMint" class="text-yellow-400 hover:text-yellow-300 underline font-bold">
+                                            ⚡ 切换为【免 Gas 代付全自动秒铸】
+                                        </button>
+                                        <button id="btnSkipToNextLevel" class="text-slate-400 hover:text-slate-200 underline">
+                                            ⏭️ 跳过上链
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Next Level Button (Enabled after Auto-Mint is complete) -->
+                                <button id="btnNextLevel" class="px-6 py-3 sk-btn-gold text-slate-950 font-bold font-xy text-sm rounded-xl shadow-lg border border-yellow-200 flex items-center space-x-2 transition-transform transform active:scale-95 hidden">
+                                    <span>🚀 踏入下一层地牢 (Next Dungeon)</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 屏幕底部品牌刻字 -->
+                        <div class="console-wordmark">
+                            WESTWARD <b>DUNGEON ADVANCE</b> • MONAD CELLULAR
                         </div>
                     </div>
 
-                    <!-- Auto Minting Status Spinner -->
-                    <div id="mintStatusText" class="text-xs text-cyan-300 font-mono mb-3 animate-pulse">
-                        ⏳ 正在广播单笔原子清算与自动 Mint 交易 (落块约 1.0 秒)...
-                    </div>
+                    <!-- 掌机控制台：立体十字键、SELECT/START、斜向 A/B 键、扬声器孔 -->
+                    <div class="console-controls-bar">
+                        <!-- 左侧：经典复古十字方向键 (D-Pad) -->
+                        <div class="dpad" id="consoleDpad">
+                            <button id="dpadUp" class="dpad-btn dpad-up" title="上移 [W / ↑]">▲</button>
+                            <button id="dpadDown" class="dpad-btn dpad-down" title="下移 [S / ↓]">▼</button>
+                            <button id="dpadLeft" class="dpad-btn dpad-left" title="左移 [A / ←]">◀</button>
+                            <button id="dpadRight" class="dpad-btn dpad-right" title="右移 [D / →]">▶</button>
+                            <div class="dpad-center"></div>
+                        </div>
 
-                    <!-- External Wallet & Fallback Action Container -->
-                    <div id="mintActionContainer" class="w-full max-w-xs space-y-2 mb-3 hidden">
-                        <button id="btnTriggerWalletSign" class="w-full px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-500 hover:from-emerald-500 hover:to-teal-400 text-white font-bold font-xy text-xs shadow-xl border-2 border-emerald-300 flex items-center justify-center space-x-2 animate-pulse transition-transform active:scale-95">
-                            <span>🦊 唤起 MetaMask 确认签名 (区块落块)</span>
-                        </button>
-                        <div class="flex items-center justify-between text-[11px] font-xy px-1">
-                            <button id="btnFallbackTrialMint" class="text-yellow-400 hover:text-yellow-300 underline font-bold">
-                                ⚡ 切换为【免 Gas 代付全自动秒铸】
-                            </button>
-                            <button id="btnSkipToNextLevel" class="text-slate-400 hover:text-slate-200 underline">
-                                ⏭️ 跳过上链
-                            </button>
+                        <!-- 中间：斜向橡胶条 SELECT / START 键与技能快捷图标 -->
+                        <div class="small-buttons">
+                            <div class="small-buttons-row">
+                                <div class="small-btn-group">
+                                    <button id="btnConsoleSelect" class="small-console-button" title="SELECT: 切换背包/寄售行"></button>
+                                    <span>SELECT</span>
+                                </div>
+                                <div class="small-btn-group">
+                                    <button id="btnConsoleStart" class="small-console-button" title="START: 终极奥义 (3/E)"></button>
+                                    <span>START</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-2 mt-1">
+                                <div id="btnSkill1" class="action-btn border-yellow-400 w-8 h-8 !p-0" title="普攻斩击 (1 或 空格)">
+                                    <span class="text-sm">🗡️</span>
+                                </div>
+                                <div id="btnSkill2" class="action-btn border-red-500 w-8 h-8 !p-0" title="门派绝技 (2 或 Q)">
+                                    <span id="skill2Icon" class="text-sm">⚡</span>
+                                </div>
+                                <div id="btnSkill3" class="action-btn border-cyan-400 w-8 h-8 !p-0" title="群攻大招 (3 或 E)">
+                                    <span id="skill3Icon" class="text-sm">🌪️</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 右侧：斜向 A / B 红色/蓝色按键与喇叭孔 -->
+                        <div class="console-right-panel">
+                            <div class="ab-buttons">
+                                <button id="btnPadB" class="console-btn-circle action-b" title="普攻斩击 (空格/1)">
+                                    <small>斩击</small>
+                                    <span>B</span>
+                                </button>
+                                <button id="btnPadA" class="console-btn-circle action-a" title="门派特技 (2/Q)">
+                                    <small>绝技</small>
+                                    <span>A</span>
+                                </button>
+                            </div>
+                            <!-- 立体出音孔 -->
+                            <div class="speaker-grille">
+                                <i></i><i></i><i></i><i></i><i></i>
+                            </div>
                         </div>
                     </div>
-
-                    <!-- Next Level Button (Enabled after Auto-Mint is complete) -->
-                    <button id="btnNextLevel" class="px-6 py-3 sk-btn-gold text-slate-950 font-bold font-xy text-sm rounded-xl shadow-lg border border-yellow-200 flex items-center space-x-2 transition-transform transform active:scale-95 hidden">
-                        <span>🚀 踏入下一层地牢 (Next Dungeon)</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Arcade Action Skill Bar (元气骑士街机按钮) -->
-            <div class="w-full mt-2.5 bg-[#111827] p-2 rounded-xl border-2 border-slate-800 flex items-center justify-between">
-                <div class="flex items-center space-x-3">
-                    <!-- Normal Attack (1 / Space) -->
-                    <div id="btnSkill1" class="action-btn border-yellow-400" title="普攻斩击 (按键 1 或 空格)">
-                        <span class="text-xl">🗡️</span>
-                        <span class="text-[9px] font-pixel text-yellow-300">ATTACK</span>
-                    </div>
-
-                    <!-- Skill 2: 横扫/龙腾/变身 (2 / Q) -->
-                    <div id="btnSkill2" class="action-btn border-red-500" title="门派绝技 (按键 2 或 Q)">
-                        <span id="skill2Icon" class="text-xl">⚡</span>
-                        <span class="text-[9px] font-pixel text-red-300">SKILL</span>
-                    </div>
-
-                    <!-- Skill 3: 破釜沉舟/龙卷/鹰击 (3 / E) -->
-                    <div id="btnSkill3" class="action-btn border-cyan-400" title="群攻大招 (按键 3 或 E)">
-                        <span id="skill3Icon" class="text-xl">🌪️</span>
-                        <span class="text-[9px] font-pixel text-cyan-300">ULTI</span>
-                    </div>
-                </div>
-
-                <div class="text-right text-[11px] font-xy text-slate-400 hidden sm:block">
-                    <div>长按 <b>WASD</b> 连贯走位 • 空格斩击</div>
-                    <div class="text-emerald-400 font-mono">关内 120 FPS 零 Gas 拾取</div>
                 </div>
             </div>
 
@@ -318,6 +959,106 @@
         <!-- Right: 藏宝阁全链背包与 C2C 寄售行 (5 cols) -->
         <div class="lg:col-span-5 flex flex-col space-y-3">
             
+            <!-- POKÉ POCKET STYLE PHYSICAL CARTRIDGE VAULT (三界宗门卡带收纳盘) -->
+            <div class="cartridge-case">
+                <div class="flex items-center justify-between pb-2 mb-2 border-b border-[#344332]">
+                    <div class="flex items-center space-x-2">
+                        <span class="text-sm">📼</span>
+                        <span class="font-bold font-xy text-xs text-yellow-300">西游三界宗门典藏卡带盘</span>
+                        <span class="text-[9px] px-1.5 py-0.5 rounded bg-amber-950 text-amber-300 font-mono border border-amber-700">CARTRIDGE VAULT</span>
+                    </div>
+                    <div class="collection-postmark" title="三界秘境官方存证邮戳">
+                        <span class="mark-title">MONAD</span>
+                        <span class="mark-code">DMG-WEST</span>
+                        <span class="mark-date">2026-SEP</span>
+                    </div>
+                </div>
+
+                <!-- Tray Slots: 3 Sects -->
+                <div class="cartridge-tray" id="cartridgeTray">
+                    <!-- Slot 0: 大唐官府 (DMG-DT-01) -->
+                    <div class="tray-slot is-selected" data-sect="0" onclick="switchSect(0)" title="点击插入大唐官府卡带">
+                        <div class="physical-cartridge" style="--cart-color: #991b1b;">
+                            <div class="cart-plastic-top">MONAD CARTRIDGE</div>
+                            <div class="cart-label">
+                                <span class="cart-label-brand">POKEPOCKET ADV</span>
+                                <span class="cart-label-seal">★</span>
+                                <div class="cart-label-mascot">🗡️</div>
+                                <strong>大唐官府</strong>
+                                <small>剑侠客 • 烈火</small>
+                                <span class="cart-label-serial">DMG-DT-01</span>
+                            </div>
+                            <div class="cart-bottom">
+                                <i></i><i></i><i></i>
+                                <span>MONAD</span>
+                            </div>
+                        </div>
+                        <div class="slot-nameplate">
+                            <span class="sect-title">大唐 · 剑侠客</span>
+                            <span class="sect-spec">物理爆发 • 青锋剑</span>
+                            <span class="slot-check-pill bg-amber-500 text-black font-bold" id="pillSect0">当前插入</span>
+                        </div>
+                    </div>
+
+                    <!-- Slot 1: 方寸山 (DMG-FC-02) -->
+                    <div class="tray-slot" data-sect="1" onclick="switchSect(1)" title="点击插入方寸山卡带">
+                        <div class="physical-cartridge" style="--cart-color: #0f766e;">
+                            <div class="cart-plastic-top">MONAD CARTRIDGE</div>
+                            <div class="cart-label" style="background: radial-gradient(circle at 50% 20%, #f0fdf4 0%, #bbf7d0 60%, #4ade80 100%); border-color: #14532d;">
+                                <span class="cart-label-brand" style="color: #14532d;">POKEPOCKET ADV</span>
+                                <span class="cart-label-seal" style="color: #15803d;">☯</span>
+                                <div class="cart-label-mascot">⚡</div>
+                                <strong style="color: #064e3b;">方寸山</strong>
+                                <small style="color: #047857;">逍遥生 • 符法</small>
+                                <span class="cart-label-serial" style="color: #064e3b;">DMG-FC-02</span>
+                            </div>
+                            <div class="cart-bottom" style="color: #2dd4bf;">
+                                <i></i><i></i><i></i>
+                                <span>MONAD</span>
+                            </div>
+                        </div>
+                        <div class="slot-nameplate">
+                            <span class="sect-title">方寸 · 逍遥生</span>
+                            <span class="sect-spec">神霄雷符 • 八卦</span>
+                            <span class="slot-check-pill text-slate-400" id="pillSect1">点击插入</span>
+                        </div>
+                    </div>
+
+                    <!-- Slot 2: 化生寺 (DMG-HS-03) -->
+                    <div class="tray-slot" data-sect="2" onclick="switchSect(2)" title="点击插入化生寺卡带">
+                        <div class="physical-cartridge" style="--cart-color: #b45309;">
+                            <div class="cart-plastic-top">MONAD CARTRIDGE</div>
+                            <div class="cart-label" style="background: radial-gradient(circle at 50% 20%, #eff6ff 0%, #bfdbfe 60%, #60a5fa 100%); border-color: #1e3a8a;">
+                                <span class="cart-label-brand" style="color: #1e3a8a;">POKEPOCKET ADV</span>
+                                <span class="cart-label-seal" style="color: #1d4ed8;">☸</span>
+                                <div class="cart-label-mascot">🔱</div>
+                                <strong style="color: #172554;">化生寺</strong>
+                                <small style="color: #1e40af;">龙太子 • 蟠龙</small>
+                                <span class="cart-label-serial" style="color: #172554;">DMG-HS-03</span>
+                            </div>
+                            <div class="cart-bottom" style="color: #f59e0b;">
+                                <i></i><i></i><i></i>
+                                <span>MONAD</span>
+                            </div>
+                        </div>
+                        <div class="slot-nameplate">
+                            <span class="sect-title">化生 · 龙太子</span>
+                            <span class="sect-spec">紫金蟠龙 • 金刚</span>
+                            <span class="slot-check-pill text-slate-400" id="pillSect2">点击插入</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cartridge Spec Info Footer -->
+                <div class="mt-2 pt-2 border-t border-[#253023] flex items-center justify-between text-[10px] font-mono text-[#8fa08c]">
+                    <div class="flex items-center space-x-1.5">
+                        <span class="text-amber-400">●</span>
+                        <span id="currentSectDescText">大唐官府：高额物理暴击，剑芒撕裂前方直线妖兽。</span>
+                    </div>
+                    <span class="text-yellow-400/80 font-pixel">HOT-SWAP READY</span>
+                </div>
+            </div>
+
             <!-- Panel 1: 藏宝阁多维枢纽 (Tab Switcher) -->
             <div class="sk-panel p-3 text-xs space-y-2.5">
                 <div class="flex items-center justify-between border-b border-slate-700 pb-2">
@@ -588,6 +1329,32 @@
                 osc.connect(gain); gain.connect(this.ctx.destination);
                 osc.start(now); osc.stop(now + 0.3);
             }
+            playCartridgeInsert() { // 卡带物理插入机械咬合声与通电高频蜂鸣 (Game Boy Chime)
+                if (this.muted) return; this.init();
+                const now = this.ctx.currentTime;
+                // 1. 机械塑料滑动与咬合咔哒声
+                const osc1 = this.ctx.createOscillator();
+                const gain1 = this.ctx.createGain();
+                osc1.type = 'triangle';
+                osc1.frequency.setValueAtTime(320, now);
+                osc1.frequency.exponentialRampToValueAtTime(80, now + 0.08);
+                gain1.gain.setValueAtTime(0.35, now);
+                gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+                osc1.connect(gain1); gain1.connect(this.ctx.destination);
+                osc1.start(now); osc1.stop(now + 0.08);
+
+                // 2. 金手指通电与双音阶提示 (C5 -> C6)
+                const osc2 = this.ctx.createOscillator();
+                const gain2 = this.ctx.createGain();
+                osc2.type = 'square';
+                osc2.frequency.setValueAtTime(523.25, now + 0.08);
+                osc2.frequency.setValueAtTime(1046.5, now + 0.16);
+                gain2.gain.setValueAtTime(0, now);
+                gain2.gain.setValueAtTime(0.18, now + 0.08);
+                gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.36);
+                osc2.connect(gain2); gain2.connect(this.ctx.destination);
+                osc2.start(now + 0.08); osc2.stop(now + 0.36);
+            }
         }
         const sfx = new SoundFX();
 
@@ -643,8 +1410,119 @@
             baseAtk: 75, equipPower: 85, weaponAngle: 0, isAttacking: false, attackProgress: 0,
             invincibleTimer: 0, // 18 帧无敌受击保护 (i-frames)
             activeBuff: null,   // 神殿祈福 Buff: { name, type, icon }
-            lastDamageTime: 0   // 上次受伤时间 (用于护甲 3.5 秒后自然自愈)
+            lastDamageTime: 0,  // 上次受伤时间 (用于护甲 3.5 秒后自然自愈)
+            sect: 0             // 0: 大唐官府(剑侠客), 1: 方寸山(逍遥生), 2: 化生寺(龙太子)
         };
+
+        // 三界宗门实体卡带配置体系 (Poké Pocket Edition)
+        const SECT_CONFIGS = {
+            0: {
+                id: 0,
+                name: "大唐官府",
+                title: "大唐 · 剑侠客",
+                role: "物理爆发 • 青锋神兵",
+                weaponIcon: "🗡️",
+                weaponName: "青锋剑",
+                editionColor: "#b91c1c",
+                avatarIcon: "🗡️",
+                desc: "大唐官府：高额物理暴击，烈火剑芒撕裂前方直线妖兽。",
+                skill2Name: "横扫千军",
+                skill2Icon: "⚡",
+                skill3Name: "破釜沉舟",
+                skill3Icon: "🌪️"
+            },
+            1: {
+                id: 1,
+                name: "方寸山",
+                title: "方寸 · 逍遥生",
+                role: "符法破邪 • 太极神符",
+                weaponIcon: "🪭",
+                weaponName: "白玉折扇",
+                editionColor: "#0f766e",
+                avatarIcon: "🪭",
+                desc: "方寸山：神霄雷法与太极神符，范围击退与麻痹妖物。",
+                skill2Name: "五雷咒",
+                skill2Icon: "⚡",
+                skill3Name: "神霄雷劫",
+                skill3Icon: "☯️"
+            },
+            2: {
+                id: 2,
+                name: "化生寺",
+                title: "化生 · 龙太子",
+                role: "金刚护体 • 紫金长枪",
+                weaponIcon: "🔱",
+                weaponName: "紫金蟠龙枪",
+                editionColor: "#b45309",
+                avatarIcon: "🔱",
+                desc: "化生寺：佛门金刚护体，金光护盾与范围佛光冲击波。",
+                skill2Name: "金刚护体",
+                skill2Icon: "🛡️",
+                skill3Name: "一元复始",
+                skill3Icon: "☸️"
+            }
+        };
+
+        function switchSect(sectId) {
+            if (SECT_CONFIGS[sectId] === undefined) return;
+            player.sect = sectId;
+            const sect = SECT_CONFIGS[sectId];
+            if (typeof sfx !== 'undefined' && sfx.playCartridgeInsert) {
+                sfx.playCartridgeInsert();
+            }
+
+            // 1. 卡带插槽 UI 选中状态联动 (Poké Pocket Cartridge Tray)
+            document.querySelectorAll('.tray-slot').forEach(el => {
+                const s = parseInt(el.getAttribute('data-sect'));
+                if (s === sectId) {
+                    el.classList.add('is-selected');
+                } else {
+                    el.classList.remove('is-selected');
+                }
+            });
+
+            // 2. 状态药丸标签联动
+            [0, 1, 2].forEach(id => {
+                const pill = document.getElementById(`pillSect${id}`);
+                if (pill) {
+                    if (id === sectId) {
+                        pill.className = 'slot-check-pill bg-amber-500 text-black font-bold';
+                        pill.innerText = '当前插入';
+                    } else {
+                        pill.className = 'slot-check-pill text-slate-400';
+                        pill.innerText = '点击插入';
+                    }
+                }
+            });
+
+            // 3. 掌机外壳主题高亮色切换 (--edition-color)
+            const consoleWrap = document.querySelector('.console-wrap');
+            if (consoleWrap) {
+                consoleWrap.style.setProperty('--edition-color', sect.editionColor);
+            }
+
+            // 4. 武器槽与角色名更新
+            const weaponSlotIcon = document.getElementById('weaponSlotIcon');
+            const weaponSlotName = document.getElementById('weaponSlotName');
+            const heroTitleName = document.getElementById('heroTitleName');
+            const heroAvatarIcon = document.getElementById('heroAvatarIcon');
+            const descEl = document.getElementById('currentSectDescText');
+            if (weaponSlotIcon) weaponSlotIcon.innerText = sect.weaponIcon;
+            if (weaponSlotName) weaponSlotName.innerText = sect.weaponName;
+            if (heroTitleName) heroTitleName.innerText = sect.title;
+            if (heroAvatarIcon) heroAvatarIcon.innerText = sect.avatarIcon;
+            if (descEl) descEl.innerText = sect.desc;
+
+            // 5. 技能槽图标同步
+            const skill2Icon = document.getElementById('skill2Icon');
+            const skill3Icon = document.getElementById('skill3Icon');
+            if (skill2Icon) skill2Icon.innerText = sect.skill2Icon;
+            if (skill3Icon) skill3Icon.innerText = sect.skill3Icon;
+
+            if (typeof logTx === 'function') {
+                logTx(`📼 【卡带热插拔】已装载【${sect.title}】ROM 卡带！激活 ${sect.role}`, 'success');
+            }
+        }
 
         let equippedItems = [
             { id: 0, name: "【虚位以待】", power: 0, rarity: "无" },
@@ -2088,7 +2966,7 @@
         }
 
         // =========================================================================
-        // 6. 元气骑士萌系剑侠客 (飘逸发带、云纹战袍、轻功步法与神兵流光)
+        // 6. 元气骑士萌系三门派神将 (大唐剑侠客 / 方寸逍遥生 / 化生寺龙太子)
         // =========================================================================
         function drawSoulKnightHero(ctx, x, y, facing, time, isMoving, isAttacking, attackProg) {
             ctx.save();
@@ -2116,7 +2994,7 @@
                 ctx.restore();
             }
 
-            // 移动上下弹跳
+            // 移动上下弹跳步伐
             const bob = isMoving ? Math.abs(Math.sin(time * 14)) * 3.2 : Math.sin(time * 3) * 0.8;
 
             // 影子
@@ -2125,24 +3003,7 @@
             ctx.ellipse(0, 12, 10, 4, 0, 0, Math.PI * 2);
             ctx.fill();
 
-            // 战袍底摆与躯干
-            ctx.fillStyle = '#1e3a8a'; // 大唐深蓝劲装
-            ctx.fillRect(-6, -2 - bob, 12, 10);
-
-            // 战袍白色云纹中衽
-            ctx.fillStyle = '#f8fafc';
-            ctx.fillRect(-2, -2 - bob, 4, 8);
-
-            // 金黄祥云护肩 (Shoulder Pauldrons)
-            ctx.fillStyle = '#ca8a04';
-            ctx.fillRect(-8, -3 - bob, 3, 4);
-            ctx.fillRect(5, -3 - bob, 3, 4);
-
-            // 金丝腰带与腰佩墨玉
-            ctx.fillStyle = '#eab308';
-            ctx.fillRect(-6, 4 - bob, 12, 2.5);
-            ctx.fillStyle = '#10b981'; // 碧玉配饰
-            ctx.fillRect(facing > 0 ? 3 : -4, 6 - bob, 2.5, 3.5);
+            const currentSect = player.sect || 0;
 
             // 双腿步伐
             const legWalk = isMoving ? Math.sin(time * 14) * 3.5 : 0;
@@ -2150,166 +3011,434 @@
             ctx.fillRect(-5, 8 - bob, 4, 4 + legWalk);
             ctx.fillRect(1, 8 - bob, 4, 4 - legWalk);
 
-            // 萌系大头 (Chibi Head)
-            ctx.fillStyle = '#fed7aa';
-            ctx.beginPath();
-            ctx.arc(0, -9 - bob, 7.5, 0, Math.PI * 2);
-            ctx.fill();
+            if (currentSect === 0) {
+                // =========================================================================
+                // 门派 0: 大唐官府 · 剑侠客 (深蓝战袍、明光金铠、飞扬赤红发带、青锋神剑)
+                // =========================================================================
+                // 战袍底摆与躯干
+                ctx.fillStyle = '#1e3a8a'; // 大唐深蓝劲装
+                ctx.fillRect(-6, -2 - bob, 12, 10);
 
-            // 剑侠客飘逸蓝色长发带 (多节物理摆动)
-            ctx.fillStyle = '#0284c7';
-            ctx.fillRect(-7, -16 - bob, 14, 4); // 额头护额束发
-            const ribbonWave1 = Math.sin(time * 8) * 3;
-            const ribbonWave2 = Math.sin(time * 8 + 1) * 4.5;
-            ctx.beginPath();
-            ctx.moveTo(-3, -15 - bob);
-            ctx.quadraticCurveTo(-9 * facing + ribbonWave1, -19 - bob, -15 * facing + ribbonWave2, -15 - bob);
-            ctx.lineTo(-11 * facing + ribbonWave1, -12 - bob);
-            ctx.closePath();
-            ctx.fill();
+                // 战袍白色云纹中衽
+                ctx.fillStyle = '#f8fafc';
+                ctx.fillRect(-2, -2 - bob, 4, 8);
 
-            // 剑客英气双眸与明眸高光
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(facing > 0 ? 0 : -5, -11 - bob, 4, 4.5);
-            ctx.fillRect(facing > 0 ? 4.5 : -0.5, -11 - bob, 4, 4.5);
-            ctx.fillStyle = '#000000';
-            ctx.fillRect(facing > 0 ? 2 : -3, -10.5 - bob, 2.5, 3);
-            ctx.fillRect(facing > 0 ? 6.5 : 1.5, -10.5 - bob, 2.5, 3);
-            // 高光小白点
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(facing > 0 ? 2 : -3, -10.5 - bob, 1, 1);
-            ctx.fillRect(facing > 0 ? 6.5 : 1.5, -10.5 - bob, 1, 1);
+                // 金黄明光铠护肩 (Shoulder Pauldrons)
+                ctx.fillStyle = '#ca8a04';
+                ctx.fillRect(-8, -3 - bob, 3, 4);
+                ctx.fillRect(5, -3 - bob, 3, 4);
 
-            // 悬浮武器与挥击斩击动画
-            const weaponAngle = isAttacking ? (facing > 0 ? (attackProg * 1.8 - 0.9) : (-attackProg * 1.8 + 0.9)) : 0;
-            ctx.save();
-            ctx.translate(6 * facing, 1 - bob);
-            ctx.rotate(weaponAngle);
+                // 金丝腰带与腰佩碧玉
+                ctx.fillStyle = '#eab308';
+                ctx.fillRect(-6, 4 - bob, 12, 2.5);
+                ctx.fillStyle = '#10b981'; // 碧玉配饰
+                ctx.fillRect(facing > 0 ? 3 : -4, 6 - bob, 2.5, 3.5);
 
-            // 青锋神兵 (流光异彩)
-            const swordCol = player.equipPower >= 80 ? '#facc15' : '#38bdf8';
-            ctx.strokeStyle = swordCol;
-            ctx.shadowColor = swordCol;
-            ctx.shadowBlur = player.equipPower >= 80 ? 10 : 5;
-            ctx.lineWidth = 2.8;
-            ctx.beginPath();
-            ctx.moveTo(0, 0);
-            ctx.lineTo(15 * facing, -12);
-            ctx.stroke();
+                // 萌系大头 (Chibi Head)
+                ctx.fillStyle = '#fed7aa';
+                ctx.beginPath();
+                ctx.arc(0, -9 - bob, 7.5, 0, Math.PI * 2);
+                ctx.fill();
 
-            // 剑锷与剑柄
-            ctx.strokeStyle = '#ca8a04';
-            ctx.lineWidth = 4;
-            ctx.beginPath();
-            ctx.moveTo(-1 * facing, 1);
-            ctx.lineTo(2 * facing, -2);
-            ctx.stroke();
-            ctx.shadowBlur = 0;
+                // 剑侠客飘逸高束发带 (赤红飘带 + 蓝色束发)
+                ctx.fillStyle = '#0284c7';
+                ctx.fillRect(-7, -16 - bob, 14, 4); // 额头护额束发
+                const ribbonWave1 = Math.sin(time * 8) * 3.5;
+                const ribbonWave2 = Math.sin(time * 8 + 1.2) * 5;
+                ctx.fillStyle = '#ef4444'; // 赤红飘逸发带
+                ctx.beginPath();
+                ctx.moveTo(-3, -15 - bob);
+                ctx.quadraticCurveTo(-9 * facing + ribbonWave1, -19 - bob, -16 * facing + ribbonWave2, -14 - bob);
+                ctx.lineTo(-12 * facing + ribbonWave1, -11 - bob);
+                ctx.closePath();
+                ctx.fill();
 
-            ctx.restore();
+                // 剑客英气双眸与明眸高光
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(facing > 0 ? 0 : -5, -11 - bob, 4, 4.5);
+                ctx.fillRect(facing > 0 ? 4.5 : -0.5, -11 - bob, 4, 4.5);
+                ctx.fillStyle = '#000000';
+                ctx.fillRect(facing > 0 ? 2 : -3, -10.5 - bob, 2.5, 3);
+                ctx.fillRect(facing > 0 ? 6.5 : 1.5, -10.5 - bob, 2.5, 3);
+                // 高光小白点
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(facing > 0 ? 2 : -3, -10.5 - bob, 1, 1);
+                ctx.fillRect(facing > 0 ? 6.5 : 1.5, -10.5 - bob, 1, 1);
+
+                // 悬浮武器与挥击斩击动画
+                const weaponAngle = isAttacking ? (facing > 0 ? (attackProg * 1.8 - 0.9) : (-attackProg * 1.8 + 0.9)) : 0;
+                ctx.save();
+                ctx.translate(6 * facing, 1 - bob);
+                ctx.rotate(weaponAngle);
+
+                // 青锋神兵 (流光异彩)
+                const swordCol = player.equipPower >= 80 ? '#facc15' : '#38bdf8';
+                ctx.strokeStyle = swordCol;
+                ctx.shadowColor = swordCol;
+                ctx.shadowBlur = player.equipPower >= 80 ? 10 : 5;
+                ctx.lineWidth = 2.8;
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.lineTo(16 * facing, -13);
+                ctx.stroke();
+
+                // 剑锷与剑柄
+                ctx.strokeStyle = '#ca8a04';
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                ctx.moveTo(-1 * facing, 1);
+                ctx.lineTo(2 * facing, -2);
+                ctx.stroke();
+                ctx.shadowBlur = 0;
+                ctx.restore();
+
+            } else if (currentSect === 1) {
+                // =========================================================================
+                // 门派 1: 方寸山 · 逍遥生 (青竹儒袍、束发道巾、飘逸白绸、太极神符折扇)
+                // =========================================================================
+                // 青竹儒袍躯干
+                ctx.fillStyle = '#0f766e'; // 苍碧青绿
+                ctx.fillRect(-6, -2 - bob, 12, 10);
+
+                // 白色丝绸飘逸下摆 (轻拂摆动)
+                const silkSway = Math.sin(time * 6) * 2;
+                ctx.fillStyle = '#f1f5f9';
+                ctx.beginPath();
+                ctx.moveTo(-6, 8 - bob);
+                ctx.lineTo(6, 8 - bob);
+                ctx.lineTo(8 + silkSway, 12 - bob);
+                ctx.lineTo(-4 + silkSway, 12 - bob);
+                ctx.closePath();
+                ctx.fill();
+
+                // 浅绿玉色束腰
+                ctx.fillStyle = '#34d399';
+                ctx.fillRect(-6, 3 - bob, 12, 2.5);
+                ctx.fillStyle = '#ec4899'; // 逍遥同心玉坠
+                ctx.fillRect(facing > 0 ? 2 : -3, 5.5 - bob, 2.5, 3);
+
+                // 萌系大头
+                ctx.fillStyle = '#fed7aa';
+                ctx.beginPath();
+                ctx.arc(0, -9 - bob, 7.5, 0, Math.PI * 2);
+                ctx.fill();
+
+                // 方寸山道家束发巾与白玉发簪
+                ctx.fillStyle = '#1e293b';
+                ctx.fillRect(-6, -16 - bob, 12, 5); // 缁巾道冠
+                ctx.fillStyle = '#cbd5e1'; // 白玉簪
+                ctx.fillRect(-9, -15 - bob, 18, 2);
+                ctx.fillStyle = '#38bdf8'; // 道冠灵珠
+                ctx.beginPath();
+                ctx.arc(0, -14 - bob, 2, 0, Math.PI * 2);
+                ctx.fill();
+
+                // 逍遥生温润深邃双眸
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(facing > 0 ? 0 : -5, -11 - bob, 4, 4);
+                ctx.fillRect(facing > 0 ? 4.5 : -0.5, -11 - bob, 4, 4);
+                ctx.fillStyle = '#0f172a';
+                ctx.fillRect(facing > 0 ? 1.5 : -3.5, -10.5 - bob, 2.2, 2.8);
+                ctx.fillRect(facing > 0 ? 6 : 1, -10.5 - bob, 2.2, 2.8);
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(facing > 0 ? 1.5 : -3.5, -10.5 - bob, 1, 1);
+                ctx.fillRect(facing > 0 ? 6 : 1, -10.5 - bob, 1, 1);
+
+                // 手持白玉折扇与太极符印
+                const fanAngle = isAttacking ? (facing > 0 ? (attackProg * 2.2 - 1.1) : (-attackProg * 2.2 + 1.1)) : Math.sin(time * 3) * 0.15;
+                ctx.save();
+                ctx.translate(6 * facing, 1 - bob);
+                ctx.rotate(fanAngle);
+
+                // 白玉扇面展开
+                ctx.fillStyle = '#f8fafc';
+                ctx.strokeStyle = '#0f766e';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.lineTo(14 * facing, -8);
+                ctx.quadraticCurveTo(15 * facing, -16, 5 * facing, -15);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+
+                // 折扇扇面：太极阴阳双鱼印记 (Taiji Symbol)
+                ctx.fillStyle = '#0f172a';
+                ctx.beginPath();
+                ctx.arc(9 * facing, -11, 3.2, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#22d3ee';
+                ctx.beginPath();
+                ctx.arc(9 * facing, -11, 1.6, 0, Math.PI * 2);
+                ctx.fill();
+
+                // 神霄雷电火花
+                if (isAttacking) {
+                    ctx.strokeStyle = '#38bdf8';
+                    ctx.shadowColor = '#06b6d4';
+                    ctx.shadowBlur = 8;
+                    ctx.lineWidth = 1.8;
+                    ctx.beginPath();
+                    ctx.moveTo(14 * facing, -8);
+                    ctx.lineTo(20 * facing, -12);
+                    ctx.lineTo(18 * facing, -16);
+                    ctx.lineTo(26 * facing, -19);
+                    ctx.stroke();
+                    ctx.shadowBlur = 0;
+                }
+                ctx.restore();
+
+            } else {
+                // =========================================================================
+                // 门派 2: 化生寺 · 龙太子 (晶莹珊瑚龙角、银龙铠甲、佛门金红袈裟、紫金蟠龙枪)
+                // =========================================================================
+                // 白银龙鳞轻铠
+                ctx.fillStyle = '#94a3b8';
+                ctx.fillRect(-6, -2 - bob, 12, 10);
+
+                // 佛门金红锦斓袈裟单肩斜跨 (Monastic Stole)
+                ctx.fillStyle = '#b45309';
+                ctx.beginPath();
+                ctx.moveTo(-6, -2 - bob);
+                ctx.lineTo(6, 4 - bob);
+                ctx.lineTo(6, 8 - bob);
+                ctx.lineTo(-6, 2 - bob);
+                ctx.closePath();
+                ctx.fill();
+
+                // 黄金龙纹护心镜
+                ctx.fillStyle = '#facc15';
+                ctx.beginPath();
+                ctx.arc(facing > 0 ? 1 : -1, 2 - bob, 3, 0, Math.PI * 2);
+                ctx.fill();
+
+                // 萌系大头
+                ctx.fillStyle = '#fed7aa';
+                ctx.beginPath();
+                ctx.arc(0, -9 - bob, 7.5, 0, Math.PI * 2);
+                ctx.fill();
+
+                // 额头晶莹珊瑚玉龙角 (Twin Dragon Horns)
+                ctx.fillStyle = '#38bdf8';
+                ctx.shadowColor = '#0284c7';
+                ctx.shadowBlur = 6;
+                // 左角
+                ctx.beginPath();
+                ctx.moveTo(-4, -14 - bob);
+                ctx.lineTo(-8, -21 - bob);
+                ctx.lineTo(-6, -20 - bob);
+                ctx.lineTo(-9, -23 - bob);
+                ctx.lineTo(-5, -16 - bob);
+                ctx.closePath();
+                ctx.fill();
+                // 右角
+                ctx.beginPath();
+                ctx.moveTo(4, -14 - bob);
+                ctx.lineTo(8, -21 - bob);
+                ctx.lineTo(6, -20 - bob);
+                ctx.lineTo(9, -23 - bob);
+                ctx.lineTo(5, -16 - bob);
+                ctx.closePath();
+                ctx.fill();
+                ctx.shadowBlur = 0;
+
+                // 龙太子贵胄神圣双眸
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(facing > 0 ? 0 : -5, -11 - bob, 4, 4);
+                ctx.fillRect(facing > 0 ? 4.5 : -0.5, -11 - bob, 4, 4);
+                ctx.fillStyle = '#0369a1';
+                ctx.fillRect(facing > 0 ? 1.5 : -3.5, -10.5 - bob, 2.2, 3);
+                ctx.fillRect(facing > 0 ? 6 : 1, -10.5 - bob, 2.2, 3);
+                ctx.fillStyle = '#38bdf8';
+                ctx.fillRect(facing > 0 ? 1.5 : -3.5, -10.5 - bob, 1, 1);
+                ctx.fillRect(facing > 0 ? 6 : 1, -10.5 - bob, 1, 1);
+
+                // 周身飘落金莲微尘
+                const lotusPulse = Math.sin(time * 5);
+                ctx.fillStyle = 'rgba(250, 204, 21, 0.65)';
+                ctx.beginPath();
+                ctx.arc(-8 + lotusPulse * 2, -4 - bob, 1.5, 0, Math.PI * 2);
+                ctx.arc(9 - lotusPulse * 2, -1 - bob, 1.5, 0, Math.PI * 2);
+                ctx.fill();
+
+                // 蟠龙紫金枪 (Spear Thrust Animation)
+                const thrustDist = isAttacking ? Math.sin(attackProg * Math.PI) * 12 : 0;
+                ctx.save();
+                ctx.translate((6 + thrustDist) * facing, 1 - bob);
+
+                // 枪杆 (Purple-gold staff)
+                ctx.strokeStyle = '#7e22ce';
+                ctx.lineWidth = 2.4;
+                ctx.beginPath();
+                ctx.moveTo(-10 * facing, 6);
+                ctx.lineTo(16 * facing, -12);
+                ctx.stroke();
+
+                // 枪缨 (Crimson Red Tassel)
+                ctx.fillStyle = '#dc2626';
+                ctx.fillRect(13 * facing - 2, -13, 4, 4);
+
+                // 锋利枪尖 (Golden Dragon Spearhead)
+                ctx.fillStyle = '#facc15';
+                ctx.shadowColor = '#fbbf24';
+                ctx.shadowBlur = 6;
+                ctx.beginPath();
+                ctx.moveTo(15 * facing, -11);
+                ctx.lineTo(23 * facing, -17);
+                ctx.lineTo(17 * facing, -15);
+                ctx.closePath();
+                ctx.fill();
+                ctx.shadowBlur = 0;
+                ctx.restore();
+            }
+
             ctx.restore();
         }
 
         // =========================================================================
-        // 7. 元气地牢怪物手绘 (刺甲、毒囊呼吸、獠牙、幽绿冥火与熔岩魔神)
+        // 7. 元气地牢全套生动像素怪物手绘与动态动效 (PokePocket 典藏风格)
         // =========================================================================
         function drawPixelMonster(ctx, m, x, y, time) {
             ctx.save();
             ctx.translate(x, y);
 
-            // 影子
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.38)';
+            // 地面立体投影影子
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.42)';
             ctx.beginPath();
-            ctx.ellipse(0, m.isBoss ? 16 : 10, m.isBoss ? 22 : 11, m.isBoss ? 9 : 4.5, 0, 0, Math.PI * 2);
+            ctx.ellipse(0, m.isBoss ? 18 : 11, m.isBoss ? 24 : 12, m.isBoss ? 10 : 5, 0, 0, Math.PI * 2);
             ctx.fill();
 
-            if (m.type === "turtle") { // 刺壳龟 (重铠尖刺甲)
+            // 受击白光闪烁 (Hit flash)
+            if (m.hitFlash > 0) {
+                m.hitFlash--;
+                ctx.filter = 'brightness(2.2)';
+            }
+
+            if (m.type === "turtle") { // 刺壳龟 (重铠回纹甲、5 根黄金尖刺反光、受击水波盾)
                 const breath = Math.sin(time * 4) * 0.8;
-                ctx.fillStyle = '#065f46';
-                ctx.beginPath(); ctx.arc(0, 0, 11 + breath, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = '#064e3b';
+                ctx.beginPath(); ctx.arc(0, 0, 11.5 + breath, 0, Math.PI * 2); ctx.fill();
                 ctx.fillStyle = '#10b981';
-                ctx.beginPath(); ctx.arc(0, 0, 7.5 + breath, 0, Math.PI * 2); ctx.fill();
-                // 背甲 5 根锋利棘刺
+                ctx.beginPath(); ctx.arc(0, 0, 8 + breath, 0, Math.PI * 2); ctx.fill();
+                // 龟甲四角金黄回字纹
+                ctx.fillStyle = '#047857';
+                ctx.fillRect(-4, -4, 8, 8);
+                // 背甲 5 根锋利反光棘刺
                 ctx.fillStyle = '#facc15';
-                ctx.fillRect(-2, -14 - breath, 4, 4);
-                ctx.fillRect(8, -8, 4, 4);
-                ctx.fillRect(-12, -8, 4, 4);
+                ctx.fillRect(-2, -15 - breath, 4, 4.5);
+                ctx.fillRect(8, -8, 4.5, 4);
+                ctx.fillRect(-12.5, -8, 4.5, 4);
                 ctx.fillRect(7, 7, 4, 4);
                 ctx.fillRect(-11, 7, 4, 4);
+                // 棘刺高光小白点
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(-1, -14 - breath, 1.5, 1.5);
+                ctx.fillRect(9, -7, 1.5, 1.5);
                 // 憨厚萌眼
                 ctx.fillStyle = '#fff'; ctx.fillRect(4, -4, 3.5, 3.5);
                 ctx.fillStyle = '#000'; ctx.fillRect(5.5, -3, 2, 2);
-            } else if (m.type === "frog") { // 剧毒珊瑚蛙 (毒囊鼓胀动效)
-                const hop = Math.abs(Math.sin(time * 5)) * 4;
-                const puff = Math.sin(time * 10) * 1.5;
+
+            } else if (m.type === "frog") { // 剧毒珊瑚蛙 (毒囊节奏鼓胀、跳跃伸缩四肢、落地微毒雾)
+                const hop = Math.abs(Math.sin(time * 5.5)) * 4.5;
+                const puff = Math.sin(time * 11) * 1.8;
+                // 蛙蹼四肢
+                ctx.fillStyle = '#0369a1';
+                ctx.fillRect(-10, 2 - hop, 5, 4);
+                ctx.fillRect(5, 2 - hop, 5, 4);
+                // 碧蓝躯干
                 ctx.fillStyle = '#0891b2';
-                ctx.beginPath(); ctx.ellipse(0, -hop, 11, 8.5, 0, 0, Math.PI * 2); ctx.fill();
+                ctx.beginPath(); ctx.ellipse(0, -hop, 11.5, 9, 0, 0, Math.PI * 2); ctx.fill();
+                // 剧毒橙红毒囊 (鼓胀动态)
                 ctx.fillStyle = '#f97316';
-                ctx.beginPath(); ctx.arc(-7, -2 - hop, 4 + puff * 0.5, 0, Math.PI * 2); ctx.fill();
-                ctx.beginPath(); ctx.arc(7, -2 - hop, 4 + puff * 0.5, 0, Math.PI * 2); ctx.fill();
+                ctx.beginPath(); ctx.arc(-7.5, -2 - hop, 4.2 + puff * 0.5, 0, Math.PI * 2); ctx.fill();
+                ctx.beginPath(); ctx.arc(7.5, -2 - hop, 4.2 + puff * 0.5, 0, Math.PI * 2); ctx.fill();
+                // 毒囊荧光点
+                ctx.fillStyle = '#fef08a';
+                ctx.fillRect(-8, -3 - hop, 2, 2);
+                ctx.fillRect(7, -3 - hop, 2, 2);
+                // 金黄蛙眼
                 ctx.fillStyle = '#fde047'; ctx.fillRect(-4, -10 - hop, 3.5, 4); ctx.fillRect(3, -10 - hop, 3.5, 4);
                 ctx.fillStyle = '#000'; ctx.fillRect(-3, -9 - hop, 2, 2); ctx.fillRect(4, -9 - hop, 2, 2);
-            } else if (m.type === "boar") { // 嗜血野猪 (冲刺烟尘、獠牙 & 冲撞鬃毛)
+
+            } else if (m.type === "boar") { // 嗜血野猪 (冲撞鬃毛、长白獠牙 & 冲刺泥石碎屑)
                 if (m.isCharging) {
                     ctx.save();
-                    ctx.fillStyle = 'rgba(214, 211, 209, 0.65)';
+                    ctx.fillStyle = 'rgba(214, 211, 209, 0.7)';
                     ctx.beginPath();
-                    ctx.arc(-14, 4, 4 + Math.random() * 3, 0, Math.PI * 2);
-                    ctx.arc(-20, 2, 3 + Math.random() * 2, 0, Math.PI * 2);
+                    ctx.arc(-14, 4, 4 + Math.random() * 3.5, 0, Math.PI * 2);
+                    ctx.arc(-22, 2, 3 + Math.random() * 2.5, 0, Math.PI * 2);
                     ctx.fill();
                     ctx.restore();
                 }
                 ctx.fillStyle = '#78350f';
-                ctx.fillRect(-10, -6, 20, 12);
+                ctx.fillRect(-11, -6, 22, 13);
+                // 狂暴硬鬃毛
                 ctx.fillStyle = '#1c1917';
-                ctx.fillRect(-8, -10, 16, 4);
-                // 月牙弯长白獠牙
+                ctx.fillRect(-9, -11, 18, 5);
+                ctx.fillRect(-4, -13, 8, 3);
+                // 锋利白银月牙獠牙
                 ctx.fillStyle = '#ffffff';
                 ctx.beginPath();
-                ctx.moveTo(9, 2); ctx.lineTo(15, -4); ctx.lineTo(10, 4); ctx.closePath();
+                ctx.moveTo(10, 2); ctx.lineTo(16, -5); ctx.lineTo(11, 5); ctx.closePath();
                 ctx.fill();
-                // 赤红凶眼
+                // 獠牙反光
+                ctx.fillStyle = '#fef08a';
+                ctx.fillRect(13, -3, 1.5, 1.5);
+                // 赤红嗜血凶眼
                 ctx.fillStyle = '#ef4444';
-                ctx.fillRect(5, -4, 3, 2.5);
-            } else if (m.type === "skeleton") { // 幽冥骷髅 (冥火眼 & 骨弓/骨剑)
-                ctx.fillStyle = '#e2e8f0';
-                ctx.fillRect(-6, -11, 12, 9);
-                ctx.fillStyle = '#cbd5e1';
-                ctx.fillRect(-4, -2, 8, 4);
-                const soulFire = Math.sin(time * 12) * 1;
+                ctx.fillRect(6, -4, 3.5, 3);
+
+            } else if (m.type === "skeleton") { // 幽冥骷髅/阴差 (悬浮撕裂幽紫披风、深邃兜帽中惨绿冥火)
+                // 撕裂幽紫长袍
+                const robeWave = Math.sin(time * 6) * 2;
+                ctx.fillStyle = '#3b0764';
+                ctx.beginPath();
+                ctx.moveTo(-7, -4);
+                ctx.lineTo(7, -4);
+                ctx.lineTo(9 + robeWave, 10);
+                ctx.lineTo(-9 + robeWave, 10);
+                ctx.closePath();
+                ctx.fill();
+
+                // 骨骼与深邃兜帽
+                ctx.fillStyle = '#1e1b4b';
+                ctx.fillRect(-6, -12, 12, 10);
+
+                // 两团惨绿悬浮冥火眼 (Soul Fire)
+                const soulFire = Math.sin(time * 12) * 1.2;
                 ctx.fillStyle = '#22c55e';
                 ctx.shadowColor = '#4ade80';
-                ctx.shadowBlur = 6;
-                ctx.fillRect(-3.5, -8 + soulFire * 0.5, 2.5, 2.5);
-                ctx.fillRect(1.5, -8 + soulFire * 0.5, 2.5, 2.5);
+                ctx.shadowBlur = 8;
+                ctx.fillRect(-3.5, -9 + soulFire * 0.5, 2.5, 2.5);
+                ctx.fillRect(1.5, -9 + soulFire * 0.5, 2.5, 2.5);
                 ctx.shadowBlur = 0;
-                ctx.fillStyle = '#94a3b8';
-                ctx.fillRect(-4, 2, 8, 8);
+
+                // 武器
                 if (m.atkType === "arrow") {
-                    // 幽冥骨弓
                     ctx.strokeStyle = '#e2e8f0';
                     ctx.lineWidth = 2.2;
                     ctx.beginPath();
                     ctx.arc(8, 5, 7, -Math.PI * 0.4, Math.PI * 0.4);
                     ctx.stroke();
                     ctx.strokeStyle = '#4ade80';
-                    ctx.lineWidth = 1;
+                    ctx.lineWidth = 1.2;
                     ctx.beginPath();
                     ctx.moveTo(6, -1); ctx.lineTo(6, 11);
                     ctx.stroke();
                 } else {
-                    ctx.fillStyle = '#64748b';
-                    ctx.fillRect(6, 1, 2, 9); // 生锈骨剑
+                    ctx.fillStyle = '#94a3b8';
+                    ctx.fillRect(6, 0, 2.5, 10); // 幽冥骨刃
                 }
-            } else if (m.type === "treant") { // 古树精守卫 (苍劲树身 & 荧光树眼)
+
+            } else if (m.type === "treant") { // 古树精守卫 (苍劲老树身、摇曳树冠与树洞妖瞳)
                 const sway = Math.sin(time * 3) * 1.5;
                 ctx.fillStyle = '#451a03';
                 ctx.fillRect(-12, -14, 24, 26);
                 ctx.fillStyle = '#15803d'; // 茂密树冠
                 ctx.beginPath();
-                ctx.arc(0, -18 + sway * 0.5, 15, 0, Math.PI * 2);
-                ctx.arc(-11, -12, 10, 0, Math.PI * 2);
-                ctx.arc(11, -12, 10, 0, Math.PI * 2);
+                ctx.arc(0, -18 + sway * 0.5, 16, 0, Math.PI * 2);
+                ctx.arc(-11, -12, 11, 0, Math.PI * 2);
+                ctx.arc(11, -12, 11, 0, Math.PI * 2);
                 ctx.fill();
                 // 赤红古木洞眼
                 ctx.fillStyle = '#ef4444';
@@ -2322,17 +3451,18 @@
                 ctx.fillStyle = '#78350f';
                 ctx.fillRect(-16, -2, 5, 12);
                 ctx.fillRect(11, -2, 5, 12);
-            } else if (m.type === "flower") { // 夺命妖花 (毒刺花瓣 & 锯齿毒蕊)
+
+            } else if (m.type === "flower") { // 夺命妖花 (毒刺花瓣脉动 & 金黄花芯毒雾)
                 const bloom = Math.sin(time * 6) * 2;
                 ctx.fillStyle = '#14532d'; // 墨绿根茎
                 ctx.fillRect(-2, 0, 4, 12);
                 // 4 瓣粉紫毒花瓣
                 ctx.fillStyle = '#c026d3';
                 ctx.beginPath();
-                ctx.ellipse(0, -9 - bloom, 6, 9 + bloom * 0.5, 0, 0, Math.PI * 2);
-                ctx.ellipse(0, 5 + bloom, 6, 9 + bloom * 0.5, 0, 0, Math.PI * 2);
-                ctx.ellipse(-9 - bloom, -2, 9 + bloom * 0.5, 6, 0, 0, Math.PI * 2);
-                ctx.ellipse(9 + bloom, -2, 9 + bloom * 0.5, 6, 0, 0, Math.PI * 2);
+                ctx.ellipse(0, -9 - bloom, 6.5, 9.5 + bloom * 0.5, 0, 0, Math.PI * 2);
+                ctx.ellipse(0, 5 + bloom, 6.5, 9.5 + bloom * 0.5, 0, 0, Math.PI * 2);
+                ctx.ellipse(-9 - bloom, -2, 9.5 + bloom * 0.5, 6.5, 0, 0, Math.PI * 2);
+                ctx.ellipse(9 + bloom, -2, 9.5 + bloom * 0.5, 6.5, 0, 0, Math.PI * 2);
                 ctx.fill();
                 // 金黄剧毒花芯
                 ctx.fillStyle = '#facc15';
@@ -2342,7 +3472,8 @@
                 ctx.arc(0, -2, 5, 0, Math.PI * 2);
                 ctx.fill();
                 ctx.shadowBlur = 0;
-            } else if (m.type === "goat") { // 幻魔羊角怪 (弯曲黑曜角 & 暗紫披风)
+
+            } else if (m.type === "goat") { // 幻魔羊角怪 (弯曲黑曜角 & 妖异暗紫长袍)
                 ctx.fillStyle = '#18181b';
                 ctx.fillRect(-8, -10, 16, 18);
                 ctx.fillStyle = '#581c87'; // 妖异紫纹
@@ -2357,21 +3488,42 @@
                 ctx.fillStyle = '#facc15';
                 ctx.fillRect(-6, -7, 4, 2);
                 ctx.fillRect(2, -7, 4, 2);
-            } else if (m.type === "boss") { // 镇塔妖王 (巨型熔岩恶魔 & 狂暴魔焰)
+
+            } else if (m.type === "boss") { // 镇塔妖王 (巨型牛首魔皇、熔岩赤金双角、烈焰战斧、三颗旋转暗红魔晶)
                 const pulse = Math.sin(time * 7) * 2.5;
 
                 // 狂暴二阶段魔焰光环
                 if (m.phase2) {
                     ctx.save();
-                    ctx.fillStyle = 'rgba(220, 38, 38, 0.25)';
+                    ctx.fillStyle = 'rgba(220, 38, 38, 0.28)';
                     ctx.shadowColor = '#dc2626';
                     ctx.shadowBlur = 24;
                     ctx.beginPath();
-                    ctx.arc(0, -6, 32 + pulse, 0, Math.PI * 2);
+                    ctx.arc(0, -6, 34 + pulse, 0, Math.PI * 2);
                     ctx.fill();
                     ctx.restore();
                 }
 
+                // 三颗周身环绕旋转的暗红魔晶 (3 Revolving Blood Crystals)
+                for (let i = 0; i < 3; i++) {
+                    const cryAngle = time * 3 + (i * Math.PI * 2 / 3);
+                    const cryX = Math.cos(cryAngle) * 32;
+                    const cryY = Math.sin(cryAngle) * 16 - 8;
+                    ctx.save();
+                    ctx.fillStyle = '#ef4444';
+                    ctx.shadowColor = '#f87171';
+                    ctx.shadowBlur = 8;
+                    ctx.beginPath();
+                    ctx.moveTo(cryX, cryY - 5);
+                    ctx.lineTo(cryX + 3.5, cryY);
+                    ctx.lineTo(cryX, cryY + 5);
+                    ctx.lineTo(cryX - 3.5, cryY);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.restore();
+                }
+
+                // 牛首魔皇黑红重铠
                 ctx.fillStyle = '#18181b';
                 ctx.fillRect(-20, -22, 40, 34);
                 ctx.fillStyle = m.phase2 ? '#7f1d1d' : '#991b1b';
@@ -2384,12 +3536,22 @@
                 ctx.beginPath();
                 ctx.moveTo(18, -22); ctx.lineTo(28, -36); ctx.lineTo(12, -26); ctx.closePath(); ctx.fill();
 
+                // 双手烈焰巨斧
+                ctx.fillStyle = '#450a0a';
+                ctx.fillRect(-26, -10, 4, 20);
+                ctx.fillRect(22, -10, 4, 20);
+                ctx.fillStyle = '#ea580c';
+                ctx.beginPath();
+                ctx.moveTo(-26, -8); ctx.lineTo(-35, -15); ctx.lineTo(-33, 2); ctx.closePath(); ctx.fill();
+                ctx.beginPath();
+                ctx.moveTo(26, -8); ctx.lineTo(35, -15); ctx.lineTo(33, 2); ctx.closePath(); ctx.fill();
+
                 // 胸膛熔岩火核 (魔气奔腾)
                 ctx.fillStyle = m.phase2 ? '#ef4444' : '#facc15';
                 ctx.shadowColor = m.phase2 ? '#f87171' : '#ef4444';
                 ctx.shadowBlur = m.phase2 ? 22 : 14;
                 ctx.beginPath();
-                ctx.arc(0, -5, (m.phase2 ? 8 : 6) + pulse * 0.8, 0, Math.PI * 2);
+                ctx.arc(0, -5, (m.phase2 ? 8.5 : 6.5) + pulse * 0.8, 0, Math.PI * 2);
                 ctx.fill();
                 ctx.shadowBlur = 0;
 
@@ -2397,10 +3559,10 @@
                 ctx.fillStyle = '#fef08a';
                 ctx.fillRect(-9, -12, 5, 4);
                 ctx.fillRect(4, -12, 5, 4);
+
             } else { // 强盗 / 刺客
                 ctx.fillStyle = '#e11d48'; ctx.fillRect(-6, -7, 12, 13);
                 ctx.fillStyle = '#1e1b4b'; ctx.fillRect(-6, -11, 12, 4);
-                // 刺客面巾与利刃
                 ctx.fillStyle = '#0f172a'; ctx.fillRect(-5, -4, 10, 4);
                 ctx.fillStyle = '#e2e8f0'; ctx.fillRect(6, 0, 2, 7);
             }
@@ -3357,6 +4519,101 @@
             document.getElementById('audioIcon').innerText = sfx.muted ? '🔇' : '🔊';
             document.getElementById('audioText').innerText = sfx.muted ? '音效: 关' : '音效: 开';
         });
+
+        // =========================================================================
+        // POKÉ POCKET 掌机虚拟实体按键交互绑定 (Virtual Gamepad & CRT Controls)
+        // =========================================================================
+        // 1. 十字方向键 (D-Pad)
+        const bindDpadBtn = (btnId, keyName) => {
+            const btn = document.getElementById(btnId);
+            if (!btn) return;
+            const press = (e) => {
+                e.preventDefault();
+                keysDown[keyName] = true;
+                btn.classList.add('is-pressed');
+            };
+            const release = (e) => {
+                e.preventDefault();
+                keysDown[keyName] = false;
+                btn.classList.remove('is-pressed');
+            };
+            btn.addEventListener('mousedown', press);
+            btn.addEventListener('mouseup', release);
+            btn.addEventListener('mouseleave', release);
+            btn.addEventListener('touchstart', press, { passive: false });
+            btn.addEventListener('touchend', release, { passive: false });
+        };
+        bindDpadBtn('dpadUp', 'arrowup');
+        bindDpadBtn('dpadDown', 'arrowdown');
+        bindDpadBtn('dpadLeft', 'arrowleft');
+        bindDpadBtn('dpadRight', 'arrowright');
+
+        // 2. 斜向 A/B 按键
+        const btnPadB = document.getElementById('btnPadB');
+        if (btnPadB) {
+            btnPadB.addEventListener('click', (e) => {
+                e.preventDefault();
+                doNormalAttack();
+            });
+        }
+        const btnPadA = document.getElementById('btnPadA');
+        if (btnPadA) {
+            btnPadA.addEventListener('click', (e) => {
+                e.preventDefault();
+                doSkillAttack(2);
+            });
+        }
+
+        // 3. SELECT / START 按键
+        const btnConsoleSelect = document.getElementById('btnConsoleSelect');
+        if (btnConsoleSelect) {
+            btnConsoleSelect.addEventListener('click', (e) => {
+                e.preventDefault();
+                const isBazaar = !tabContentBazaar.classList.contains('hidden');
+                if (isBazaar) {
+                    document.getElementById('tabBtnBackpack').click();
+                } else {
+                    document.getElementById('tabBtnBazaar').click();
+                }
+            });
+        }
+        const btnConsoleStart = document.getElementById('btnConsoleStart');
+        if (btnConsoleStart) {
+            btnConsoleStart.addEventListener('click', (e) => {
+                e.preventDefault();
+                doSkillAttack(3);
+            });
+        }
+
+        // 4. 顶部物理肩键 (L / R Triggers)
+        const btnShoulderL = document.getElementById('btnShoulderL');
+        if (btnShoulderL) {
+            btnShoulderL.addEventListener('click', (e) => {
+                e.preventDefault();
+                // 快速闪避与位移
+                tryMove(player.facing, 0);
+            });
+        }
+        const btnShoulderR = document.getElementById('btnShoulderR');
+        if (btnShoulderR) {
+            btnShoulderR.addEventListener('click', (e) => {
+                e.preventDefault();
+                doSkillAttack(3);
+            });
+        }
+
+        // 5. CRT 点阵扫描线滤镜开关
+        const btnToggleScanlines = document.getElementById('btnToggleScanlines');
+        const screenScanlines = document.getElementById('screenScanlines');
+        if (btnToggleScanlines && screenScanlines) {
+            let scanlinesVisible = true;
+            btnToggleScanlines.addEventListener('click', () => {
+                scanlinesVisible = !scanlinesVisible;
+                screenScanlines.style.display = scanlinesVisible ? 'block' : 'none';
+                btnToggleScanlines.innerText = scanlinesVisible ? 'CRT 点阵 [开]' : 'CRT 点阵 [关]';
+                btnToggleScanlines.style.color = scanlinesVisible ? '#8fa08c' : '#ef4444';
+            });
+        }
 
         // 启动引擎
         init();
