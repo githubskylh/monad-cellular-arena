@@ -727,6 +727,10 @@
                 <span class="text-yellow-400 font-bold font-pixel text-sm">🪙 MON:</span>
                 <span id="gasBalanceDisplay" class="text-emerald-400 font-bold">--</span>
             </div>
+            <div class="bg-black/60 border border-cyan-500/60 px-2.5 py-1.5 rounded-lg flex items-center space-x-1.5" title="我的西游灵石游戏积分 ($XYT 代币)">
+                <span class="text-cyan-400 font-bold font-pixel text-sm">💎 $XYT:</span>
+                <span id="xytTokenBalanceDisplay" class="text-yellow-300 font-bold font-mono">0.0</span>
+            </div>
             <div class="bg-black/60 border border-slate-700 px-2.5 py-1.5 rounded-lg flex items-center space-x-1.5">
                 <span class="text-slate-400">高度:</span>
                 <span id="blockHeightDisplay" class="text-cyan-400 font-bold">#--</span>
@@ -838,45 +842,112 @@
                                 <span id="itemToastText">已拾取地牢掉落物！</span>
                             </div>
 
-                            <!-- AUTO-MINT CLAIMING CELEBRATION MODAL (传送门自动认领与铸造弹窗) -->
-                            <div id="clearanceOverlay" class="absolute inset-0 bg-black/90 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center transition-all duration-300 z-30" style="display: none;">
-                                <div class="w-20 h-20 rounded-2xl bg-gradient-to-b from-amber-500 to-yellow-600 border-4 border-yellow-300 flex items-center justify-center text-4xl shadow-2xl animate-float mb-3">
-                                    🔮
+                            <!-- CHAPTER SETTLEMENT & DUAL ASSET CLEARANCE MODAL (关卡完结双资产链上结算盛典视窗) -->
+                            <div id="clearanceOverlay" class="absolute inset-0 bg-black/92 backdrop-blur-md flex flex-col items-center justify-center p-3 sm:p-5 text-center transition-all duration-300 z-30 overflow-y-auto" style="display: none;">
+                                <!-- Celebration Badge -->
+                                <div class="flex items-center space-x-2 mb-1">
+                                    <span class="text-2xl animate-bounce">🏆</span>
+                                    <h2 id="clearanceTitle" class="text-xl sm:text-2xl font-bold font-pixel tracking-wider text-yellow-300">
+                                        STAGE 1-1 CLEARED!
+                                    </h2>
+                                    <span class="text-2xl animate-bounce">✨</span>
                                 </div>
-                                <h2 id="clearanceTitle" class="text-2xl font-bold font-pixel tracking-wider text-yellow-300 mb-1">
-                                    STAGE 1-1 CLEARED!
-                                </h2>
-                                <p class="text-xs text-amber-200/90 font-xy max-w-sm mb-3">
-                                    少侠已肃清地牢妖兽并踏入传送门！系统正在 Monad 区块链上<b>自动认领并铸造</b>掉落神兵 NFT！
+                                <p class="text-[11px] text-amber-200/90 font-xy max-w-md mb-2">
+                                    少侠降妖伏魔大捷！正在 Monad 链上为您<b>原子结算发放专属双重资产</b>：
                                 </p>
 
-                                <!-- Dropped Loot NFT Card -->
-                                <div id="mintCard" class="w-full max-w-xs bg-[#161c24] p-3 rounded-xl border-2 border-yellow-500/80 mb-4 shadow-xl">
-                                    <div class="text-[10px] text-yellow-400 font-pixel uppercase tracking-wider mb-1">⚡ MINTING NFT ITEM...</div>
-                                    <div class="flex items-center space-x-3">
-                                        <div class="w-12 h-12 rounded-lg bg-amber-950 border border-yellow-400 flex items-center justify-center text-2xl shadow" id="mintLootIcon">
-                                            🔱
+                                <!-- 战绩统计看板 (Battle Stats) -->
+                                <div class="w-full max-w-sm grid grid-cols-4 gap-1.5 p-1.5 rounded-lg bg-[#0f141c] border border-slate-700 text-center mb-2.5 text-[10px] font-mono">
+                                    <div class="bg-black/50 p-1 rounded">
+                                        <span class="text-slate-400 block text-[9px]">👹 斩妖数量</span>
+                                        <b id="settleKills" class="text-red-400 font-pixel text-sm">14</b>
+                                    </div>
+                                    <div class="bg-black/50 p-1 rounded">
+                                        <span class="text-slate-400 block text-[9px]">⚔️ 造成伤害</span>
+                                        <b id="settleDamage" class="text-yellow-400 font-pixel text-sm">2,840</b>
+                                    </div>
+                                    <div class="bg-black/50 p-1 rounded">
+                                        <span class="text-slate-400 block text-[9px]">⚡ 释放法术</span>
+                                        <b id="settleSkills" class="text-cyan-400 font-pixel text-sm">6 次</b>
+                                    </div>
+                                    <div class="bg-black/50 p-1 rounded">
+                                        <span class="text-slate-400 block text-[9px]">⏱️ 通关用时</span>
+                                        <b id="settleTime" class="text-emerald-400 font-pixel text-sm">42s</b>
+                                    </div>
+                                </div>
+
+                                <!-- 双重链上资产结算栏 (Dual Asset Cards) -->
+                                <div class="w-full max-w-sm space-y-2 mb-3">
+                                    <!-- 资产 1: 掉落神兵装备清单 (对应 ERC-721 NFT 铸造) -->
+                                    <div id="mintCard" class="bg-[#161c24] p-2.5 rounded-xl border border-yellow-500/70 shadow-lg text-left relative overflow-hidden">
+                                        <div class="flex items-center justify-between mb-1.5">
+                                            <span class="text-[9px] px-1.5 py-0.5 rounded bg-yellow-950 text-yellow-300 font-pixel tracking-wider border border-yellow-700">
+                                                💎 对应链上资产一：ERC-721 神兵装备清单
+                                            </span>
+                                            <span class="text-[9px] text-emerald-400 font-mono" id="settleNftStatusBadge">⚡ 待上链铸造存证</span>
                                         </div>
-                                        <div class="text-left">
-                                            <div class="font-bold font-xy text-sm text-yellow-300" id="mintLootName">【大唐青锋剑】</div>
-                                            <div class="text-[10px] text-slate-400 font-mono" id="mintLootDesc">战力 +65 • 名品法宝</div>
+                                        <!-- 动态装备清单展示列表 -->
+                                        <div id="settleEquipmentList" class="space-y-1.5 max-h-32 overflow-y-auto pr-0.5">
+                                            <div class="flex items-center justify-between p-1.5 rounded-lg bg-black/60 border border-yellow-500/30">
+                                                <div class="flex items-center space-x-2 min-w-0">
+                                                    <div class="w-8 h-8 rounded bg-amber-950 border border-yellow-400 flex items-center justify-center text-base shadow shrink-0" id="mintLootIcon">
+                                                        🗡️
+                                                    </div>
+                                                    <div class="min-w-0">
+                                                        <div class="font-bold font-xy text-xs text-yellow-300 truncate" id="mintLootName">【大唐青锋剑】</div>
+                                                        <div class="text-[9px] text-slate-300 font-mono" id="mintLootDesc">战力 +75 • 破阵词缀 • 史诗神品</div>
+                                                    </div>
+                                                </div>
+                                                <span class="text-[9px] px-1.5 py-0.5 rounded bg-amber-950 text-amber-300 font-mono border border-amber-700/60 shrink-0 settleNftBadge">
+                                                    ⚡ 待铸造 NFT
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- 资产 2: 获得游戏积分 (对应 ERC-20 $XYT 灵石代币) -->
+                                    <div class="bg-[#111c1d] p-2.5 rounded-xl border border-cyan-500/70 shadow-lg text-left relative overflow-hidden">
+                                        <div class="flex items-center justify-between mb-1.5">
+                                            <span class="text-[9px] px-1.5 py-0.5 rounded bg-cyan-950 text-cyan-300 font-pixel tracking-wider border border-cyan-700">
+                                                🪙 对应链上资产二：ERC-20 游戏积分 ($XYT 代币)
+                                            </span>
+                                            <span class="text-[9px] text-emerald-400 font-mono">年化 36.5% / LP 128%</span>
+                                        </div>
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center space-x-2.5">
+                                                <div class="w-10 h-10 rounded-lg bg-cyan-950 border border-cyan-400 flex items-center justify-center text-xl shadow shrink-0">
+                                                    💎
+                                                </div>
+                                                <div>
+                                                    <div class="font-bold font-mono text-sm text-cyan-300 flex items-center space-x-1">
+                                                        <span>+</span>
+                                                        <span id="settleXytAmount">140.0</span>
+                                                        <span class="text-xs text-yellow-400">$XYT</span>
+                                                    </div>
+                                                    <div class="text-[9px] text-slate-400 font-xy" id="settleXytBreakdown">
+                                                        基础探索 +50 • 斩妖击杀 +90 • 关底首领大捷
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <button id="btnGoToDefiVault" class="px-2 py-1.5 rounded bg-gradient-to-r from-amber-600 to-yellow-500 hover:from-amber-500 hover:to-yellow-400 text-slate-950 font-bold font-xy text-[10px] shadow border border-yellow-300 shrink-0 cursor-pointer">
+                                                🏦 前往金库质押/兑换 ↗
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
 
-                                <!-- Auto Minting Status Spinner -->
-                                <div id="mintStatusText" class="text-xs text-cyan-300 font-mono mb-3 animate-pulse">
-                                    ⏳ 正在广播单笔原子清算与自动 Mint 交易 (落块约 1.0 秒)...
+                                <!-- 上链状态指示与外部钱包拉起签名按钮 -->
+                                <div id="mintStatusText" class="text-xs text-cyan-300 font-mono mb-2 animate-pulse">
+                                    ⏳ 正在广播单笔原子清算交易 (落块约 1.0 秒)...
                                 </div>
 
-                                <!-- External Wallet & Fallback Action Container -->
-                                <div id="mintActionContainer" class="w-full max-w-xs space-y-2 mb-3 hidden">
+                                <div id="mintActionContainer" class="w-full max-w-sm space-y-2 mb-2 hidden">
                                     <button id="btnTriggerWalletSign" class="w-full px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-500 hover:from-emerald-500 hover:to-teal-400 text-white font-bold font-xy text-xs shadow-xl border-2 border-emerald-300 flex items-center justify-center space-x-2 animate-pulse transition-transform active:scale-95">
-                                        <span>🦊 唤起 MetaMask 确认签名 (区块落块)</span>
+                                        <span>🦊 唤起 MetaMask 确认签名 (NFT + $XYT 落块)</span>
                                     </button>
                                     <div class="flex items-center justify-between text-[11px] font-xy px-1">
                                         <button id="btnFallbackTrialMint" class="text-yellow-400 hover:text-yellow-300 underline font-bold">
-                                            ⚡ 切换为【免 Gas 代付全自动秒铸】
+                                            ⚡ 切换为【免 Gas 代付全自动秒结】
                                         </button>
                                         <button id="btnSkipToNextLevel" class="text-slate-400 hover:text-slate-200 underline">
                                             ⏭️ 跳过上链
@@ -884,8 +955,8 @@
                                     </div>
                                 </div>
 
-                                <!-- Next Level Button (Enabled after Auto-Mint is complete) -->
-                                <button id="btnNextLevel" class="px-6 py-3 sk-btn-gold text-slate-950 font-bold font-xy text-sm rounded-xl shadow-lg border border-yellow-200 flex items-center space-x-2 transition-transform transform active:scale-95 hidden">
+                                <!-- 下一层地牢按钮 (落块完成后启用) -->
+                                <button id="btnNextLevel" class="px-6 py-2.5 sk-btn-gold text-slate-950 font-bold font-xy text-xs sm:text-sm rounded-xl shadow-lg border border-yellow-200 flex items-center space-x-2 transition-transform transform active:scale-95 hidden">
                                     <span>🚀 踏入下一层地牢 (Next Dungeon)</span>
                                 </button>
                             </div>
@@ -1062,18 +1133,22 @@
             <!-- Panel 1: 藏宝阁多维枢纽 (Tab Switcher) -->
             <div class="sk-panel p-3 text-xs space-y-2.5">
                 <div class="flex items-center justify-between border-b border-slate-700 pb-2">
-                    <div class="flex items-center space-x-2 font-xy text-xs">
-                        <button id="tabBtnBackpack" class="px-3 py-1 rounded bg-amber-950 text-yellow-300 border border-yellow-500/70 font-bold flex items-center space-x-1">
-                            <span>📦 我的神兵 NFT</span>
-                            <span id="nftTotalDisplay" class="font-mono text-[10px] text-emerald-400 ml-1">(2)</span>
+                    <div class="flex items-center space-x-1 sm:space-x-1.5 font-xy text-xs">
+                        <button id="tabBtnBackpack" class="px-2.5 py-1 rounded bg-amber-950 text-yellow-300 border border-yellow-500/70 font-bold flex items-center space-x-1">
+                            <span>📦 神兵 NFT</span>
+                            <span id="nftTotalDisplay" class="font-mono text-[9px] text-emerald-400 ml-0.5">(0)</span>
                         </button>
-                        <button id="tabBtnBazaar" class="px-3 py-1 rounded bg-slate-800 text-slate-300 border border-slate-600 flex items-center space-x-1 hover:text-white">
-                            <span>🛒 全链寄售行</span>
-                            <span id="bazaarCountBadge" class="font-mono text-[10px] text-yellow-400 ml-1">(0)</span>
+                        <button id="tabBtnBazaar" class="px-2.5 py-1 rounded bg-slate-800 text-slate-300 border border-slate-600 flex items-center space-x-1 hover:text-white">
+                            <span>🛒 寄售行</span>
+                            <span id="bazaarCountBadge" class="font-mono text-[9px] text-yellow-400 ml-0.5">(0)</span>
+                        </button>
+                        <button id="tabBtnDefi" class="px-2.5 py-1 rounded bg-slate-800 text-slate-300 border border-slate-600 flex items-center space-x-1 hover:text-white">
+                            <span>🏦 灵石金库</span>
+                            <span id="xytBalanceBadge" class="font-mono text-[9px] text-cyan-400 ml-0.5">0 $XYT</span>
                         </button>
                     </div>
-                    <span class="text-[9px] px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-700 font-mono">
-                        自动 Mint 存证
+                    <span class="text-[9px] px-1.5 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-700 font-mono hidden sm:inline">
+                        10,000 TPS 极速金融
                     </span>
                 </div>
 
@@ -1085,6 +1160,207 @@
                 <!-- Tab 2: 全链寄售市场 -->
                 <div id="tabContentBazaar" class="space-y-2 max-h-56 overflow-y-auto pr-1 hidden">
                     <!-- Populated dynamically -->
+                </div>
+
+                <!-- Tab 3: 灵石金库 (内置 AMM Swap 闪兑、36.5% 单币质押与 128.0% LP 做市农场) -->
+                <div id="tabContentDefi" class="space-y-2.5 max-h-[460px] overflow-y-auto pr-1 hidden font-xy text-xs">
+                    
+                    <!-- 资产全景看板 (Portfolio Header) -->
+                    <div class="p-2.5 rounded-xl bg-gradient-to-r from-slate-900 via-cyan-950/40 to-slate-900 border border-cyan-500/40">
+                        <div class="flex items-center justify-between border-b border-slate-700/60 pb-1.5 mb-2">
+                            <span class="font-bold text-cyan-300 flex items-center space-x-1">
+                                <span>🏦</span>
+                                <span>三界资产与流动性金库</span>
+                            </span>
+                            <button onclick="refreshDefiState()" class="text-[10px] text-cyan-400 hover:text-cyan-200 underline font-mono flex items-center space-x-1 cursor-pointer">
+                                <span>🔄 刷新链上资产</span>
+                            </button>
+                        </div>
+                        <div class="grid grid-cols-3 gap-2 text-center">
+                            <div class="bg-black/60 p-2 rounded-lg border border-slate-800">
+                                <div class="text-[9px] text-slate-400 font-mono">原生代币 (MON)</div>
+                                <div id="defiMonBalance" class="font-bold text-yellow-300 font-mono text-xs mt-0.5">0.000</div>
+                                <div class="text-[8px] text-slate-500 font-mono">Gas / 做市资产</div>
+                            </div>
+                            <div class="bg-black/60 p-2 rounded-lg border border-cyan-800/60">
+                                <div class="text-[9px] text-cyan-300 font-mono">游戏积分 ($XYT)</div>
+                                <div id="defiXytBalance" class="font-bold text-cyan-300 font-mono text-xs mt-0.5">0.00</div>
+                                <div class="text-[8px] text-emerald-400 font-mono">ERC-20 积分币</div>
+                            </div>
+                            <div class="bg-black/60 p-2 rounded-lg border border-purple-800/60">
+                                <div class="text-[9px] text-purple-300 font-mono">做市凭证 (LP)</div>
+                                <div id="defiLpBalance" class="font-bold text-purple-300 font-mono text-xs mt-0.5">0.0000</div>
+                                <div class="text-[8px] text-yellow-400 font-mono">XYT-MON LP</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 模块 1: 内置链上 AMM 极速兑换 (Swap) -->
+                    <div class="p-2.5 rounded-xl bg-slate-900/90 border border-yellow-500/40">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="flex items-center space-x-1.5">
+                                <span class="text-sm">🔄</span>
+                                <span class="font-bold text-yellow-300 text-xs">内置去中心化 AMM Swap (极速闪兑)</span>
+                            </div>
+                            <span class="text-[9px] px-1.5 py-0.5 rounded bg-amber-950 text-yellow-400 font-mono border border-yellow-700/60">
+                                Monad 10,000 TPS
+                            </span>
+                        </div>
+                        
+                        <!-- Swap 交互框 -->
+                        <div class="space-y-1.5 bg-black/50 p-2 rounded-lg border border-slate-800">
+                            <!-- 支付代币行 -->
+                            <div class="flex items-center justify-between">
+                                <span class="text-[10px] text-slate-400">支付资产:</span>
+                                <span class="text-[9px] text-slate-400 font-mono" id="swapPayBalanceLabel">可用: 0.00 MON</span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <input id="swapInputAmount" type="number" step="0.001" placeholder="0.0" class="flex-1 bg-slate-950 border border-slate-700 rounded px-2 py-1 text-yellow-300 font-mono text-xs focus:outline-none focus:border-yellow-400" oninput="onSwapAmountChange()" />
+                                <button id="swapPayTokenBtn" class="px-2.5 py-1 rounded bg-slate-800 text-yellow-300 border border-slate-600 font-mono text-[10px] font-bold shrink-0">
+                                    MON
+                                </button>
+                            </div>
+                            <!-- 快捷比例与切换 -->
+                            <div class="flex items-center justify-between text-[9px] font-mono text-slate-400 px-0.5">
+                                <div class="space-x-1">
+                                    <button onclick="setSwapPercent(0.25)" class="px-1.5 py-0.5 bg-slate-800 rounded hover:bg-slate-700 cursor-pointer">25%</button>
+                                    <button onclick="setSwapPercent(0.50)" class="px-1.5 py-0.5 bg-slate-800 rounded hover:bg-slate-700 cursor-pointer">50%</button>
+                                    <button onclick="setSwapPercent(0.75)" class="px-1.5 py-0.5 bg-slate-800 rounded hover:bg-slate-700 cursor-pointer">75%</button>
+                                    <button onclick="setSwapPercent(1.0)" class="px-1.5 py-0.5 bg-slate-800 rounded hover:bg-slate-700 text-yellow-400 cursor-pointer">MAX</button>
+                                </div>
+                                <button onclick="toggleSwapDirection()" class="text-cyan-400 hover:text-cyan-300 flex items-center space-x-0.5 font-xy cursor-pointer">
+                                    <span>⇄ 切换兑换方向</span>
+                                </button>
+                            </div>
+
+                            <!-- 兑换输出预估 -->
+                            <div class="pt-1 border-t border-slate-800 flex items-center justify-between">
+                                <span class="text-[10px] text-slate-400">预计获得:</span>
+                                <div class="text-right">
+                                    <span id="swapEstimatedOut" class="font-bold font-mono text-cyan-300 text-xs">0.00</span>
+                                    <span id="swapReceiveTokenSymbol" class="font-mono text-xs text-yellow-400 ml-0.5">XYT</span>
+                                </div>
+                            </div>
+
+                            <!-- 池子储备量与当前汇率 -->
+                            <div class="text-[9px] text-slate-400 font-mono flex items-center justify-between bg-black/40 px-2 py-1 rounded">
+                                <span>池底: <b id="poolReserveMonDisplay" class="text-yellow-400">0.2 MON</b> / <b id="poolReserveXytDisplay" class="text-cyan-400">200 XYT</b></span>
+                                <span id="swapRateDisplay" class="text-emerald-400">1 MON ≈ 1000 XYT</span>
+                            </div>
+
+                            <!-- Swap 提交按钮 -->
+                            <button id="btnExecuteSwap" onclick="executeSwap()" class="w-full py-1.5 mt-1 rounded-lg bg-gradient-to-r from-yellow-600 via-amber-500 to-yellow-500 hover:from-yellow-500 hover:to-amber-400 text-slate-950 font-bold font-xy text-xs shadow-md border border-yellow-300 cursor-pointer">
+                                ⚡ 立即极速兑换 (Instant Swap)
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 模块 2: 单币质押金库 (36.5% APY) -->
+                    <div class="p-2.5 rounded-xl bg-slate-900/90 border border-emerald-500/40">
+                        <div class="flex items-center justify-between mb-1.5">
+                            <div class="flex items-center space-x-1.5">
+                                <span class="text-sm">🌱</span>
+                                <span class="font-bold text-emerald-300 text-xs">游戏积分 ($XYT) 单币质押金库</span>
+                            </div>
+                            <span class="text-[9px] px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-400 font-mono border border-emerald-600">
+                                年化 36.5% APY
+                            </span>
+                        </div>
+                        <p class="text-[10px] text-slate-400 font-xy mb-2">
+                            将关卡收获的游戏积分存入金库，无常损失 0%，按年化 36.5% 自动生息！
+                        </p>
+                        <div class="bg-black/50 p-2 rounded-lg border border-slate-800 space-y-1.5">
+                            <div class="grid grid-cols-2 gap-2 text-center">
+                                <div class="bg-black/40 p-1.5 rounded">
+                                    <span class="text-[9px] text-slate-400 block font-mono">已质押本金</span>
+                                    <b id="myStakedXyt" class="text-emerald-300 font-mono text-xs">0.00 $XYT</b>
+                                </div>
+                                <div class="bg-black/40 p-1.5 rounded">
+                                    <span class="text-[9px] text-slate-400 block font-mono">待领取收益 (秒级生息)</span>
+                                    <b id="myPendingStakingYield" class="text-yellow-300 font-mono text-xs animate-pulse">0.0000 $XYT</b>
+                                </div>
+                            </div>
+                            <!-- 质押输入 -->
+                            <div class="flex items-center space-x-1.5 pt-1">
+                                <input id="stakingAmountInput" type="number" step="1" placeholder="质押/赎回数量" class="flex-1 bg-slate-950 border border-slate-700 rounded px-2 py-1 text-emerald-300 font-mono text-xs focus:outline-none focus:border-emerald-400" />
+                                <button onclick="stakeXyt(true)" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded text-[10px] shrink-0 font-xy cursor-pointer">
+                                    存入质押
+                                </button>
+                                <button onclick="stakeXyt(false)" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded text-[10px] shrink-0 border border-slate-600 font-xy cursor-pointer">
+                                    解押赎回
+                                </button>
+                            </div>
+                            <!-- 领取收益 -->
+                            <button onclick="claimStakingYield()" class="w-full py-1 rounded bg-emerald-950 hover:bg-emerald-900 text-emerald-300 border border-emerald-600/60 font-bold text-[10px] font-xy flex items-center justify-center space-x-1 cursor-pointer">
+                                <span>🌾 一键提取质押收益 (Claim Yield)</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 模块 3: XYT-MON LP 流动性做市与头矿农场 (128.0% APY) -->
+                    <div class="p-2.5 rounded-xl bg-slate-900/90 border border-purple-500/40">
+                        <div class="flex items-center justify-between mb-1.5">
+                            <div class="flex items-center space-x-1.5">
+                                <span class="text-sm">🌾</span>
+                                <span class="font-bold text-purple-300 text-xs">XYT-MON LP 流动性做市与头矿农场</span>
+                            </div>
+                            <span class="text-[9px] px-1.5 py-0.5 rounded bg-purple-950 text-purple-300 font-mono border border-purple-600">
+                                超高年化 128.0% APY
+                            </span>
+                        </div>
+                        <p class="text-[10px] text-slate-400 font-xy mb-2">
+                            将游戏积分与 MON 注入 AMM 池组成 LP 做市凭证，质押 LP 享受 128% 头矿爆发产出！
+                        </p>
+                        <div class="bg-black/50 p-2 rounded-lg border border-slate-800 space-y-1.5">
+                            <!-- 做市添加/撤回折叠 -->
+                            <div class="p-1.5 rounded bg-purple-950/30 border border-purple-800/40 text-[10px]">
+                                <div class="flex items-center justify-between mb-1">
+                                    <span class="text-slate-300 font-bold">🛠️ 流动性做市 (Liquidity Provision)</span>
+                                    <span class="text-[9px] text-slate-400 font-mono">总流动性: <span id="totalLpSupplyDisplay">1000 LP</span></span>
+                                </div>
+                                <div class="grid grid-cols-2 gap-1.5 mb-1.5">
+                                    <input id="addMonInput" type="number" step="0.01" placeholder="存入 MON" class="bg-slate-950 border border-slate-700 rounded px-1.5 py-0.5 text-yellow-300 font-mono text-[10px] focus:outline-none" oninput="syncLpTokenNeeded()" />
+                                    <input id="addXytInput" type="number" step="1" placeholder="匹配 XYT" class="bg-slate-950 border border-slate-700 rounded px-1.5 py-0.5 text-cyan-300 font-mono text-[10px] focus:outline-none" />
+                                </div>
+                                <div class="flex items-center space-x-1.5">
+                                    <button onclick="executeAddLiquidity()" class="flex-1 py-1 rounded bg-purple-700 hover:bg-purple-600 text-white font-bold text-[10px] font-xy cursor-pointer">
+                                        ➕ 注入做市 (Mint LP)
+                                    </button>
+                                    <button onclick="promptRemoveLiquidity()" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-600 text-[10px] font-xy cursor-pointer">
+                                        ➖ 撤回流动性
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- LP 质押与收益面板 -->
+                            <div class="grid grid-cols-2 gap-2 text-center pt-1">
+                                <div class="bg-black/40 p-1.5 rounded">
+                                    <span class="text-[9px] text-slate-400 block font-mono">已质押 LP 凭证</span>
+                                    <b id="myStakedLp" class="text-purple-300 font-mono text-xs">0.0000 LP</b>
+                                </div>
+                                <div class="bg-black/40 p-1.5 rounded">
+                                    <span class="text-[9px] text-slate-400 block font-mono">待收割奖励 (128% APY)</span>
+                                    <b id="myPendingLpYield" class="text-yellow-300 font-mono text-xs animate-pulse">0.0000 $XYT</b>
+                                </div>
+                            </div>
+
+                            <!-- LP 质押输入 -->
+                            <div class="flex items-center space-x-1.5">
+                                <input id="lpStakeAmountInput" type="number" step="0.01" placeholder="LP 数量" class="flex-1 bg-slate-950 border border-slate-700 rounded px-2 py-1 text-purple-300 font-mono text-xs focus:outline-none focus:border-purple-400" />
+                                <button onclick="stakeLpTokens(true)" class="px-2.5 py-1 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded text-[10px] shrink-0 font-xy cursor-pointer">
+                                    质押 LP
+                                </button>
+                                <button onclick="stakeLpTokens(false)" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded text-[10px] shrink-0 border border-slate-600 font-xy cursor-pointer">
+                                    解押 LP
+                                </button>
+                            </div>
+
+                            <button onclick="claimLpFarmYield()" class="w-full py-1 rounded bg-gradient-to-r from-purple-950 to-indigo-950 hover:from-purple-900 hover:to-indigo-900 text-yellow-300 border border-purple-500/60 font-bold text-[10px] font-xy flex items-center justify-center space-x-1 cursor-pointer">
+                                <span>🚜 一键收割 128% 农场奖励 (Harvest $XYT)</span>
+                            </button>
+                        </div>
+                    </div>
+
                 </div>
             </div>
 
@@ -1113,8 +1389,8 @@
                 </div>
                 <div>
                     <span>合约: </span>
-                    <a href="https://testnet.monadexplorer.com/address/0x7781478250d944efd88256F4D84D479194116341" target="_blank" class="text-yellow-400 hover:underline">
-                        0x7781...6341 ↗
+                    <a href="https://testnet.monadexplorer.com/address/0xbeAF44AD57B7f55DAAdf07233E7927D08d103bfF" target="_blank" class="text-yellow-400 hover:underline" id="headerContractAddressLink">
+                        0xbeAF...3bfF (V6) ↗
                     </a>
                 </div>
                 <div>
@@ -1129,11 +1405,11 @@
 
     <!-- Script: Soul Knight Engine, Auto-Mint Claiming & Audio Engine -->
     <script>
-        const CONTRACT_ADDR = "0x7781478250d944efd88256F4D84D479194116341";
+        const CONTRACT_ADDR = "0xbeAF44AD57B7f55DAAdf07233E7927D08d103bfF";
         const CONTRACT_ABI = [
             "function registerPlayer(uint8 sect) external",
             "function switchSect(uint8 newSect) external",
-            "function settleChapter(tuple(uint16 chapterId, uint32 totalDamage, uint16 monstersSlain, uint16 skillsUsed, uint16 stepsTaken, uint32 clearTimeSeconds, bool bossDefeated) summary, bytes32 sessionId) external returns (uint256 mintedTokenId)",
+            "function settleChapter(tuple(uint16 chapterId, uint32 totalDamage, uint16 monstersSlain, uint16 skillsUsed, uint16 stepsTaken, uint32 clearTimeSeconds, bool bossDefeated) summary, bytes32 sessionId) external returns (uint256 mintedTokenId, uint256 xytPointsEarned)",
             "function forgeUpgradeItem(uint256 tokenId) external",
             "function equipItem(uint256 tokenId, uint8 slot) external",
             "function unequipItem(uint8 slot) external",
@@ -1144,7 +1420,37 @@
             "function getEquippedDetails(address player) external view returns (uint256[3] tokenIds, string[3] names, string[3] rarities, uint32[3] powers, uint8[3] starLevels, uint32 totalEquipPower)",
             "function getPlayerLoot(address player) external view returns (uint256[] tokenIds, uint16[] chapterIds, uint8[] itemTypes, uint8[] starLevels, string[] names, string[] rarities, uint32[] powers)",
             "function recordArenaVictory(address opponent, uint32 points) external",
-            "function profiles(address) view returns (uint8 sect, uint16 level, uint32 totalExp, uint16 maxChapterUnlocked, uint32 totalDamageDealt, uint16 totalMonstersKilled, uint32 totalSkillsCast, uint32 arenaWins, uint32 totalForges, bool isRegistered)"
+            "function profiles(address) view returns (uint8 sect, uint16 level, uint32 totalExp, uint16 maxChapterUnlocked, uint32 totalDamageDealt, uint16 totalMonstersKilled, uint32 totalSkillsCast, uint32 arenaWins, uint32 totalForges, bool isRegistered)",
+            // V6 ERC-20 $XYT 代币接口
+            "function name() view returns (string)",
+            "function symbol() view returns (string)",
+            "function decimals() view returns (uint8)",
+            "function totalSupply() view returns (uint256)",
+            "function balanceOf(address) view returns (uint256)",
+            "function transfer(address, uint256) returns (bool)",
+            "function approve(address, uint256) returns (bool)",
+            "function allowance(address, address) view returns (uint256)",
+            // V6 内置 AMM 链上 Swap 接口
+            "function reserveMon() view returns (uint256)",
+            "function reserveToken() view returns (uint256)",
+            "function totalLpSupply() view returns (uint256)",
+            "function lpBalanceOf(address) view returns (uint256)",
+            "function getAmountOut(uint256 amountIn, uint256 reserveIn, uint256 reserveOut) view returns (uint256)",
+            "function swapMonForTokens(uint256 minTokensOut) payable returns (uint256)",
+            "function swapTokensForMon(uint256 tokenAmountIn, uint256 minMonOut) returns (uint256)",
+            "function addLiquidity(uint256 tokenAmount) payable returns (uint256)",
+            "function removeLiquidity(uint256 lpAmount) returns (uint256, uint256)",
+            // V6 单币年化质押金库 (36.5% APY)
+            "function stakeTokens(uint256 amount) external",
+            "function unstakeTokens(uint256 amount) external",
+            "function claimStakingRewards() external returns (uint256)",
+            "function getPendingStakingReward(address user) view returns (uint256)",
+            // V6 LP 流动性做市农场 (128.0% APY)
+            "function stakeLp(uint256 lpAmount) external",
+            "function unstakeLp(uint256 lpAmount) external",
+            "function claimLpRewards() external returns (uint256)",
+            "function getPendingLpReward(address user) view returns (uint256)",
+            "function getFinancialOverview(address user) view returns (uint256 userXytBalance, uint256 stakedXyt, uint256 pendingXytReward, uint256 userLpBalance, uint256 stakedLp, uint256 pendingLpReward, uint256 poolMon, uint256 poolXyt, uint256 totalLp)"
         ];
 
         const MAP_SIZE = 28;
@@ -1552,7 +1858,8 @@
             startTime: performance.now(),
             isCleared: false,
             autoMintTriggered: false,
-            bossDefeated: false
+            bossDefeated: false,
+            lootsCollected: []
         };
 
         // 地牢章节梯度难度与自主战斗 AI 配置
@@ -1794,6 +2101,7 @@
                 await syncEquippedState();
                 await refreshLootInventory();
                 await refreshBazaarListings();
+                await refreshDefiState();
             } catch (err) {
                 console.error("connectExternalWallet error:", err);
                 logTx(`❌ 外部钱包连接失败: ${err.message || err}`, "error");
@@ -1812,6 +2120,7 @@
             await syncEquippedState();
             await refreshLootInventory();
             await refreshBazaarListings();
+            await refreshDefiState();
         }
 
         function toggleWalletMode() {
@@ -1861,7 +2170,21 @@
             if (!addr) return;
             try {
                 const bal = await provider.getBalance(addr);
-                document.getElementById('gasBalanceDisplay').innerText = parseFloat(ethers.formatEther(bal)).toFixed(2);
+                const gasDisp = document.getElementById('gasBalanceDisplay');
+                if (gasDisp) gasDisp.innerText = parseFloat(ethers.formatEther(bal)).toFixed(2);
+
+                if (contract) {
+                    try {
+                        const tokenBal = await contract.balanceOf(addr);
+                        const xytVal = parseFloat(ethers.formatEther(tokenBal));
+                        const xytDisplay = document.getElementById('xytTokenBalanceDisplay');
+                        if (xytDisplay) xytDisplay.innerText = xytVal.toFixed(1);
+                        const tabBadge = document.getElementById('xytBalanceBadge');
+                        if (tabBadge) tabBadge.innerText = `${xytVal.toFixed(1)} $XYT`;
+                    } catch (errToken) {
+                        console.warn("balanceOf query:", errToken);
+                    }
+                }
             } catch (e) {
                 console.warn("updateWalletBalance error:", e);
             }
@@ -1964,6 +2287,7 @@
                 await refreshLootInventory();
                 await refreshBazaarListings();
                 await updateWalletBalance();
+                await refreshDefiState();
                 
                 provider.getBlockNumber().then(b => {
                     blockHeightDisplay.innerText = '#' + b;
@@ -3583,6 +3907,13 @@
                 isRecovery: false,
                 time: performance.now()
             });
+            if (!chapterStats.lootsCollected) chapterStats.lootsCollected = [];
+            chapterStats.lootsCollected.push({
+                name: name,
+                rarity: rarity,
+                power: power,
+                itemType: itemType
+            });
             logTx(`💎 妖兽爆出神兵光球【${name}】！走近即可自动拾取！`, "info");
         }
 
@@ -4079,6 +4410,69 @@
             const minRequiredDamage = monstersSlain * 35;
             const reportedDamage = Math.max(Number(chapterStats.totalDamage) || 0, minRequiredDamage);
 
+            // 1. 战绩统计看板填报
+            const killsEl = document.getElementById('settleKills');
+            if (killsEl) killsEl.innerText = monstersSlain;
+            const dmgEl = document.getElementById('settleDamage');
+            if (dmgEl) dmgEl.innerText = reportedDamage.toLocaleString();
+            const skillsEl = document.getElementById('settleSkills');
+            if (skillsEl) skillsEl.innerText = `${chapterStats.skillsUsed} 次`;
+            const timeEl = document.getElementById('settleTime');
+            if (timeEl) timeEl.innerText = `${clearSecs}s`;
+
+            // 2. 契约 XYT 游戏积分算式计算
+            const basePoints = currentChapter * 50;
+            const killPoints = monstersSlain * 10;
+            const dmgPoints = Math.floor(reportedDamage / 200);
+            const bossBonus = chapterStats.bossDefeated ? 100 : 0;
+            const totalXytPoints = basePoints + killPoints + dmgPoints + bossBonus;
+
+            const xytAmtEl = document.getElementById('settleXytAmount');
+            if (xytAmtEl) xytAmtEl.innerText = totalXytPoints.toFixed(1);
+            const xytDescEl = document.getElementById('settleXytBreakdown');
+            if (xytDescEl) xytDescEl.innerText = `基础探索 +${basePoints} • 斩妖击杀 +${killPoints} • 战力转化 +${dmgPoints}${bossBonus > 0 ? ' • 妖王首破 +' + bossBonus : ''}`;
+
+            // 3. 动态呈现获得的装备清单
+            const eqListEl = document.getElementById('settleEquipmentList');
+            if (eqListEl) {
+                eqListEl.innerHTML = '';
+                const loots = (chapterStats.lootsCollected && chapterStats.lootsCollected.length > 0)
+                    ? chapterStats.lootsCollected
+                    : [{
+                        name: currentChapter === 1 ? "【大唐青锋剑】" : currentChapter === 2 ? "【东海辟水珠】" : "【金丝软猬甲】",
+                        itemType: (currentChapter - 1) % 3,
+                        rarity: "史诗神品",
+                        power: 75 + currentChapter * 25
+                    }];
+
+                loots.forEach(item => {
+                    const itemIcon = item.itemType === 0 ? '🗡️' : item.itemType === 1 ? '🛡️' : '📿';
+                    const row = document.createElement('div');
+                    row.className = "flex items-center justify-between p-1.5 rounded-lg bg-black/60 border border-yellow-500/30";
+                    row.innerHTML = `
+                        <div class="flex items-center space-x-2 min-w-0">
+                            <div class="w-8 h-8 rounded bg-amber-950 border border-yellow-400 flex items-center justify-center text-base shadow shrink-0">
+                                ${itemIcon}
+                            </div>
+                            <div class="min-w-0 text-left">
+                                <div class="font-bold font-xy text-xs text-yellow-300 truncate">${item.name}</div>
+                                <div class="text-[9px] text-slate-300 font-mono">战力 +${item.power} • ${item.rarity || '名品灵宝'}</div>
+                            </div>
+                        </div>
+                        <span class="text-[9px] px-1.5 py-0.5 rounded bg-amber-950 text-amber-300 font-mono border border-amber-700/60 shrink-0 settleNftBadge">
+                            ⚡ 待铸造 NFT
+                        </span>
+                    `;
+                    eqListEl.appendChild(row);
+                });
+            }
+
+            const nftStatus = document.getElementById('settleNftStatusBadge');
+            if (nftStatus) {
+                nftStatus.innerText = "⚡ 待上链铸造存证";
+                nftStatus.className = "text-[9px] text-emerald-400 font-mono";
+            }
+
             currentClearanceSummary = {
                 chapterId: Number(currentChapter) || 1,
                 totalDamage: reportedDamage,
@@ -4091,19 +4485,18 @@
 
             // 生成唯一会话凭据防重放
             currentClearanceSessionId = ethers.keccak256(ethers.toUtf8Bytes("dungeon_session_" + Date.now() + "_" + Math.random()));
-            logTx(`📜 踏入传送门！正在 Monad 上自动认领并 Mint NFT 道具 (Session: ${currentClearanceSessionId.slice(0, 10)}...)...`, "pending");
+            logTx(`📜 踏入传送门！正在 Monad 上原子清算发放双资产 (NFT神兵 + ${totalXytPoints} $XYT)...`, "pending");
 
             if (currentWalletMode === 'trial' || isGaslessAutoMintActive) {
                 mintActionContainer.classList.add('hidden');
-                mintStatusText.innerHTML = "⏳ 正在通过 Monad 极速节点广播单笔原子清算与自动 Mint 交易 (落块约 1.0 秒)...";
+                mintStatusText.innerHTML = `⏳ 正在通过 Monad 极速节点广播原子清算交易 (铸造 NFT + 发放 ${totalXytPoints} $XYT，约 1.0 秒落块)...`;
                 await executeMintTransaction(trialWallet, currentClearanceSummary, currentClearanceSessionId);
             } else {
                 // 外部钱包模式 (OKX / MetaMask / Rabby 等)
                 const brand = getWalletBrandInfo(activeInjectedProvider);
                 mintActionContainer.classList.remove('hidden');
-                btnTriggerWalletSign.innerHTML = `<span>${brand.icon} 立即点击唤起 ${brand.name} 签名确认</span>`;
+                btnTriggerWalletSign.innerHTML = `<span>${brand.icon} 立即点击唤起 ${brand.name} 签名确认 (落块约 1.0 秒)</span>`;
                 mintStatusText.innerHTML = `👉 浏览器限制后台脚本弹窗，请<b>点击下方绿色按钮</b>立即拉起 ${brand.name} 确认签名：`;
-                // 绝不在后台自动调用 executeMintTransaction(signer, ...)，彻底杜绝无手势死锁与未决挂起！
             }
         }
 
@@ -4131,18 +4524,31 @@
                     tx = await targetContract.settleChapter(summary, sessionId, feeOpts);
                 }
 
-                logTx(`📡 自动 Mint 交易已广播: ${tx.hash.slice(0, 12)}...`, "sent", tx.hash);
+                logTx(`📡 原子清算交易已广播: ${tx.hash.slice(0, 12)}...`, "sent", tx.hash);
                 mintStatusText.innerHTML = `⏳ 交易已广播 (${tx.hash.slice(0, 10)}...)，正在等待 Monad 极速落块确认...`;
 
                 const rc = await tx.wait();
-                logTx(`🎉 自动认领成功！神兵已由 Monad 落块铸造！(区块 #${rc.blockNumber})`, "success", tx.hash);
+                logTx(`🎉 原子清算成功！神兵 NFT 与 $XYT 已由 Monad 落块铸造！(区块 #${rc.blockNumber})`, "success", tx.hash);
 
-                // 同步藏宝阁与装备
+                // 更新结算窗口装备条目状态徽章
+                document.querySelectorAll('.settleNftBadge').forEach(b => {
+                    b.innerText = `✅ ERC-721 已入库`;
+                    b.className = "text-[9px] px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-300 font-mono border border-emerald-600 shrink-0";
+                });
+                const nftStatusBadge = document.getElementById('settleNftStatusBadge');
+                if (nftStatusBadge) {
+                    nftStatusBadge.innerText = "✅ 全链确权入库";
+                    nftStatusBadge.className = "text-[9px] text-emerald-400 font-mono font-bold";
+                }
+
+                // 同步藏宝阁与装备 & DeFi 状态与钱包余额
                 await refreshLootInventory();
                 await syncEquippedState();
+                await updateWalletBalance();
+                await refreshDefiState();
 
                 // 呈现落块成果
-                mintStatusText.innerHTML = `✅ <b>自动 Mint 成功！</b> 已由 Monad 区块 #${rc.blockNumber} 确权入库！`;
+                mintStatusText.innerHTML = `✅ <b>原子清算成功！</b> 神兵装备 NFT 与游戏积分币已由 Monad 区块 #${rc.blockNumber} 确权发放！`;
                 mintActionContainer.classList.add('hidden');
                 btnNextLevel.classList.remove('hidden');
 
@@ -4251,7 +4657,8 @@
                 chapterId: chapterId,
                 totalDamage: 0, monstersSlain: 0, skillsUsed: 0, stepsTaken: 0,
                 startTime: performance.now(), isCleared: false, autoMintTriggered: false,
-                bossDefeated: false
+                bossDefeated: false,
+                lootsCollected: []
             };
 
             clearanceOverlay.style.display = 'none';
@@ -4263,24 +4670,51 @@
         }
 
         // =========================================================================
-        // 12. 藏宝阁双面板与 C2C 寄售行
+        // 12. 藏宝阁多维面板与 C2C 寄售行 / 灵石金库 (DeFi Swap & Farm)
         // =========================================================================
         const tabBtnBackpack = document.getElementById('tabBtnBackpack');
         const tabBtnBazaar = document.getElementById('tabBtnBazaar');
+        const tabBtnDefi = document.getElementById('tabBtnDefi');
+        const tabContentDefi = document.getElementById('tabContentDefi');
 
-        tabBtnBackpack.addEventListener('click', () => {
-            tabBtnBackpack.className = "px-3 py-1 rounded bg-amber-950 text-yellow-300 border border-yellow-500/70 font-bold flex items-center space-x-1";
-            tabBtnBazaar.className = "px-3 py-1 rounded bg-slate-800 text-slate-300 border border-slate-600 flex items-center space-x-1 hover:text-white";
-            tabContentBackpack.classList.remove('hidden');
-            tabContentBazaar.classList.add('hidden');
-        });
-        tabBtnBazaar.addEventListener('click', () => {
-            tabBtnBazaar.className = "px-3 py-1 rounded bg-amber-950 text-yellow-300 border border-yellow-500/70 font-bold flex items-center space-x-1";
-            tabBtnBackpack.className = "px-3 py-1 rounded bg-slate-800 text-slate-300 border border-slate-600 flex items-center space-x-1 hover:text-white";
-            tabContentBazaar.classList.remove('hidden');
-            tabContentBackpack.classList.add('hidden');
-            refreshBazaarListings();
-        });
+        function switchTab(target) {
+            if (target === 'backpack') {
+                tabBtnBackpack.className = "px-2.5 py-1 rounded bg-amber-950 text-yellow-300 border border-yellow-500/70 font-bold flex items-center space-x-1";
+                tabBtnBazaar.className = "px-2.5 py-1 rounded bg-slate-800 text-slate-300 border border-slate-600 flex items-center space-x-1 hover:text-white";
+                tabBtnDefi.className = "px-2.5 py-1 rounded bg-slate-800 text-slate-300 border border-slate-600 flex items-center space-x-1 hover:text-white";
+                tabContentBackpack.classList.remove('hidden');
+                tabContentBazaar.classList.add('hidden');
+                if (tabContentDefi) tabContentDefi.classList.add('hidden');
+            } else if (target === 'bazaar') {
+                tabBtnBazaar.className = "px-2.5 py-1 rounded bg-amber-950 text-yellow-300 border border-yellow-500/70 font-bold flex items-center space-x-1";
+                tabBtnBackpack.className = "px-2.5 py-1 rounded bg-slate-800 text-slate-300 border border-slate-600 flex items-center space-x-1 hover:text-white";
+                tabBtnDefi.className = "px-2.5 py-1 rounded bg-slate-800 text-slate-300 border border-slate-600 flex items-center space-x-1 hover:text-white";
+                tabContentBazaar.classList.remove('hidden');
+                tabContentBackpack.classList.add('hidden');
+                if (tabContentDefi) tabContentDefi.classList.add('hidden');
+                refreshBazaarListings();
+            } else if (target === 'defi') {
+                tabBtnDefi.className = "px-2.5 py-1 rounded bg-cyan-950 text-cyan-300 border border-cyan-500/70 font-bold flex items-center space-x-1";
+                tabBtnBackpack.className = "px-2.5 py-1 rounded bg-slate-800 text-slate-300 border border-slate-600 flex items-center space-x-1 hover:text-white";
+                tabBtnBazaar.className = "px-2.5 py-1 rounded bg-slate-800 text-slate-300 border border-slate-600 flex items-center space-x-1 hover:text-white";
+                if (tabContentDefi) tabContentDefi.classList.remove('hidden');
+                tabContentBackpack.classList.add('hidden');
+                tabContentBazaar.classList.add('hidden');
+                refreshDefiState();
+            }
+        }
+
+        tabBtnBackpack.addEventListener('click', () => switchTab('backpack'));
+        tabBtnBazaar.addEventListener('click', () => switchTab('bazaar'));
+        if (tabBtnDefi) tabBtnDefi.addEventListener('click', () => switchTab('defi'));
+
+        const btnGoToDefiVault = document.getElementById('btnGoToDefiVault');
+        if (btnGoToDefiVault) {
+            btnGoToDefiVault.addEventListener('click', () => {
+                clearanceOverlay.style.display = 'none';
+                switchTab('defi');
+            });
+        }
 
         async function refreshLootInventory() {
             const addr = getActiveAddress();
@@ -4569,11 +5003,12 @@
         if (btnConsoleSelect) {
             btnConsoleSelect.addEventListener('click', (e) => {
                 e.preventDefault();
-                const isBazaar = !tabContentBazaar.classList.contains('hidden');
-                if (isBazaar) {
-                    document.getElementById('tabBtnBackpack').click();
+                if (!tabContentBackpack.classList.contains('hidden')) {
+                    switchTab('bazaar');
+                } else if (!tabContentBazaar.classList.contains('hidden')) {
+                    switchTab('defi');
                 } else {
-                    document.getElementById('tabBtnBazaar').click();
+                    switchTab('backpack');
                 }
             });
         }
@@ -4614,6 +5049,391 @@
                 btnToggleScanlines.style.color = scanlinesVisible ? '#8fa08c' : '#ef4444';
             });
         }
+
+        // =========================================================================
+        // 13. 灵石金库 (DeFi Swap 闪兑、36.5% 单币质押与 128.0% LP 挖矿体系)
+        // =========================================================================
+        let defiState = {
+            monBalance: 0,
+            xytBalance: 0,
+            lpBalance: 0,
+            stakedXyt: 0,
+            pendingXytReward: 0,
+            stakedLp: 0,
+            pendingLpReward: 0,
+            reserveMon: 0.2,
+            reserveToken: 200.0,
+            totalLpSupply: 1000.0,
+            swapDirection: 'MON_TO_XYT'
+        };
+
+        // 实时秒级生息跳动展示 (给予玩家强烈的即时正反馈与财富增长感)
+        setInterval(() => {
+            if (defiState.stakedXyt > 0) {
+                const secYield = (defiState.stakedXyt * 0.365) / 31536000;
+                defiState.pendingXytReward += secYield;
+                const el = document.getElementById('myPendingStakingYield');
+                if (el) el.innerText = defiState.pendingXytReward.toFixed(4) + ' $XYT';
+            }
+            if (defiState.stakedLp > 0) {
+                const secYield = (defiState.stakedLp * 1.28) / 31536000;
+                defiState.pendingLpReward += secYield;
+                const el = document.getElementById('myPendingLpYield');
+                if (el) el.innerText = defiState.pendingLpReward.toFixed(4) + ' $XYT';
+            }
+        }, 1000);
+
+        async function refreshDefiState() {
+            const addr = getActiveAddress();
+            if (!contract || !addr) return;
+            try {
+                const monWei = await provider.getBalance(addr);
+                defiState.monBalance = parseFloat(ethers.formatEther(monWei));
+
+                const fin = await contract.getFinancialOverview(addr);
+                defiState.xytBalance = parseFloat(ethers.formatEther(fin[0]));
+                defiState.stakedXyt = parseFloat(ethers.formatEther(fin[1]));
+                defiState.pendingXytReward = parseFloat(ethers.formatEther(fin[2]));
+                defiState.lpBalance = parseFloat(ethers.formatEther(fin[3]));
+                defiState.stakedLp = parseFloat(ethers.formatEther(fin[4]));
+                defiState.pendingLpReward = parseFloat(ethers.formatEther(fin[5]));
+                defiState.reserveMon = parseFloat(ethers.formatEther(fin[6])) || 0.2;
+                defiState.reserveToken = parseFloat(ethers.formatEther(fin[7])) || 200.0;
+                defiState.totalLpSupply = parseFloat(ethers.formatEther(fin[8])) || 1000.0;
+
+                updateDefiUI();
+            } catch (e) {
+                console.warn("refreshDefiState fallback:", e);
+                updateDefiUI();
+            }
+        }
+
+        function updateDefiUI() {
+            const monEl = document.getElementById('defiMonBalance');
+            if (monEl) monEl.innerText = defiState.monBalance.toFixed(3);
+            const xytEl = document.getElementById('defiXytBalance');
+            if (xytEl) xytEl.innerText = defiState.xytBalance.toFixed(2);
+            const lpEl = document.getElementById('defiLpBalance');
+            if (lpEl) lpEl.innerText = defiState.lpBalance.toFixed(4);
+
+            const tabBadge = document.getElementById('xytBalanceBadge');
+            if (tabBadge) tabBadge.innerText = `${defiState.xytBalance.toFixed(1)} $XYT`;
+            const headerXyt = document.getElementById('xytTokenBalanceDisplay');
+            if (headerXyt) headerXyt.innerText = defiState.xytBalance.toFixed(1);
+
+            const payBalLabel = document.getElementById('swapPayBalanceLabel');
+            if (payBalLabel) {
+                if (defiState.swapDirection === 'MON_TO_XYT') {
+                    payBalLabel.innerText = `可用: ${defiState.monBalance.toFixed(3)} MON`;
+                } else {
+                    payBalLabel.innerText = `可用: ${defiState.xytBalance.toFixed(2)} XYT`;
+                }
+            }
+
+            const poolMon = document.getElementById('poolReserveMonDisplay');
+            if (poolMon) poolMon.innerText = `${defiState.reserveMon.toFixed(2)} MON`;
+            const poolXyt = document.getElementById('poolReserveXytDisplay');
+            if (poolXyt) poolXyt.innerText = `${defiState.reserveToken.toFixed(1)} XYT`;
+
+            const rateDisp = document.getElementById('swapRateDisplay');
+            if (rateDisp && defiState.reserveMon > 0) {
+                const rate = defiState.reserveToken / defiState.reserveMon;
+                rateDisp.innerText = `1 MON ≈ ${rate.toFixed(0)} XYT`;
+            }
+
+            const myStakedXytEl = document.getElementById('myStakedXyt');
+            if (myStakedXytEl) myStakedXytEl.innerText = `${defiState.stakedXyt.toFixed(2)} $XYT`;
+            const myStakingYieldEl = document.getElementById('myPendingStakingYield');
+            if (myStakingYieldEl) myStakingYieldEl.innerText = `${defiState.pendingXytReward.toFixed(4)} $XYT`;
+
+            const totalLpSupplyDisp = document.getElementById('totalLpSupplyDisplay');
+            if (totalLpSupplyDisp) totalLpSupplyDisp.innerText = `${defiState.totalLpSupply.toFixed(0)} LP`;
+
+            const myStakedLpEl = document.getElementById('myStakedLp');
+            if (myStakedLpEl) myStakedLpEl.innerText = `${defiState.stakedLp.toFixed(4)} LP`;
+            const myLpYieldEl = document.getElementById('myPendingLpYield');
+            if (myLpYieldEl) myLpYieldEl.innerText = `${defiState.pendingLpReward.toFixed(4)} $XYT`;
+
+            onSwapAmountChange();
+        }
+
+        window.toggleSwapDirection = function() {
+            sfx.playPickup();
+            if (defiState.swapDirection === 'MON_TO_XYT') {
+                defiState.swapDirection = 'XYT_TO_MON';
+                document.getElementById('swapPayTokenBtn').innerText = 'XYT';
+                document.getElementById('swapReceiveTokenSymbol').innerText = 'MON';
+            } else {
+                defiState.swapDirection = 'MON_TO_XYT';
+                document.getElementById('swapPayTokenBtn').innerText = 'MON';
+                document.getElementById('swapReceiveTokenSymbol').innerText = 'XYT';
+            }
+            updateDefiUI();
+        };
+
+        window.setSwapPercent = function(pct) {
+            sfx.playPickup();
+            const input = document.getElementById('swapInputAmount');
+            if (!input) return;
+            if (defiState.swapDirection === 'MON_TO_XYT') {
+                const usable = Math.max(0, defiState.monBalance - 0.005);
+                input.value = (usable * pct).toFixed(3);
+            } else {
+                input.value = (defiState.xytBalance * pct).toFixed(2);
+            }
+            onSwapAmountChange();
+        };
+
+        window.onSwapAmountChange = function() {
+            const input = document.getElementById('swapInputAmount');
+            const outEl = document.getElementById('swapEstimatedOut');
+            if (!input || !outEl) return;
+            const amt = parseFloat(input.value) || 0;
+            if (amt <= 0 || defiState.reserveMon <= 0 || defiState.reserveToken <= 0) {
+                outEl.innerText = "0.00";
+                return;
+            }
+
+            const rIn = defiState.swapDirection === 'MON_TO_XYT' ? defiState.reserveMon : defiState.reserveToken;
+            const rOut = defiState.swapDirection === 'MON_TO_XYT' ? defiState.reserveToken : defiState.reserveMon;
+            
+            const amtWithFee = amt * 0.997;
+            const numerator = amtWithFee * rOut;
+            const denominator = rIn + amtWithFee;
+            const estimatedOut = numerator / denominator;
+            outEl.innerText = estimatedOut.toFixed(estimatedOut >= 1 ? 2 : 4);
+        };
+
+        window.executeSwap = async function() {
+            const input = document.getElementById('swapInputAmount');
+            const amt = parseFloat(input.value) || 0;
+            if (amt <= 0) {
+                alert("请输入有效的兑换数量！");
+                return;
+            }
+
+            sfx.playSlash();
+            const btn = document.getElementById('btnExecuteSwap');
+            btn.disabled = true;
+            const oldText = btn.innerHTML;
+            btn.innerHTML = "⏳ 正在广播链上 Swap 交易 (约1秒落块)...";
+
+            try {
+                const feeOpts = await getOptimalMonadFee(220000n);
+                let tx;
+                if (defiState.swapDirection === 'MON_TO_XYT') {
+                    const weiValue = ethers.parseEther(amt.toString());
+                    logTx(`🔄 正在广播 Swap: 支付 ${amt} MON 兑换 $XYT...`, "pending");
+                    tx = await contract.swapMonForTokens(0, { value: weiValue, ...feeOpts });
+                } else {
+                    const tokenWei = ethers.parseEther(amt.toString());
+                    logTx(`🔄 正在广播 Swap: 支付 ${amt} $XYT 兑换 MON...`, "pending");
+                    tx = await contract.swapTokensForMon(tokenWei, 0, feeOpts);
+                }
+
+                logTx(`📡 Swap 交易已广播: ${tx.hash.slice(0, 12)}...`, "sent", tx.hash);
+                const rc = await tx.wait();
+                sfx.playPickup();
+                logTx(`🎉 极速 Swap 成功！已由区块 #${rc.blockNumber} 确认！`, "success", tx.hash);
+                showItemToast("🎉 链上 Swap 兑换成功！");
+                input.value = "";
+                await refreshDefiState();
+                await updateWalletBalance();
+            } catch (err) {
+                console.error("Swap error:", err);
+                logTx(`❌ Swap 失败: ${err.shortMessage || err.message}`, "error");
+                showItemToast("❌ Swap 兑换失败，请查看日志！");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = oldText;
+            }
+        };
+
+        window.stakeXyt = async function(isStake) {
+            const input = document.getElementById('stakingAmountInput');
+            const amt = parseFloat(input.value) || 0;
+            if (amt <= 0) {
+                alert("请输入有效的质押/解押数量！");
+                return;
+            }
+
+            sfx.playAltar();
+            const actionName = isStake ? "存入质押" : "解押赎回";
+            logTx(`🌱 正在执行单币 ${actionName} ${amt} $XYT...`, "pending");
+
+            try {
+                const feeOpts = await getOptimalMonadFee(180000n);
+                const weiAmt = ethers.parseEther(amt.toString());
+                const tx = isStake 
+                    ? await contract.stakeTokens(weiAmt, feeOpts)
+                    : await contract.unstakeTokens(weiAmt, feeOpts);
+
+                logTx(`📡 ${actionName} 交易已广播: ${tx.hash.slice(0, 12)}...`, "sent", tx.hash);
+                const rc = await tx.wait();
+                sfx.playPickup();
+                logTx(`🎉 ${actionName} 成功！区块 #${rc.blockNumber} 确权！`, "success", tx.hash);
+                showItemToast(`🎉 ${actionName}成功！年化 36.5% 计息中！`);
+                input.value = "";
+                await refreshDefiState();
+                await updateWalletBalance();
+            } catch (err) {
+                console.error("Staking error:", err);
+                logTx(`❌ ${actionName} 失败: ${err.shortMessage || err.message}`, "error");
+            }
+        };
+
+        window.claimStakingYield = async function() {
+            if (defiState.pendingXytReward <= 0.0001) {
+                alert("当前暂无可领取的质押利息！");
+                return;
+            }
+
+            sfx.playVictory();
+            logTx(`🌾 正在提取单币质押收益 ${defiState.pendingXytReward.toFixed(4)} $XYT...`, "pending");
+
+            try {
+                const feeOpts = await getOptimalMonadFee(160000n);
+                const tx = await contract.claimStakingRewards(feeOpts);
+                logTx(`📡 领取收益交易已广播: ${tx.hash.slice(0, 12)}...`, "sent", tx.hash);
+                const rc = await tx.wait();
+                sfx.playPickup();
+                logTx(`🎉 成功提取 ${defiState.pendingXytReward.toFixed(4)} $XYT 收益！`, "success", tx.hash);
+                showItemToast("🎉 质押收益提取到账！");
+                await refreshDefiState();
+                await updateWalletBalance();
+            } catch (err) {
+                console.error("Claim yield error:", err);
+                logTx(`❌ 提取利息失败: ${err.shortMessage || err.message}`, "error");
+            }
+        };
+
+        window.syncLpTokenNeeded = function() {
+            const monIn = parseFloat(document.getElementById('addMonInput').value) || 0;
+            const xytInput = document.getElementById('addXytInput');
+            if (monIn > 0 && defiState.reserveMon > 0) {
+                const neededXyt = (monIn * defiState.reserveToken) / defiState.reserveMon;
+                xytInput.value = neededXyt.toFixed(1);
+            }
+        };
+
+        window.executeAddLiquidity = async function() {
+            const monAmt = parseFloat(document.getElementById('addMonInput').value) || 0;
+            const xytAmt = parseFloat(document.getElementById('addXytInput').value) || 0;
+            if (monAmt <= 0 || xytAmt <= 0) {
+                alert("请输入有效的 MON 与 XYT 流动性做市配比！");
+                return;
+            }
+
+            sfx.playSlash();
+            logTx(`🛠️ 正在向 AMM 池注入 ${monAmt} MON + ${xytAmt} XYT 做市...`, "pending");
+
+            try {
+                const feeOpts = await getOptimalMonadFee(260000n);
+                const monWei = ethers.parseEther(monAmt.toString());
+                const xytWei = ethers.parseEther(xytAmt.toString());
+                const tx = await contract.addLiquidity(xytWei, { value: monWei, ...feeOpts });
+
+                logTx(`📡 注入流动性交易已广播: ${tx.hash.slice(0, 12)}...`, "sent", tx.hash);
+                const rc = await tx.wait();
+                sfx.playPickup();
+                logTx(`🎉 做市成功！已铸造 LP 凭证入库！(区块 #${rc.blockNumber})`, "success", tx.hash);
+                showItemToast("🎉 做市成功！已获得 XYT-MON LP 凭证！");
+                document.getElementById('addMonInput').value = "";
+                document.getElementById('addXytInput').value = "";
+                await refreshDefiState();
+                await updateWalletBalance();
+            } catch (err) {
+                console.error("Add liquidity error:", err);
+                logTx(`❌ 做市注入失败: ${err.shortMessage || err.message}`, "error");
+            }
+        };
+
+        window.promptRemoveLiquidity = async function() {
+            if (defiState.lpBalance <= 0) {
+                alert("您当前未持有可撤回的 LP 凭证！");
+                return;
+            }
+            const lpStr = prompt(`请输入要撤回的 LP 凭证数量 (当前可用: ${defiState.lpBalance.toFixed(4)} LP):`, defiState.lpBalance.toFixed(4));
+            if (!lpStr || isNaN(lpStr) || Number(lpStr) <= 0) return;
+
+            sfx.playSlash();
+            logTx(`➖ 正在撤回 ${lpStr} LP 流动性并取回本金...`, "pending");
+
+            try {
+                const feeOpts = await getOptimalMonadFee(240000n);
+                const lpWei = ethers.parseEther(lpStr);
+                const tx = await contract.removeLiquidity(lpWei, feeOpts);
+
+                logTx(`📡 撤回流动性交易已广播: ${tx.hash.slice(0, 12)}...`, "sent", tx.hash);
+                const rc = await tx.wait();
+                sfx.playPickup();
+                logTx(`🎉 撤回成功！MON 与 XYT 本金已返回钱包！`, "success", tx.hash);
+                showItemToast("🎉 撤回流动性成功！本金已归还！");
+                await refreshDefiState();
+                await updateWalletBalance();
+            } catch (err) {
+                console.error("Remove liquidity error:", err);
+                logTx(`❌ 撤回流动性失败: ${err.shortMessage || err.message}`, "error");
+            }
+        };
+
+        window.stakeLpTokens = async function(isStake) {
+            const input = document.getElementById('lpStakeAmountInput');
+            const amt = parseFloat(input.value) || 0;
+            if (amt <= 0) {
+                alert("请输入有效的 LP 质押/解押数量！");
+                return;
+            }
+
+            sfx.playAltar();
+            const actionName = isStake ? "质押 LP" : "解押 LP";
+            logTx(`🚜 正在执行 ${actionName} ${amt} LP (享 128% 头矿)...`, "pending");
+
+            try {
+                const feeOpts = await getOptimalMonadFee(180000n);
+                const lpWei = ethers.parseEther(amt.toString());
+                const tx = isStake 
+                    ? await contract.stakeLp(lpWei, feeOpts)
+                    : await contract.unstakeLp(lpWei, feeOpts);
+
+                logTx(`📡 ${actionName} 交易已广播: ${tx.hash.slice(0, 12)}...`, "sent", tx.hash);
+                const rc = await tx.wait();
+                sfx.playPickup();
+                logTx(`🎉 ${actionName} 成功！128.0% APY 农场计息中！`, "success", tx.hash);
+                showItemToast(`🎉 ${actionName}成功！128% APY 挖矿中！`);
+                input.value = "";
+                await refreshDefiState();
+                await updateWalletBalance();
+            } catch (err) {
+                console.error("LP Staking error:", err);
+                logTx(`❌ ${actionName} 失败: ${err.shortMessage || err.message}`, "error");
+            }
+        };
+
+        window.claimLpFarmYield = async function() {
+            if (defiState.pendingLpReward <= 0.0001) {
+                alert("当前暂无可领取的农场挖矿奖励！");
+                return;
+            }
+
+            sfx.playVictory();
+            logTx(`🌾 正在收割 128% LP 农场挖矿奖励 ${defiState.pendingLpReward.toFixed(4)} $XYT...`, "pending");
+
+            try {
+                const feeOpts = await getOptimalMonadFee(160000n);
+                const tx = await contract.claimLpRewards(feeOpts);
+                logTx(`📡 农场收割交易已广播: ${tx.hash.slice(0, 12)}...`, "sent", tx.hash);
+                const rc = await tx.wait();
+                sfx.playPickup();
+                logTx(`🎉 农场奖励收割成功！${defiState.pendingLpReward.toFixed(4)} $XYT 已铸造入库！`, "success", tx.hash);
+                showItemToast("🎉 128% LP 农场奖励已收割！");
+                await refreshDefiState();
+                await updateWalletBalance();
+            } catch (err) {
+                console.error("Claim LP yield error:", err);
+                logTx(`❌ 农场收割失败: ${err.shortMessage || err.message}`, "error");
+            }
+        };
 
         // 启动引擎
         init();
