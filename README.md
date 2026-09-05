@@ -12,6 +12,10 @@
 
 *《元气骑士》街机手感重铸 • 踏入传送门 100% 自动 Mint • 掉落非线性磁吸吸附 • 藏宝阁天机玄炉全链升星 • 三宗玄坛祈福受印 • 关底狂暴环形弹幕 • 彻底斩断全局串行累加器，实现 100% 并行零冲突状态提交*
 
+<p align="center">
+  <img src="demo.jpg" alt="Gameplay Screenshot" width="800" style="border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.5);" />
+</p>
+
 ---
 
 ## ⚡ 1. Monad 并行 EVM 与 Scaffold-ETH 规范架构 (V5 Parallel-Native)
