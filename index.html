@@ -561,7 +561,8 @@
             stepsTaken: 0,
             startTime: performance.now(),
             isCleared: false,
-            autoMintTriggered: false
+            autoMintTriggered: false,
+            bossDefeated: false
         };
 
         // 地牢章节配置 (元气骑士地牢风格)
@@ -691,10 +692,10 @@
                 
                 provider.getBlockNumber().then(b => {
                     blockHeightDisplay.innerText = '#' + b;
-                });
+                }).catch(e => console.warn("getBlockNumber warning:", e));
                 provider.getBalance(signer.address).then(bal => {
                     document.getElementById('gasBalanceDisplay').innerText = parseFloat(ethers.formatEther(bal)).toFixed(2);
-                });
+                }).catch(e => console.warn("getBalance warning:", e));
             } catch (err) {
                 console.error("Init error:", err);
             }
@@ -1699,13 +1700,13 @@
 
             const clearSecs = Math.max(1, Math.round((performance.now() - chapterStats.startTime) / 1000));
             const summary = {
-                chapterId: currentChapter,
-                totalDamage: chapterStats.totalDamage,
-                monstersSlain: chapterStats.monstersSlain,
-                skillsUsed: chapterStats.skillsUsed,
-                stepsTaken: chapterStats.stepsTaken,
-                clearTimeSeconds: clearSecs,
-                bossDefeated: chapterStats.bossDefeated
+                chapterId: Number(currentChapter) || 1,
+                totalDamage: Number(chapterStats.totalDamage) || 0,
+                monstersSlain: Number(chapterStats.monstersSlain) || 0,
+                skillsUsed: Number(chapterStats.skillsUsed) || 0,
+                stepsTaken: Number(chapterStats.stepsTaken) || 0,
+                clearTimeSeconds: Number(clearSecs) || 1,
+                bossDefeated: Boolean(chapterStats.bossDefeated)
             };
 
             // 生成唯一会话凭据防重放
@@ -1713,7 +1714,15 @@
             logTx(`📜 踏入传送门！正在 Monad 上自动认领并 Mint NFT 道具 (Session: ${sessionId.slice(0, 10)}...)...`, "pending");
 
             try {
-                const feeOpts = await getOptimalMonadFee(160000n);
+                // Monad 精算费率：settleChapter 涉及防重放校验、个人档案更新、神兵 NFT 铸造及事件广播，需 340000 gasLimit
+                let gasLimit = 340000n;
+                try {
+                    const est = await contract.settleChapter.estimateGas(summary, sessionId);
+                    gasLimit = est + (est / 10n); // 依 Monad 规范附加 10% 缓冲
+                } catch (e) {
+                    console.warn("Gas estimation fallback to 340,000:", e);
+                }
+                const feeOpts = await getOptimalMonadFee(gasLimit);
                 const tx = await contract.settleChapter(summary, sessionId, feeOpts);
                 logTx(`📡 自动 Mint 交易已广播: ${tx.hash.slice(0, 12)}...`, "sent", tx.hash);
 
@@ -1759,7 +1768,8 @@
             chapterStats = {
                 chapterId: chapterId,
                 totalDamage: 0, monstersSlain: 0, skillsUsed: 0, stepsTaken: 0,
-                startTime: performance.now(), isCleared: false, autoMintTriggered: false
+                startTime: performance.now(), isCleared: false, autoMintTriggered: false,
+                bossDefeated: false
             };
 
             clearanceOverlay.style.display = 'none';
