@@ -136,13 +136,21 @@
 
         <!-- Telemetry & Controls -->
         <div class="flex items-center space-x-2 text-xs font-mono">
+            <!-- External Wallet Connect Widget (Monad Wallet Integration) -->
+            <button id="btnWalletConnect" class="px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-slate-950 font-bold font-xy text-xs flex items-center space-x-1.5 shadow-md border border-yellow-300 transition-all active:scale-95">
+                <span id="walletConnectIcon">🦊</span>
+                <span id="walletConnectText">连接钱包</span>
+            </button>
+            <button id="btnWalletModeToggle" class="px-2 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 text-[10px] font-mono hidden sm:flex items-center space-x-1" title="切换免密试玩 / 外部Web3钱包">
+                <span id="walletModeBadge" class="text-yellow-400">⚡ 试玩模式</span>
+            </button>
             <button id="btnAudioToggle" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 text-amber-300 flex items-center space-x-1">
                 <span id="audioIcon">🔊</span>
                 <span id="audioText" class="text-[11px] font-xy">音效: 开</span>
             </button>
             <div class="bg-black/60 border border-amber-600/60 px-2.5 py-1.5 rounded-lg flex items-center space-x-1.5">
                 <span class="text-yellow-400 font-bold font-pixel text-sm">🪙 MON:</span>
-                <span id="gasBalanceDisplay" class="text-emerald-400 font-bold">1.08</span>
+                <span id="gasBalanceDisplay" class="text-emerald-400 font-bold">--</span>
             </div>
             <div class="bg-black/60 border border-slate-700 px-2.5 py-1.5 rounded-lg flex items-center space-x-1.5">
                 <span class="text-slate-400">高度:</span>
@@ -339,7 +347,11 @@
             </div>
 
             <!-- Panel 3: 合约与钱包信息 -->
-            <div class="sk-panel p-2.5 text-xs flex items-center justify-between text-slate-400 font-mono text-[11px]">
+            <div class="sk-panel p-2.5 text-xs flex flex-wrap items-center justify-between text-slate-400 font-mono text-[11px] gap-2">
+                <div class="flex items-center space-x-1.5">
+                    <span class="text-slate-400">账号:</span>
+                    <span id="accountModeBadge" class="text-yellow-300 bg-black/60 px-2 py-0.5 rounded border border-yellow-500/40 text-[10px] font-bold">⚡ 试玩: 0xB204...7ad6</span>
+                </div>
                 <div>
                     <span>合约: </span>
                     <a href="https://testnet.monadexplorer.com/address/0x7781478250d944efd88256F4D84D479194116341" target="_blank" class="text-yellow-400 hover:underline">
@@ -518,12 +530,67 @@
                 osc.connect(gain); gain.connect(this.ctx.destination);
                 osc.start(now); osc.stop(now + 0.18);
             }
+            playUlti() { // 门派大招万剑归宗震撼长鸣
+                if (this.muted) return; this.init();
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(880, now);
+                osc.frequency.exponentialRampToValueAtTime(110, now + 0.45);
+                gain.gain.setValueAtTime(0.45, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+                osc.connect(gain); gain.connect(this.ctx.destination);
+                osc.start(now); osc.stop(now + 0.45);
+            }
         }
         const sfx = new SoundFX();
 
         // =========================================================================
         // 2. 状态、地牢关卡与元气小人定义
         // =========================================================================
+        const MONAD_CHAIN_ID_DEC = 10143;
+        const MONAD_CHAIN_ID_HEX = "0x279f";
+        const MONAD_NETWORK_CONFIG = {
+            chainId: MONAD_CHAIN_ID_HEX,
+            chainName: "Monad Testnet",
+            nativeCurrency: { name: "MON", symbol: "MON", decimals: 18 },
+            rpcUrls: ["https://testnet-rpc.monad.xyz"],
+            blockExplorerUrls: ["https://testnet.monadexplorer.com"]
+        };
+
+        // 外部 Web3 钱包状态与试玩模式状态机
+        let currentWalletMode = "trial"; // "trial" (免密极速试玩) | "external" (外部 Web3 钱包)
+        let trialWallet = null;
+        let externalSigner = null;
+        let externalAddress = null;
+        let externalBrowserProvider = null;
+
+        // 视觉与战斗粒子容器 (Visual & Combat Particles)
+        let ambientMotes = [];    // 地牢漂浮微光微粒 (28颗)
+        let slashVisuals = [];    // 弧形半月剑气波
+        let hitSparks = [];       // 斩击切削四溅火花
+        let debrisParticles = []; // 箱子/陶罐破碎碎屑
+        let ghostTrails = [];     // 剑侠客轻功步法残影
+        let shockwaveRipples = [];// 地面冲击波光环
+        let lastTrailTime = 0;
+
+        function initAmbientMotes() {
+            ambientMotes = [];
+            for (let i = 0; i < 28; i++) {
+                ambientMotes.push({
+                    x: Math.random() * CANVAS_SIZE,
+                    y: Math.random() * CANVAS_SIZE,
+                    radius: Math.random() * 1.6 + 0.8,
+                    speedY: Math.random() * 0.25 + 0.1,
+                    speedX: (Math.random() - 0.5) * 0.15,
+                    alpha: Math.random() * 0.5 + 0.2,
+                    phase: Math.random() * Math.PI * 2
+                });
+            }
+        }
+        initAmbientMotes();
+
         let currentChapter = 1;
         let player = {
             x: 14, y: 14, visualX: 14, visualY: 14, facing: 1, isMoving: false,
@@ -659,6 +726,141 @@
         const mintStatusText = document.getElementById('mintStatusText');
         const btnNextLevel = document.getElementById('btnNextLevel');
 
+        // External Web3 Wallet UI Elements
+        const btnWalletConnect = document.getElementById('btnWalletConnect');
+        const walletConnectText = document.getElementById('walletConnectText');
+        const walletConnectIcon = document.getElementById('walletConnectIcon');
+        const btnWalletModeToggle = document.getElementById('btnWalletModeToggle');
+        const walletModeBadge = document.getElementById('walletModeBadge');
+        const accountModeBadge = document.getElementById('accountModeBadge');
+
+        // =========================================================================
+        // 2.2 Monad Web3 外部钱包接入器 (EIP-1193 & MetaMask/OKX/Phantom/Rabby)
+        // =========================================================================
+        async function checkAndSwitchMonadNetwork() {
+            if (!window.ethereum) return;
+            const currentChainId = await window.ethereum.request({ method: 'eth_chainId' });
+            if (currentChainId.toLowerCase() !== MONAD_CHAIN_ID_HEX) {
+                try {
+                    await window.ethereum.request({
+                        method: 'wallet_switchEthereumChain',
+                        params: [{ chainId: MONAD_CHAIN_ID_HEX }]
+                    });
+                } catch (switchError) {
+                    if (switchError.code === 4902 || switchError?.data?.originalError?.code === 4902) {
+                        await window.ethereum.request({
+                            method: 'wallet_addEthereumChain',
+                            params: [MONAD_NETWORK_CONFIG]
+                        });
+                    } else {
+                        throw switchError;
+                    }
+                }
+            }
+        }
+
+        async function connectExternalWallet() {
+            if (!window.ethereum) {
+                alert("🦊 未检测到 Web3 钱包插件（如 MetaMask、OKX Wallet、Phantom、Rabby 等），请在浏览器中安装！\n当前为您继续保留【⚡ 免密极速试玩模式】。");
+                logTx("⚠️ 未检测到 Web3 钱包插件，继续使用免密极速试玩钱包！", "error");
+                return;
+            }
+            try {
+                logTx("🦊 正在唤起外部 Web3 钱包授权连接...", "info");
+                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                if (!accounts || accounts.length === 0) {
+                    logTx("⚠️ 用户取消了外部钱包授权", "error");
+                    return;
+                }
+                await checkAndSwitchMonadNetwork();
+
+                externalBrowserProvider = new ethers.BrowserProvider(window.ethereum);
+                externalSigner = await externalBrowserProvider.getSigner();
+                externalAddress = await externalSigner.getAddress();
+
+                signer = externalSigner;
+                contract = new ethers.Contract(CONTRACT_ADDR, CONTRACT_ABI, signer);
+                currentWalletMode = "external";
+
+                updateWalletUI();
+                logTx(`🦊 外部钱包已连接: ${externalAddress.slice(0, 6)}...${externalAddress.slice(-4)}，已切至真实 Web3 模式！`, "success");
+                showItemToast("🦊 外部钱包已连接！已切至真实 Web3 模式！");
+
+                await updateWalletBalance();
+                await syncEquippedState();
+                await refreshLootInventory();
+                await refreshBazaarListings();
+            } catch (err) {
+                console.error("connectExternalWallet error:", err);
+                logTx(`❌ 外部钱包连接失败: ${err.message || err}`, "error");
+            }
+        }
+
+        async function switchToTrialWallet() {
+            if (!trialWallet) trialWallet = new ethers.Wallet(PRE_FUNDED_KEY, provider);
+            signer = trialWallet;
+            contract = new ethers.Contract(CONTRACT_ADDR, CONTRACT_ABI, signer);
+            currentWalletMode = "trial";
+            updateWalletUI();
+            logTx(`⚡ 已切回【免密极速试玩模式】(${trialWallet.address.slice(0, 6)}...${trialWallet.address.slice(-4)})，无需签名即开即玩！`, "info");
+            showItemToast("⚡ 已切回免密极速试玩钱包！");
+            await updateWalletBalance();
+            await syncEquippedState();
+            await refreshLootInventory();
+            await refreshBazaarListings();
+        }
+
+        function toggleWalletMode() {
+            if (currentWalletMode === 'trial') {
+                if (externalSigner && externalAddress) {
+                    signer = externalSigner;
+                    contract = new ethers.Contract(CONTRACT_ADDR, CONTRACT_ABI, signer);
+                    currentWalletMode = "external";
+                    updateWalletUI();
+                    updateWalletBalance();
+                    syncEquippedState();
+                    refreshLootInventory();
+                    logTx(`🦊 已切至外部钱包: ${externalAddress.slice(0, 6)}...${externalAddress.slice(-4)}`, "success");
+                } else {
+                    connectExternalWallet();
+                }
+            } else {
+                switchToTrialWallet();
+            }
+        }
+
+        function updateWalletUI() {
+            if (currentWalletMode === 'external' && externalAddress) {
+                const shortAddr = `${externalAddress.slice(0, 6)}...${externalAddress.slice(-4)}`;
+                walletConnectText.innerText = shortAddr;
+                walletConnectIcon.innerText = "🦊";
+                btnWalletConnect.className = "px-2.5 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-600 text-white font-bold font-mono text-xs flex items-center space-x-1.5 shadow-md border border-emerald-400 transition-all active:scale-95";
+                walletModeBadge.innerText = "🦊 外部钱包";
+                walletModeBadge.className = "text-emerald-400";
+                accountModeBadge.innerText = `🦊 外部: ${shortAddr}`;
+                accountModeBadge.className = "text-emerald-300 bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-500/60 text-[10px] font-bold";
+            } else {
+                const trialAddr = trialWallet ? `${trialWallet.address.slice(0, 6)}...${trialWallet.address.slice(-4)}` : "0xB204...7ad6";
+                walletConnectText.innerText = "连接钱包";
+                walletConnectIcon.innerText = "🦊";
+                btnWalletConnect.className = "px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-slate-950 font-bold font-xy text-xs flex items-center space-x-1.5 shadow-md border border-yellow-300 transition-all active:scale-95";
+                walletModeBadge.innerText = "⚡ 试玩模式";
+                walletModeBadge.className = "text-yellow-400";
+                accountModeBadge.innerText = `⚡ 试玩: ${trialAddr}`;
+                accountModeBadge.className = "text-yellow-300 bg-black/60 px-2 py-0.5 rounded border border-yellow-500/40 text-[10px] font-bold";
+            }
+        }
+
+        async function updateWalletBalance() {
+            if (!signer) return;
+            try {
+                const bal = await provider.getBalance(signer.address);
+                document.getElementById('gasBalanceDisplay').innerText = parseFloat(ethers.formatEther(bal)).toFixed(2);
+            } catch (e) {
+                console.warn("updateWalletBalance error:", e);
+            }
+        }
+
         // =========================================================================
         // 2.5 Monad 并行 EVM 精算费率助手 (遵守 50 gwei 底线 & EIP-1559 Type 2)
         // =========================================================================
@@ -681,21 +883,57 @@
         async function init() {
             try {
                 provider = new ethers.JsonRpcProvider(RPC_URL);
-                signer = new ethers.Wallet(PRE_FUNDED_KEY, provider);
+                trialWallet = new ethers.Wallet(PRE_FUNDED_KEY, provider);
+                signer = trialWallet;
                 contract = new ethers.Contract(CONTRACT_ADDR, CONTRACT_ABI, signer);
 
                 logTx("🎮 元气地牢全链引擎启动！所有掉落道具均为 NFT，通关自动认领！", "info");
 
+                // 绑定外部钱包按钮事件
+                if (btnWalletConnect) {
+                    btnWalletConnect.addEventListener('click', () => {
+                        if (currentWalletMode === 'trial') connectExternalWallet();
+                        else toggleWalletMode();
+                    });
+                }
+                if (btnWalletModeToggle) {
+                    btnWalletModeToggle.addEventListener('click', toggleWalletMode);
+                }
+
+                // 监听外部钱包事件 (EIP-1193)
+                if (window.ethereum) {
+                    window.ethereum.on('accountsChanged', async (accounts) => {
+                        if (accounts.length === 0) {
+                            switchToTrialWallet();
+                        } else if (currentWalletMode === 'external') {
+                            externalAddress = accounts[0];
+                            externalBrowserProvider = new ethers.BrowserProvider(window.ethereum);
+                            externalSigner = await externalBrowserProvider.getSigner();
+                            signer = externalSigner;
+                            contract = new ethers.Contract(CONTRACT_ADDR, CONTRACT_ABI, signer);
+                            updateWalletUI();
+                            await updateWalletBalance();
+                            await syncEquippedState();
+                            await refreshLootInventory();
+                            logTx(`🦊 钱包账号变更为: ${accounts[0].slice(0, 6)}...${accounts[0].slice(-4)}`, "info");
+                        }
+                    });
+                    window.ethereum.on('chainChanged', (chainId) => {
+                        if (currentWalletMode === 'external' && chainId.toLowerCase() !== MONAD_CHAIN_ID_HEX) {
+                            logTx("⚠️ 检测到非 Monad 测试网，请切回 Monad Testnet (Chain ID 10143)！", "error");
+                        }
+                    });
+                }
+
+                updateWalletUI();
                 await syncEquippedState();
                 await refreshLootInventory();
                 await refreshBazaarListings();
+                await updateWalletBalance();
                 
                 provider.getBlockNumber().then(b => {
                     blockHeightDisplay.innerText = '#' + b;
                 }).catch(e => console.warn("getBlockNumber warning:", e));
-                provider.getBalance(signer.address).then(bal => {
-                    document.getElementById('gasBalanceDisplay').innerText = parseFloat(ethers.formatEther(bal)).toFixed(2);
-                }).catch(e => console.warn("getBalance warning:", e));
             } catch (err) {
                 console.error("Init error:", err);
             }
@@ -734,7 +972,7 @@
             const now = performance.now();
             const time = (now - startTime) * 0.001;
 
-            // 1. 打击顿帧 (Hitstop: 普攻 2 帧，暴击 5 帧)
+            // 1. 打击顿帧 (Hitstop: 普攻 2 帧，技能暴击 5 帧)
             if (hitstopFrames > 0) {
                 hitstopFrames--;
                 requestAnimationFrame(render);
@@ -760,25 +998,30 @@
 
             ctx.save();
             if (screenShake > 0) {
-                const sx = (Math.random() - 0.5) * screenShake * 2.5;
-                const sy = (Math.random() - 0.5) * screenShake * 2.5;
+                const sx = (Math.random() - 0.5) * screenShake * 2.8;
+                const sy = (Math.random() - 0.5) * screenShake * 2.8;
                 ctx.translate(sx, sy);
                 screenShake = Math.max(0, screenShake - 0.5);
             }
 
-            // 地牢砖石地板
-            drawDungeonFloor(ctx, CHAPTER_CONFIGS[currentChapter]);
+            // 1. 地牢砖石地板 (3D立体浮雕高光边与地脉青苔)
+            drawDungeonFloor(ctx, CHAPTER_CONFIGS[currentChapter], time);
 
-            // 地牢外围石墙与火炬
+            // 2. 地牢石墙与火炬 (真实径向呼吸光晕与火星升腾)
             drawDungeonWallsAndTorches(ctx, time);
 
-            // 地牢可破坏木箱与陶罐 (Breakable Props)
+            // 3. 地面冲击波光环 (万剑归宗冲击纹)
+            updateAndDrawShockwaves(ctx);
+
+            // 4. 箱罐木屑与陶片碎屑 (物理弹跳)
+            updateAndDrawDebris(ctx);
+
+            // 5. 地牢可破坏木箱与陶罐
             drawDungeonProps(ctx, time);
 
-            // 三宗玄坛神像 (Altar of the Three Sects)
+            // 6. 三宗玄坛神像
             if (altarProp) {
                 drawAltar(ctx, altarProp, time);
-                // 踏入神坛祈福
                 if (!altarProp.used) {
                     const distAltar = Math.hypot(player.x - altarProp.x, player.y - altarProp.y);
                     if (distAltar <= 1.4) {
@@ -787,19 +1030,22 @@
                 }
             }
 
-            // 传送门绘制
+            // 7. 传送门绘制
             if (portalActive) {
                 drawSoulKnightPortal(ctx, portalPos.x * TILE_PX + TILE_PX * 0.5, portalPos.y * TILE_PX + TILE_PX * 0.5, time);
             }
 
-            // 地面掉落宝物球与灵药回血丸 (带 Ease-Out 磁吸效果)
+            // 8. 地面掉落神兵球与气丸 (磁吸吸附)
             drawGroundLootOrbs(ctx, time);
 
-            // 怪物追击 AI 与伤害判定
+            // 9. 剑侠客轻功步法流云残影 (Ghost Trails)
+            updateAndDrawGhostTrails(ctx);
+
+            // 10. 怪物追击 AI、物理击退与伤害判定
             monsters.forEach(m => {
                 if (m.hp <= 0) return;
 
-                // 怪物小步巡弋向玩家靠近
+                // 怪物小步巡弋
                 if (now - (m.lastMove || 0) > (m.isBoss ? 750 : 1000)) {
                     m.lastMove = now;
                     const distX = player.x - m.x;
@@ -812,17 +1058,17 @@
                     }
                 }
 
-                // 紧贴攻击判定 (主角紧缩 Hurtbox 0.7 格)
+                // 紧贴攻击判定 (主角紧缩 Hurtbox 0.75 格)
                 const distToHero = Math.hypot(player.visualX - m.x, player.visualY - m.y);
                 if (distToHero <= 0.75) {
                     takePlayerDamage(m.isBoss ? 35 : 18);
                 }
 
-                // Chapter 3 镇塔妖王狂暴环形恶魔弹幕
+                // Boss 狂暴环形弹幕
                 if (m.isBoss && m.hp <= 320 && now - lastBossBarrageTime > 2600) {
                     lastBossBarrageTime = now;
                     sfx.playBulletFire();
-                    screenShake = 5;
+                    screenShake = 6;
                     const bulletCount = 8;
                     for (let b = 0; b < bulletCount; b++) {
                         const angle = (b / bulletCount) * Math.PI * 2;
@@ -849,24 +1095,24 @@
                 drawPixelMonster(ctx, m, mx, my, time);
                 ctx.filter = 'none';
 
-                // 血条
+                // 精雕血条
                 const hpPercent = m.hp / m.maxHp;
-                const barWidth = m.isBoss ? 52 : 24;
-                ctx.fillStyle = '#000';
-                ctx.fillRect(mx - barWidth / 2, my - (m.isBoss ? 32 : 20), barWidth, 4);
-                ctx.fillStyle = m.isBoss ? '#f59e0b' : (hpPercent > 0.3 ? '#22c55e' : '#ef4444');
-                ctx.fillRect(mx - barWidth / 2, my - (m.isBoss ? 32 : 20), barWidth * hpPercent, 4);
+                const barWidth = m.isBoss ? 54 : 26;
+                ctx.fillStyle = '#000000';
+                ctx.fillRect(mx - barWidth / 2 - 1, my - (m.isBoss ? 35 : 22) - 1, barWidth + 2, 6);
+                ctx.fillStyle = m.isBoss ? '#f59e0b' : (hpPercent > 0.35 ? '#22c55e' : '#ef4444');
+                ctx.fillRect(mx - barWidth / 2, my - (m.isBoss ? 35 : 22), barWidth * hpPercent, 4);
 
                 ctx.fillStyle = '#fef08a';
                 ctx.font = `${m.isBoss ? 'bold 11px' : '9px'} VT323, monospace`;
                 ctx.textAlign = 'center';
-                ctx.fillText(m.name, mx, my - (m.isBoss ? 36 : 24));
+                ctx.fillText(m.name, mx, my - (m.isBoss ? 39 : 25));
             });
 
-            // 更新与绘制 Boss 恶魔弹幕
+            // 11. Boss 恶魔烈焰弹幕
             updateAndDrawBossBullets(ctx, time);
 
-            // 剑侠客平滑插值移动与元气像素小人手绘
+            // 12. 剑侠客平滑插值移动与元气小人精绘
             player.visualX += (player.x - player.visualX) * 0.38;
             player.visualY += (player.y - player.visualY) * 0.38;
 
@@ -874,7 +1120,16 @@
             const heroPy = player.visualY * TILE_PX + TILE_PX * 0.5;
             drawSoulKnightHero(ctx, heroPx, heroPy, player.facing, time, player.isMoving, player.isAttacking, player.attackProgress);
 
-            // 伤害跳字
+            // 13. 斩击弧光与刀气波 (Slash Wave Trails)
+            updateAndDrawSlashVisuals(ctx);
+
+            // 14. 斩击切削火花 (Sparks on Hit)
+            updateAndDrawHitSparks(ctx);
+
+            // 15. 地牢微光悬浮粒子 (Ambient Motes)
+            updateAndDrawAmbientMotes(ctx, time);
+
+            // 16. 伤害跳字
             drawFloatingTexts(ctx);
 
             ctx.restore();
@@ -883,37 +1138,245 @@
         }
 
         // =========================================================================
-        // 5. 元气地牢地砖、墙面与传送门手绘函数
+        // 4.5 粒子系统：环境微光、轻功残影、剑气波、切削火花与碎屑
         // =========================================================================
-        function drawDungeonFloor(ctx, cfg) {
+        function updateAndDrawAmbientMotes(ctx, time) {
+            ctx.save();
+            for (let i = 0; i < ambientMotes.length; i++) {
+                const m = ambientMotes[i];
+                m.y -= m.speedY;
+                m.x += m.speedX + Math.sin(time * 2 + m.phase) * 0.15;
+                if (m.y < 0) { m.y = CANVAS_SIZE; m.x = Math.random() * CANVAS_SIZE; }
+                if (m.x < 0) m.x = CANVAS_SIZE;
+                if (m.x > CANVAS_SIZE) m.x = 0;
+
+                const pulse = 0.5 + Math.sin(time * 3 + m.phase) * 0.5;
+                ctx.fillStyle = currentChapter === 3 ? `rgba(216, 180, 254, ${m.alpha * pulse})` :
+                                (currentChapter === 2 ? `rgba(134, 239, 172, ${m.alpha * pulse})` :
+                                `rgba(253, 224, 71, ${m.alpha * pulse})`);
+                ctx.beginPath();
+                ctx.arc(m.x, m.y, m.radius, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.restore();
+        }
+
+        function updateAndDrawGhostTrails(ctx) {
+            for (let i = ghostTrails.length - 1; i >= 0; i--) {
+                const t = ghostTrails[i];
+                t.alpha -= 0.055;
+                if (t.alpha <= 0) {
+                    ghostTrails.splice(i, 1);
+                    continue;
+                }
+                ctx.save();
+                ctx.globalAlpha = t.alpha;
+                ctx.translate(t.x, t.y);
+                // 渲染武侠轻功“踏雪无痕”半透明纯青蓝残影
+                ctx.fillStyle = '#38bdf8';
+                ctx.fillRect(-6, -2, 12, 10);
+                ctx.fillStyle = '#7dd3fc';
+                ctx.beginPath();
+                ctx.arc(0, -9, 7, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        function updateAndDrawSlashVisuals(ctx) {
+            for (let i = slashVisuals.length - 1; i >= 0; i--) {
+                const s = slashVisuals[i];
+                s.life -= 0.11;
+                s.radius += s.speed;
+                if (s.life <= 0) {
+                    slashVisuals.splice(i, 1);
+                    continue;
+                }
+                ctx.save();
+                ctx.translate(s.x, s.y);
+                ctx.rotate(s.angle);
+                ctx.globalAlpha = Math.max(0, s.life);
+
+                // 斩击弧光外焰
+                ctx.strokeStyle = s.color || '#38bdf8';
+                ctx.shadowColor = s.color || '#38bdf8';
+                ctx.shadowBlur = 12;
+                ctx.lineWidth = s.width || 3.5;
+                ctx.beginPath();
+                ctx.arc(0, 0, s.radius, -s.arcSpan * 0.5, s.arcSpan * 0.5);
+                ctx.stroke();
+
+                // 剑气内芯耀眼白芒
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 1.6;
+                ctx.beginPath();
+                ctx.arc(0, 0, s.radius - 1, -s.arcSpan * 0.35, s.arcSpan * 0.35);
+                ctx.stroke();
+
+                ctx.restore();
+            }
+        }
+
+        function updateAndDrawHitSparks(ctx) {
+            for (let i = hitSparks.length - 1; i >= 0; i--) {
+                const sp = hitSparks[i];
+                sp.x += sp.vx;
+                sp.y += sp.vy;
+                sp.vy += 0.12; // 轻微重力沉降
+                sp.life -= 0.075;
+                if (sp.life <= 0) {
+                    hitSparks.splice(i, 1);
+                    continue;
+                }
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, sp.life);
+                ctx.fillStyle = sp.color || '#fde047';
+                ctx.shadowColor = sp.color || '#fde047';
+                ctx.shadowBlur = 7;
+                ctx.beginPath();
+                ctx.arc(sp.x, sp.y, sp.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        function spawnHitSparks(x, y, count = 8, color = '#facc15') {
+            for (let i = 0; i < count; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 3.6 + 1.2;
+                hitSparks.push({
+                    x: x,
+                    y: y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    size: Math.random() * 2.2 + 1,
+                    color: Math.random() > 0.35 ? color : '#ffffff',
+                    life: 1.0
+                });
+            }
+        }
+
+        function updateAndDrawDebris(ctx) {
+            for (let i = debrisParticles.length - 1; i >= 0; i--) {
+                const d = debrisParticles[i];
+                d.x += d.vx;
+                d.y += d.vy;
+                d.vy += 0.18; // 重力抛物线
+                d.rot += d.vrot;
+                d.life -= 0.045;
+                if (d.life <= 0) {
+                    debrisParticles.splice(i, 1);
+                    continue;
+                }
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, d.life);
+                ctx.translate(d.x, d.y);
+                ctx.rotate(d.rot);
+                ctx.fillStyle = d.color;
+                ctx.fillRect(-d.size / 2, -d.size / 2, d.size, d.size);
+                ctx.restore();
+            }
+        }
+
+        function spawnDebris(x, y, type = 'crate') {
+            const col = type === 'crate' ? ['#78350f', '#92400e', '#b45309', '#451a03'] : ['#d97706', '#b45309', '#ea580c', '#78350f'];
+            for (let i = 0; i < 9; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const spd = Math.random() * 2.8 + 1.0;
+                debrisParticles.push({
+                    x: x,
+                    y: y,
+                    vx: Math.cos(angle) * spd,
+                    vy: Math.sin(angle) * spd - 1.5,
+                    size: Math.random() * 4 + 2.5,
+                    color: col[Math.floor(Math.random() * col.length)],
+                    rot: Math.random() * Math.PI * 2,
+                    vrot: (Math.random() - 0.5) * 0.3,
+                    life: 1.0
+                });
+            }
+        }
+
+        function updateAndDrawShockwaves(ctx) {
+            for (let i = shockwaveRipples.length - 1; i >= 0; i--) {
+                const r = shockwaveRipples[i];
+                r.radius += r.speed;
+                r.alpha -= 0.04;
+                if (r.alpha <= 0) {
+                    shockwaveRipples.splice(i, 1);
+                    continue;
+                }
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, r.alpha);
+                ctx.strokeStyle = r.color || '#facc15';
+                ctx.lineWidth = r.width || 3;
+                ctx.shadowColor = r.color || '#facc15';
+                ctx.shadowBlur = 14;
+                ctx.beginPath();
+                ctx.arc(r.x, r.y, r.radius, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.restore();
+            }
+        }
+
+        // =========================================================================
+        // 5. 元气地牢地砖、石墙与火炬动态光晕手绘函数
+        // =========================================================================
+        function drawDungeonFloor(ctx, cfg, time) {
             ctx.fillStyle = cfg.floorColor;
             ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
 
-            // 石块拼缝线与阴影
-            ctx.strokeStyle = cfg.groutColor;
-            ctx.lineWidth = 1.5;
-            for (let i = 0; i <= MAP_SIZE; i += 2) {
-                const pos = i * TILE_PX;
-                ctx.beginPath(); ctx.moveTo(pos, 0); ctx.lineTo(pos, CANVAS_SIZE); ctx.stroke();
-                ctx.beginPath(); ctx.moveTo(0, pos); ctx.lineTo(CANVAS_SIZE, pos); ctx.stroke();
-            }
+            const tileSize = TILE_PX * 2; // ~39.3px 大块石砖
+            const cols = Math.ceil(CANVAS_SIZE / tileSize) + 1;
+            const rows = Math.ceil(CANVAS_SIZE / tileSize) + 1;
 
-            // 散落的古地砖微纹理
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
-            ctx.fillRect(4 * TILE_PX, 6 * TILE_PX, 2 * TILE_PX, 2 * TILE_PX);
-            ctx.fillRect(18 * TILE_PX, 10 * TILE_PX, 2 * TILE_PX, 2 * TILE_PX);
-            ctx.fillRect(8 * TILE_PX, 20 * TILE_PX, 2 * TILE_PX, 2 * TILE_PX);
+            for (let r = 0; r < rows; r++) {
+                const rowOffset = (r % 2 === 1) ? TILE_PX : 0; // 交错石砖排列
+                for (let c = -1; c < cols; c++) {
+                    const bx = c * tileSize + rowOffset;
+                    const by = r * tileSize;
+
+                    // 石砖立体浮雕高光顶边与左边
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.06)';
+                    ctx.fillRect(bx + 1, by + 1, tileSize - 2, 1.5);
+                    ctx.fillRect(bx + 1, by + 1, 1.5, tileSize - 2);
+
+                    // 石砖立体暗槽底边与右边
+                    ctx.fillStyle = cfg.groutColor || 'rgba(0, 0, 0, 0.45)';
+                    ctx.fillRect(bx, by + tileSize - 2, tileSize, 2);
+                    ctx.fillRect(bx + tileSize - 2, by, 2, tileSize);
+
+                    // 局部地脉青苔与裂痕斑驳 (利用伪随机散列)
+                    const seed = (r * 19 + c * 37) % 100;
+                    if (seed < 16) {
+                        ctx.fillStyle = 'rgba(16, 185, 129, 0.12)'; // 暗绿青苔微印记
+                        ctx.fillRect(bx + 6, by + 6, 8, 4);
+                        ctx.fillRect(bx + 9, by + 10, 4, 3);
+                    } else if (seed > 85) {
+                        ctx.fillStyle = 'rgba(0, 0, 0, 0.2)'; // 碎石裂纹
+                        ctx.fillRect(bx + 14, by + 12, 9, 1.5);
+                        ctx.fillRect(bx + 18, by + 13.5, 4, 1.5);
+                    }
+                }
+            }
         }
 
         function drawDungeonWallsAndTorches(ctx, time) {
             const wallThick = TILE_PX;
-            ctx.fillStyle = '#0f172a';
+            // 粗粝坚固石墙
+            ctx.fillStyle = '#0a0e17';
             ctx.fillRect(0, 0, CANVAS_SIZE, wallThick);
             ctx.fillRect(0, CANVAS_SIZE - wallThick, CANVAS_SIZE, wallThick);
             ctx.fillRect(0, 0, wallThick, CANVAS_SIZE);
             ctx.fillRect(CANVAS_SIZE - wallThick, 0, wallThick, CANVAS_SIZE);
 
-            // 墙面火把 (Flickering Torches)
+            // 墙垛立体倒角边框
+            ctx.fillStyle = '#1e293b';
+            ctx.fillRect(wallThick - 2, wallThick - 2, CANVAS_SIZE - 2 * wallThick + 4, 2);
+            ctx.fillRect(wallThick - 2, CANVAS_SIZE - wallThick, CANVAS_SIZE - 2 * wallThick + 4, 2);
+            ctx.fillRect(wallThick - 2, wallThick - 2, 2, CANVAS_SIZE - 2 * wallThick + 4);
+            ctx.fillRect(CANVAS_SIZE - wallThick, wallThick - 2, 2, CANVAS_SIZE - 2 * wallThick + 4);
+
             const torchLocations = [
                 { x: 5 * TILE_PX, y: wallThick },
                 { x: 14 * TILE_PX, y: wallThick },
@@ -922,20 +1385,48 @@
                 { x: 23 * TILE_PX, y: CANVAS_SIZE - wallThick }
             ];
 
+            const cfg = CHAPTER_CONFIGS[currentChapter];
+            const haloColor = cfg.torchColor === '#22c55e' ? 'rgba(34, 197, 94, 0.28)' :
+                             (cfg.torchColor === '#a855f7' ? 'rgba(168, 85, 247, 0.28)' : 'rgba(245, 158, 11, 0.28)');
+
             torchLocations.forEach(t => {
-                const flicker = Math.sin(time * 12 + t.x) * 2;
-                // 火把基座
-                ctx.fillStyle = '#78350f';
-                ctx.fillRect(t.x - 2, t.y - 4, 4, 6);
-                // 摇曳火焰
-                ctx.fillStyle = '#f59e0b';
+                const flicker = Math.sin(time * 14 + t.x) * 1.5;
+                const breathRadius = 65 + Math.sin(time * 8 + t.x) * 6;
+
+                // 1. 真实地牢动态径向环境光晕 (Radial Glow Ambient)
+                const glow = ctx.createRadialGradient(t.x, t.y - 6, 4, t.x, t.y - 6, breathRadius);
+                glow.addColorStop(0, haloColor);
+                glow.addColorStop(0.45, 'rgba(0, 0, 0, 0.08)');
+                glow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                ctx.fillStyle = glow;
                 ctx.beginPath();
-                ctx.arc(t.x, t.y - 6 + flicker, 4, 0, Math.PI * 2);
+                ctx.arc(t.x, t.y - 6, breathRadius, 0, Math.PI * 2);
                 ctx.fill();
-                ctx.fillStyle = '#ef4444';
+
+                // 2. 铸铁托架与铁箍
+                ctx.fillStyle = '#1e293b';
+                ctx.fillRect(t.x - 3, t.y - 1, 6, 3);
+                ctx.fillStyle = '#451a03';
+                ctx.fillRect(t.x - 2, t.y - 5, 4, 5);
+
+                // 3. 多重层次动态火焰与飞星
+                ctx.fillStyle = cfg.torchColor || '#f59e0b';
+                ctx.shadowColor = cfg.torchColor || '#f59e0b';
+                ctx.shadowBlur = 10;
                 ctx.beginPath();
-                ctx.arc(t.x, t.y - 7 + flicker, 2, 0, Math.PI * 2);
+                ctx.arc(t.x, t.y - 7 + flicker, 4.5, 0, Math.PI * 2);
                 ctx.fill();
+
+                ctx.fillStyle = '#fef08a';
+                ctx.beginPath();
+                ctx.arc(t.x, t.y - 8 + flicker * 0.8, 2.5, 0, Math.PI * 2);
+                ctx.fill();
+
+                // 火花微粒上升
+                const sparkY = t.y - 12 - (Math.abs(Math.sin(time * 16 + t.x)) * 7);
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(t.x + Math.sin(time * 10 + t.x) * 2, sparkY, 1.5, 1.5);
+                ctx.shadowBlur = 0;
             });
         }
 
@@ -943,25 +1434,27 @@
             ctx.save();
             ctx.translate(x, y);
 
-            // 传送门外环光芒
+            // 传送门外环多重符文光芒
             const spin = time * 3;
-            ctx.strokeStyle = 'rgba(56, 189, 248, 0.8)';
-            ctx.lineWidth = 3;
+            ctx.strokeStyle = 'rgba(56, 189, 248, 0.85)';
+            ctx.lineWidth = 3.5;
+            ctx.shadowColor = '#38bdf8';
+            ctx.shadowBlur = 14;
             ctx.beginPath();
-            ctx.arc(0, 0, 18 + Math.sin(time * 6) * 2, 0, Math.PI * 2);
+            ctx.arc(0, 0, 19 + Math.sin(time * 6) * 2, 0, Math.PI * 2);
             ctx.stroke();
 
             // 内部旋转星河符文
             ctx.strokeStyle = '#facc15';
-            ctx.lineWidth = 2;
+            ctx.lineWidth = 2.2;
             ctx.beginPath();
-            ctx.arc(0, 0, 12, spin, spin + Math.PI * 1.4);
+            ctx.arc(0, 0, 13, spin, spin + Math.PI * 1.4);
             ctx.stroke();
 
             ctx.fillStyle = '#38bdf8';
             ctx.font = 'bold 9px VT323, monospace';
             ctx.textAlign = 'center';
-            ctx.fillText("PORTAL (AUTO-MINT)", 0, -24);
+            ctx.fillText("PORTAL (AUTO-MINT)", 0, -25);
 
             ctx.restore();
         }
@@ -978,26 +1471,21 @@
                 ctx.translate(px, py);
 
                 if (p.hp <= 0) {
-                    // 破碎碎屑 (Debris)
-                    ctx.fillStyle = p.type === 'crate' ? '#78350f' : '#b45309';
-                    ctx.fillRect(-6, 2, 4, 3);
-                    ctx.fillRect(3, 4, 3, 2);
-                    ctx.fillRect(-2, 5, 4, 2);
                     ctx.restore();
                     return;
                 }
 
                 // 影子
-                ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.38)';
                 ctx.beginPath();
-                ctx.ellipse(0, 8, 8, 3.5, 0, 0, Math.PI * 2);
+                ctx.ellipse(0, 8, 8.5, 4, 0, 0, Math.PI * 2);
                 ctx.fill();
 
                 if (p.type === 'crate') { // 坚固木箱
                     ctx.fillStyle = '#b45309';
                     ctx.fillRect(-8, -8, 16, 16);
                     ctx.strokeStyle = '#451a03';
-                    ctx.lineWidth = 1.5;
+                    ctx.lineWidth = 1.6;
                     ctx.strokeRect(-8, -8, 16, 16);
                     // 木箱对角线加强木条
                     ctx.beginPath();
@@ -1007,13 +1495,13 @@
                 } else { // 陶罐/古瓮
                     ctx.fillStyle = '#d97706';
                     ctx.beginPath();
-                    ctx.arc(0, 0, 7.5, 0, Math.PI * 2);
+                    ctx.arc(0, 0, 8, 0, Math.PI * 2);
                     ctx.fill();
                     ctx.fillStyle = '#78350f';
-                    ctx.fillRect(-4, -9, 8, 3);
-                    // 封印符咒
+                    ctx.fillRect(-4, -9.5, 8, 3.5);
+                    // 镇邪朱砂符咒
                     ctx.fillStyle = '#ef4444';
-                    ctx.fillRect(-2, -3, 4, 6);
+                    ctx.fillRect(-2, -3.5, 4, 7);
                 }
                 ctx.restore();
             });
@@ -1114,7 +1602,7 @@
         }
 
         // =========================================================================
-        // 6. 元气骑士萌系像素小人 (Jian Xiake in Soul Knight Chibi Style)
+        // 6. 元气骑士萌系剑侠客 (飘逸发带、云纹战袍、轻功步法与神兵流光)
         // =========================================================================
         function drawSoulKnightHero(ctx, x, y, facing, time, isMoving, isAttacking, attackProg) {
             ctx.save();
@@ -1131,43 +1619,47 @@
             // 神殿祈福 Buff 光环 (Altar Blessing Aura)
             if (player.activeBuff) {
                 ctx.save();
-                if (player.activeBuff.type === 'lifesteal') {
-                    ctx.strokeStyle = 'rgba(239, 68, 68, 0.8)';
-                    ctx.shadowColor = '#ef4444';
-                } else if (player.activeBuff.type === 'speed') {
-                    ctx.strokeStyle = 'rgba(34, 197, 94, 0.8)';
-                    ctx.shadowColor = '#22c55e';
-                } else {
-                    ctx.strokeStyle = 'rgba(234, 179, 8, 0.8)';
-                    ctx.shadowColor = '#eab308';
-                }
-                ctx.lineWidth = 2;
-                ctx.shadowBlur = 8;
+                ctx.strokeStyle = player.activeBuff.type === 'lifesteal' ? 'rgba(239, 68, 68, 0.85)' :
+                                 (player.activeBuff.type === 'speed' ? 'rgba(34, 197, 94, 0.85)' : 'rgba(234, 179, 8, 0.85)');
+                ctx.shadowColor = ctx.strokeStyle;
+                ctx.lineWidth = 2.2;
+                ctx.shadowBlur = 10;
                 ctx.beginPath();
-                ctx.ellipse(0, 10, 13, 5, 0, 0, Math.PI * 2);
+                ctx.ellipse(0, 10, 13 + Math.sin(time * 8) * 1.5, 5, 0, 0, Math.PI * 2);
                 ctx.stroke();
                 ctx.restore();
             }
 
-            // 移动上下弹跳 (Soul Knight Iconic Bobbing)
-            const bob = isMoving ? Math.abs(Math.sin(time * 14)) * 3 : Math.sin(time * 3) * 0.8;
+            // 移动上下弹跳
+            const bob = isMoving ? Math.abs(Math.sin(time * 14)) * 3.2 : Math.sin(time * 3) * 0.8;
 
-            // 影子 (Compact Pixel Shadow)
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+            // 影子
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.38)';
             ctx.beginPath();
             ctx.ellipse(0, 12, 10, 4, 0, 0, Math.PI * 2);
             ctx.fill();
 
-            // 躯干与战袍
-            ctx.fillStyle = '#1e3a8a';
+            // 战袍底摆与躯干
+            ctx.fillStyle = '#1e3a8a'; // 大唐深蓝劲装
             ctx.fillRect(-6, -2 - bob, 12, 10);
+
+            // 战袍白色云纹中衽
             ctx.fillStyle = '#f8fafc';
             ctx.fillRect(-2, -2 - bob, 4, 8);
+
+            // 金黄祥云护肩 (Shoulder Pauldrons)
+            ctx.fillStyle = '#ca8a04';
+            ctx.fillRect(-8, -3 - bob, 3, 4);
+            ctx.fillRect(5, -3 - bob, 3, 4);
+
+            // 金丝腰带与腰佩墨玉
             ctx.fillStyle = '#eab308';
-            ctx.fillRect(-6, 4 - bob, 12, 2);
+            ctx.fillRect(-6, 4 - bob, 12, 2.5);
+            ctx.fillStyle = '#10b981'; // 碧玉配饰
+            ctx.fillRect(facing > 0 ? 3 : -4, 6 - bob, 2.5, 3.5);
 
             // 双腿步伐
-            const legWalk = isMoving ? Math.sin(time * 14) * 3 : 0;
+            const legWalk = isMoving ? Math.sin(time * 14) * 3.5 : 0;
             ctx.fillStyle = '#0f172a';
             ctx.fillRect(-5, 8 - bob, 4, 4 + legWalk);
             ctx.fillRect(1, 8 - bob, 4, 4 - legWalk);
@@ -1175,120 +1667,161 @@
             // 萌系大头 (Chibi Head)
             ctx.fillStyle = '#fed7aa';
             ctx.beginPath();
-            ctx.arc(0, -9 - bob, 7, 0, Math.PI * 2);
+            ctx.arc(0, -9 - bob, 7.5, 0, Math.PI * 2);
             ctx.fill();
 
-            // 剑侠客标志性发型与额前蓝色束发带
+            // 剑侠客飘逸蓝色长发带 (多节物理摆动)
             ctx.fillStyle = '#0284c7';
-            ctx.fillRect(-7, -15 - bob, 14, 4);
+            ctx.fillRect(-7, -16 - bob, 14, 4); // 额头护额束发
+            const ribbonWave1 = Math.sin(time * 8) * 3;
+            const ribbonWave2 = Math.sin(time * 8 + 1) * 4.5;
             ctx.beginPath();
             ctx.moveTo(-3, -15 - bob);
-            ctx.lineTo(-9 * facing, -18 - bob + Math.sin(time * 6) * 2);
-            ctx.lineTo(-2, -13 - bob);
+            ctx.quadraticCurveTo(-9 * facing + ribbonWave1, -19 - bob, -15 * facing + ribbonWave2, -15 - bob);
+            ctx.lineTo(-11 * facing + ribbonWave1, -12 - bob);
+            ctx.closePath();
             ctx.fill();
 
-            // 大眼萌系瞳孔 (Soul Knight Big Sclera Eyes)
+            // 剑客英气双眸与明眸高光
             ctx.fillStyle = '#ffffff';
-            ctx.fillRect(facing > 0 ? 0 : -5, -11 - bob, 3.5, 4);
-            ctx.fillRect(facing > 0 ? 4 : -1, -11 - bob, 3.5, 4);
+            ctx.fillRect(facing > 0 ? 0 : -5, -11 - bob, 4, 4.5);
+            ctx.fillRect(facing > 0 ? 4.5 : -0.5, -11 - bob, 4, 4.5);
             ctx.fillStyle = '#000000';
-            ctx.fillRect(facing > 0 ? 2 : -3, -10 - bob, 2, 2.5);
-            ctx.fillRect(facing > 0 ? 6 : 1, -10 - bob, 2, 2.5);
+            ctx.fillRect(facing > 0 ? 2 : -3, -10.5 - bob, 2.5, 3);
+            ctx.fillRect(facing > 0 ? 6.5 : 1.5, -10.5 - bob, 2.5, 3);
+            // 高光小白点
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(facing > 0 ? 2 : -3, -10.5 - bob, 1, 1);
+            ctx.fillRect(facing > 0 ? 6.5 : 1.5, -10.5 - bob, 1, 1);
 
-            // 悬浮武器与挥击斩击动画 (Soul Knight Weapon Swing)
-            const weaponAngle = isAttacking ? (facing > 0 ? (attackProg * 1.6 - 0.8) : (-attackProg * 1.6 + 0.8)) : 0;
+            // 悬浮武器与挥击斩击动画
+            const weaponAngle = isAttacking ? (facing > 0 ? (attackProg * 1.8 - 0.9) : (-attackProg * 1.8 + 0.9)) : 0;
             ctx.save();
             ctx.translate(6 * facing, 1 - bob);
             ctx.rotate(weaponAngle);
 
-            // 青锋剑
-            ctx.strokeStyle = player.equipPower >= 80 ? '#facc15' : '#e2e8f0';
-            ctx.lineWidth = 2.4;
+            // 青锋神兵 (流光异彩)
+            const swordCol = player.equipPower >= 80 ? '#facc15' : '#38bdf8';
+            ctx.strokeStyle = swordCol;
+            ctx.shadowColor = swordCol;
+            ctx.shadowBlur = player.equipPower >= 80 ? 10 : 5;
+            ctx.lineWidth = 2.8;
             ctx.beginPath();
             ctx.moveTo(0, 0);
-            ctx.lineTo(14 * facing, -10);
+            ctx.lineTo(15 * facing, -12);
             ctx.stroke();
 
-            // 挥剑弧光特效 (Sword Slash Arc Trail)
-            if (isAttacking) {
-                ctx.strokeStyle = 'rgba(56, 189, 248, 0.85)';
-                ctx.lineWidth = 3;
-                ctx.shadowColor = '#38bdf8';
-                ctx.shadowBlur = 12;
-                ctx.beginPath();
-                ctx.arc(0, 0, 18, -Math.PI * 0.4, Math.PI * 0.4);
-                ctx.stroke();
-            }
-            ctx.restore();
+            // 剑锷与剑柄
+            ctx.strokeStyle = '#ca8a04';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(-1 * facing, 1);
+            ctx.lineTo(2 * facing, -2);
+            ctx.stroke();
+            ctx.shadowBlur = 0;
 
+            ctx.restore();
             ctx.restore();
         }
 
         // =========================================================================
-        // 7. 元气地牢怪物手绘
+        // 7. 元气地牢怪物手绘 (刺甲、毒囊呼吸、獠牙、幽绿冥火与熔岩魔神)
         // =========================================================================
         function drawPixelMonster(ctx, m, x, y, time) {
             ctx.save();
             ctx.translate(x, y);
 
             // 影子
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.38)';
             ctx.beginPath();
-            ctx.ellipse(0, 10, m.isBoss ? 18 : 9, m.isBoss ? 7 : 3.5, 0, 0, Math.PI * 2);
+            ctx.ellipse(0, m.isBoss ? 16 : 10, m.isBoss ? 22 : 11, m.isBoss ? 9 : 4.5, 0, 0, Math.PI * 2);
             ctx.fill();
 
-            if (m.type === "turtle") { // 刺壳龟
+            if (m.type === "turtle") { // 刺壳龟 (重铠尖刺甲)
                 const breath = Math.sin(time * 4) * 0.8;
-                ctx.fillStyle = '#059669';
-                ctx.beginPath(); ctx.arc(0, 0, 10 + breath, 0, Math.PI * 2); ctx.fill();
-                ctx.fillStyle = '#34d399';
-                ctx.fillRect(-3, -3, 6, 6);
-                // 萌眼
-                ctx.fillStyle = '#fff'; ctx.fillRect(4, -4, 3, 3);
-                ctx.fillStyle = '#000'; ctx.fillRect(5, -3, 1.5, 1.5);
-            } else if (m.type === "frog") { // 巨蛙
-                const hop = Math.abs(Math.sin(time * 5)) * 3;
-                ctx.fillStyle = '#06b6d4';
-                ctx.beginPath(); ctx.ellipse(0, -hop, 9, 7, 0, 0, Math.PI * 2); ctx.fill();
-                ctx.fillStyle = '#facc15'; ctx.fillRect(-3, -8 - hop, 3, 3); ctx.fillRect(3, -8 - hop, 3, 3);
-            } else if (m.type === "boar") { // 尖牙野猪
+                ctx.fillStyle = '#065f46';
+                ctx.beginPath(); ctx.arc(0, 0, 11 + breath, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = '#10b981';
+                ctx.beginPath(); ctx.arc(0, 0, 7.5 + breath, 0, Math.PI * 2); ctx.fill();
+                // 背甲 5 根锋利棘刺
+                ctx.fillStyle = '#facc15';
+                ctx.fillRect(-2, -14 - breath, 4, 4);
+                ctx.fillRect(8, -8, 4, 4);
+                ctx.fillRect(-12, -8, 4, 4);
+                ctx.fillRect(7, 7, 4, 4);
+                ctx.fillRect(-11, 7, 4, 4);
+                // 憨厚萌眼
+                ctx.fillStyle = '#fff'; ctx.fillRect(4, -4, 3.5, 3.5);
+                ctx.fillStyle = '#000'; ctx.fillRect(5.5, -3, 2, 2);
+            } else if (m.type === "frog") { // 剧毒珊瑚蛙 (毒囊鼓胀动效)
+                const hop = Math.abs(Math.sin(time * 5)) * 4;
+                const puff = Math.sin(time * 10) * 1.5;
+                ctx.fillStyle = '#0891b2';
+                ctx.beginPath(); ctx.ellipse(0, -hop, 11, 8.5, 0, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = '#f97316';
+                ctx.beginPath(); ctx.arc(-7, -2 - hop, 4 + puff * 0.5, 0, Math.PI * 2); ctx.fill();
+                ctx.beginPath(); ctx.arc(7, -2 - hop, 4 + puff * 0.5, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = '#fde047'; ctx.fillRect(-4, -10 - hop, 3.5, 4); ctx.fillRect(3, -10 - hop, 3.5, 4);
+                ctx.fillStyle = '#000'; ctx.fillRect(-3, -9 - hop, 2, 2); ctx.fillRect(4, -9 - hop, 2, 2);
+            } else if (m.type === "boar") { // 嗜血野猪 (弯曲尖长白獠牙 & 冲撞鬃毛)
                 ctx.fillStyle = '#78350f';
-                ctx.fillRect(-8, -5, 16, 10);
-                ctx.fillStyle = '#fef08a';
-                ctx.fillRect(7, -2, 4, 3);
-            } else if (m.type === "skeleton") { // 地牢骷髅
-                ctx.fillStyle = '#e2e8f0';
-                ctx.fillRect(-5, -10, 10, 8);
-                ctx.fillStyle = '#ef4444'; // 红光鬼眼
-                ctx.fillRect(-2, -8, 2, 2); ctx.fillRect(2, -8, 2, 2);
-                ctx.fillStyle = '#94a3b8';
-                ctx.fillRect(-3, -2, 6, 8);
-            } else if (m.type === "boss") { // 巨型镇塔妖王 (Soul Knight Giant Demon)
-                const pulse = Math.sin(time * 6) * 2;
-                ctx.fillStyle = '#18181b';
-                ctx.fillRect(-16, -18, 32, 28);
-                ctx.fillStyle = '#b91c1c';
-                ctx.fillRect(-12, -14, 24, 20);
-
-                // 巨型赤红牛角
-                ctx.fillStyle = '#dc2626';
-                ctx.fillRect(-18, -24, 6, 8);
-                ctx.fillRect(12, -24, 6, 8);
-
-                // 狂暴红光护盾
-                ctx.strokeStyle = 'rgba(239, 68, 68, 0.6)';
-                ctx.lineWidth = 2.5;
+                ctx.fillRect(-10, -6, 20, 12);
+                ctx.fillStyle = '#1c1917';
+                ctx.fillRect(-8, -10, 16, 4);
+                // 月牙弯长白獠牙
+                ctx.fillStyle = '#ffffff';
                 ctx.beginPath();
-                ctx.arc(0, -4, 26 + pulse, 0, Math.PI * 2);
-                ctx.stroke();
+                ctx.moveTo(9, 2); ctx.lineTo(15, -4); ctx.lineTo(10, 4); ctx.closePath();
+                ctx.fill();
+                // 赤红小眼
+                ctx.fillStyle = '#ef4444';
+                ctx.fillRect(5, -4, 3, 2.5);
+            } else if (m.type === "skeleton") { // 幽冥骷髅 (双眸跳跃幽绿冥火 & 骨剑)
+                ctx.fillStyle = '#e2e8f0';
+                ctx.fillRect(-6, -11, 12, 9);
+                ctx.fillStyle = '#cbd5e1';
+                ctx.fillRect(-4, -2, 8, 4);
+                const soulFire = Math.sin(time * 12) * 1;
+                ctx.fillStyle = '#22c55e';
+                ctx.shadowColor = '#4ade80';
+                ctx.shadowBlur = 6;
+                ctx.fillRect(-3.5, -8 + soulFire * 0.5, 2.5, 2.5);
+                ctx.fillRect(1.5, -8 + soulFire * 0.5, 2.5, 2.5);
+                ctx.shadowBlur = 0;
+                ctx.fillStyle = '#94a3b8';
+                ctx.fillRect(-4, 2, 8, 8);
+                ctx.fillStyle = '#64748b';
+                ctx.fillRect(6, 1, 2, 9); // 生锈骨剑
+            } else if (m.type === "boss") { // 镇塔妖王 (巨型熔岩恶魔 & 魔核脉冲)
+                const pulse = Math.sin(time * 7) * 2.5;
+                ctx.fillStyle = '#18181b';
+                ctx.fillRect(-20, -22, 40, 34);
+                ctx.fillStyle = '#991b1b';
+                ctx.fillRect(-16, -18, 32, 26);
+
+                // 巨型熔岩赤金双角
+                ctx.fillStyle = '#dc2626';
+                ctx.beginPath();
+                ctx.moveTo(-18, -22); ctx.lineTo(-26, -34); ctx.lineTo(-12, -26); ctx.closePath(); ctx.fill();
+                ctx.beginPath();
+                ctx.moveTo(18, -22); ctx.lineTo(26, -34); ctx.lineTo(12, -26); ctx.closePath(); ctx.fill();
+
+                // 胸膛熔岩火核 (魔气奔腾)
+                ctx.fillStyle = '#facc15';
+                ctx.shadowColor = '#ef4444';
+                ctx.shadowBlur = 14;
+                ctx.beginPath();
+                ctx.arc(0, -5, 6 + pulse * 0.8, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
 
                 // 恶魔凶眸
-                ctx.fillStyle = '#facc15';
-                ctx.fillRect(-7, -8, 4, 4);
-                ctx.fillRect(3, -8, 4, 4);
+                ctx.fillStyle = '#fef08a';
+                ctx.fillRect(-9, -12, 5, 4);
+                ctx.fillRect(4, -12, 5, 4);
             } else { // 强盗
-                ctx.fillStyle = '#e11d48'; ctx.fillRect(-5, -6, 10, 12);
-                ctx.fillStyle = '#1e1b4b'; ctx.fillRect(-5, -10, 10, 4);
+                ctx.fillStyle = '#e11d48'; ctx.fillRect(-6, -7, 12, 13);
+                ctx.fillStyle = '#1e1b4b'; ctx.fillRect(-6, -11, 12, 4);
             }
 
             ctx.restore();
@@ -1489,6 +2022,17 @@
             coordDisplay.innerText = `${nextX},${nextY}`;
             chapterStats.stepsTaken++;
 
+            // 走位产生武侠轻功“踏雪无痕”残影
+            const now = performance.now();
+            if (now - lastTrailTime > 60) {
+                lastTrailTime = now;
+                ghostTrails.push({
+                    x: player.visualX * TILE_PX + TILE_PX * 0.5,
+                    y: player.visualY * TILE_PX + TILE_PX * 0.5,
+                    alpha: 0.5
+                });
+            }
+
             // 传送门触碰判定 (Step into Portal -> 自动认领 Mint NFT!)
             if (portalActive && Math.abs(nextX - portalPos.x) <= 1 && Math.abs(nextY - portalPos.y) <= 1) {
                 triggerAutoMintClaim();
@@ -1556,7 +2100,7 @@
         }
 
         // =========================================================================
-        // 10. 战斗招式与打击 (Asymmetric Hitbox & Life Steal)
+        // 10. 战斗招式与打击 (剑气波、火花切削、物理击退与顿帧)
         // =========================================================================
         function doNormalAttack() {
             if (chapterStats.isCleared) return;
@@ -1566,24 +2110,51 @@
             player.attackProgress = 1.0;
             setTimeout(() => { player.isAttacking = false; }, 180);
 
-            // 1. 击碎附近木箱与陶罐 (宽容判定 2.3 格)
+            const heroPx = player.visualX * TILE_PX + TILE_PX * 0.5;
+            const heroPy = player.visualY * TILE_PX + TILE_PX * 0.5;
+            const slashAngle = player.facing > 0 ? 0 : Math.PI;
+
+            // 激发展现疾风剑气弧光 (Slash Wave)
+            slashVisuals.push({
+                x: heroPx + player.facing * 12,
+                y: heroPy,
+                radius: 14,
+                speed: 1.8,
+                angle: slashAngle,
+                arcSpan: Math.PI * 0.9,
+                color: player.equipPower >= 80 ? '#facc15' : '#38bdf8',
+                width: 3.5,
+                life: 1.0
+            });
+
+            // 1. 击碎木箱与陶罐并生成物理飞散木屑/碎陶片
             dungeonProps.forEach(p => {
                 if (p.hp > 0 && Math.hypot(p.x - player.x, p.y - player.y) <= 2.3) {
                     p.hp = 0;
                     sfx.playShatter();
                     screenShake = 3;
+                    spawnDebris(p.x * TILE_PX + TILE_PX * 0.5, p.y * TILE_PX + TILE_PX * 0.5, p.type);
                     spawnRecoveryOrb(p.x, p.y, Math.random() > 0.5 ? 'hp' : 'mp');
                 }
             });
 
-            // 2. 斩击怪物 (非对称 Hitbox 宽容半径 2.3 格，115% 范围)
+            // 2. 斩击怪物 (宽容判定 2.3 格)
             const target = monsters.find(m => m.hp > 0 && Math.hypot(m.x - player.x, m.y - player.y) <= 2.3);
             if (!target) return;
 
             sfx.playHit();
             hitstopFrames = 2; // 打击顿帧 2 帧
             target.hitFlash = 5;
-            screenShake = 3;
+            screenShake = 4;
+
+            const mx = target.x * TILE_PX + TILE_PX * 0.5;
+            const my = target.y * TILE_PX + TILE_PX * 0.5;
+
+            // 爆裂四散火花
+            spawnHitSparks(mx, my, 8, player.equipPower >= 80 ? '#facc15' : '#38bdf8');
+
+            // 怪物物理击退 (Knockback)
+            target.x = Math.max(1, Math.min(MAP_SIZE - 2, target.x + player.facing * 0.35));
 
             const dmg = Math.floor(Math.random() * 20) + player.baseAtk + Math.floor(player.equipPower * 0.5);
 
@@ -1609,10 +2180,55 @@
             updateHudBars();
             chapterStats.skillsUsed++;
 
-            sfx.playSlash();
             player.isAttacking = true;
             player.attackProgress = 1.2;
             setTimeout(() => { player.isAttacking = false; }, 220);
+
+            const heroPx = player.visualX * TILE_PX + TILE_PX * 0.5;
+            const heroPy = player.visualY * TILE_PX + TILE_PX * 0.5;
+
+            if (slot === 2) {
+                // 技能 2: 烈阳三连斩波 (Three Flame Slash Waves)
+                sfx.playSlash();
+                for (let ang of [-0.25, 0, 0.25]) {
+                    slashVisuals.push({
+                        x: heroPx + player.facing * 14,
+                        y: heroPy,
+                        radius: 12,
+                        speed: 2.8,
+                        angle: (player.facing > 0 ? 0 : Math.PI) + ang,
+                        arcSpan: Math.PI * 0.7,
+                        color: '#f97316',
+                        width: 4.5,
+                        life: 1.0
+                    });
+                }
+            } else {
+                // 技能 3: 万剑归宗 (Ulti Shockwave & Heavenly Swords)
+                sfx.playUlti();
+                shockwaveRipples.push({
+                    x: heroPx,
+                    y: heroPy,
+                    radius: 12,
+                    speed: 6.5,
+                    color: '#facc15',
+                    width: 4.5,
+                    alpha: 1.0
+                });
+                for (let i = 0; i < 4; i++) {
+                    slashVisuals.push({
+                        x: heroPx,
+                        y: heroPy,
+                        radius: 10,
+                        speed: 4.0,
+                        angle: (i / 4) * Math.PI * 2,
+                        arcSpan: Math.PI * 1.0,
+                        color: '#fde047',
+                        width: 5,
+                        life: 1.0
+                    });
+                }
+            }
 
             // 击碎大范围木箱陶罐
             dungeonProps.forEach(p => {
@@ -1620,6 +2236,7 @@
                     p.hp = 0;
                     sfx.playShatter();
                     screenShake = 4;
+                    spawnDebris(p.x * TILE_PX + TILE_PX * 0.5, p.y * TILE_PX + TILE_PX * 0.5, p.type);
                     spawnRecoveryOrb(p.x, p.y, Math.random() > 0.5 ? 'hp' : 'mp');
                 }
             });
@@ -1629,8 +2246,15 @@
 
             sfx.playHit();
             hitstopFrames = 5; // 技能暴击顿帧 5 帧
-            screenShake = 6;
+            screenShake = slot === 2 ? 7 : 10;
             target.hitFlash = 6;
+
+            const mx = target.x * TILE_PX + TILE_PX * 0.5;
+            const my = target.y * TILE_PX + TILE_PX * 0.5;
+
+            // 技能切削爆裂火花与击退
+            spawnHitSparks(mx, my, slot === 2 ? 14 : 18, slot === 2 ? '#ef4444' : '#fde047');
+            target.x = Math.max(1, Math.min(MAP_SIZE - 2, target.x + player.facing * (slot === 2 ? 0.55 : 0.8)));
 
             const dmg = Math.floor((player.baseAtk + player.equipPower) * (slot === 2 ? 1.8 : 2.4));
 
