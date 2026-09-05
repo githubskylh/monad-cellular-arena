@@ -659,6 +659,22 @@
         const btnNextLevel = document.getElementById('btnNextLevel');
 
         // =========================================================================
+        // 2.5 Monad 并行 EVM 精算费率助手 (遵守 50 gwei 底线 & EIP-1559 Type 2)
+        // =========================================================================
+        async function getOptimalMonadFee(gasLimit) {
+            const fee = await provider.getFeeData();
+            const base = fee.maxFeePerGas || fee.gasPrice || 52000000000n;
+            const minBase = 52000000000n; // 遵守 Monad 测试网 >= 50 gwei 底线机制
+            const effectiveBase = base > minBase ? base : minBase;
+            return {
+                type: 2,
+                gasLimit: gasLimit,
+                maxFeePerGas: effectiveBase * 12n / 10n,
+                maxPriorityFeePerGas: 2000000000n // 2 gwei 节点优先小费
+            };
+        }
+
+        // =========================================================================
         // 3. 初始化与网络同步
         // =========================================================================
         async function init() {
@@ -1278,17 +1294,6 @@
         }
 
         // =========================================================================
-        // 8. 地面神兵掉落光球 (Ground Loot Drop System)
-        // =========================================================================
-        function spawnLootOrb(x, y, name, rarity, power, itemType) {
-            groundLootOrbs.push({
-                x: x, y: y,
-                name: name,
-                rarity: rarity,
-                power: power,
-                itemType: itemType,
-                time: performance.now(),
-        // =========================================================================
         // 8. 地面神兵掉落与气丸光球 (Ease-Out Vacuum Magnet System)
         // =========================================================================
         function spawnLootOrb(x, y, name, rarity, power, itemType) {
@@ -1708,12 +1713,8 @@
             logTx(`📜 踏入传送门！正在 Monad 上自动认领并 Mint NFT 道具 (Session: ${sessionId.slice(0, 10)}...)...`, "pending");
 
             try {
-                const fee = await provider.getFeeData();
-                const tx = await contract.settleChapter(summary, sessionId, {
-                    gasLimit: 450000n,
-                    type: 0,
-                    gasPrice: fee.gasPrice || 102000000000n
-                });
+                const feeOpts = await getOptimalMonadFee(160000n);
+                const tx = await contract.settleChapter(summary, sessionId, feeOpts);
                 logTx(`📡 自动 Mint 交易已广播: ${tx.hash.slice(0, 12)}...`, "sent", tx.hash);
 
                 const rc = await tx.wait();
@@ -1858,12 +1859,8 @@
             sfx.playHit();
             logTx(`🔨 正在将神兵【${name}】送入天机玄炉锻造升星...`, "info");
             try {
-                const fee = await provider.getFeeData();
-                const tx = await contract.forgeUpgradeItem(tokenId, {
-                    gasLimit: 250000n,
-                    type: 0,
-                    gasPrice: fee.gasPrice || 102000000000n
-                });
+                const feeOpts = await getOptimalMonadFee(120000n);
+                const tx = await contract.forgeUpgradeItem(tokenId, feeOpts);
                 logTx(`📡 锻造升星交易已发送: ${tx.hash.slice(0, 12)}...`, "sent", tx.hash);
                 await tx.wait();
                 sfx.playPickup();
@@ -1887,12 +1884,8 @@
             refreshLootInventory();
 
             try {
-                const fee = await provider.getFeeData();
-                const tx = await contract.equipItem(tokenId, slot, {
-                    gasLimit: 200000n,
-                    type: 0,
-                    gasPrice: fee.gasPrice || 102000000000n
-                });
+                const feeOpts = await getOptimalMonadFee(90000n);
+                const tx = await contract.equipItem(tokenId, slot, feeOpts);
                 await tx.wait();
                 logTx(`✅ 装备【${name}】全链穿戴铭刻完毕！`, "success", tx.hash);
             } catch (err) {
@@ -1907,13 +1900,9 @@
             sfx.playPickup();
             logTx(`🏷️ 正在将【${name}】以 ${priceStr} MON 挂单至寄售行...`, "info");
             try {
-                const fee = await provider.getFeeData();
+                const feeOpts = await getOptimalMonadFee(120000n);
                 const weiPrice = ethers.parseEther(priceStr);
-                const tx = await contract.listLoot(tokenId, weiPrice, {
-                    gasLimit: 250000n,
-                    type: 0,
-                    gasPrice: fee.gasPrice || 102000000000n
-                });
+                const tx = await contract.listLoot(tokenId, weiPrice, feeOpts);
                 await tx.wait();
                 logTx(`🎉 挂单成功！【${name}】已进入全链集市！`, "success", tx.hash);
                 refreshLootInventory();
@@ -1977,12 +1966,8 @@
         window.cancelListing = async function(tokenId) {
             logTx(`⏳ 正在撤销 #${tokenId} 的寄售单...`, "info");
             try {
-                const fee = await provider.getFeeData();
-                const tx = await contract.cancelListing(tokenId, {
-                    gasLimit: 200000n,
-                    type: 0,
-                    gasPrice: fee.gasPrice || 102000000000n
-                });
+                const feeOpts = await getOptimalMonadFee(90000n);
+                const tx = await contract.cancelListing(tokenId, feeOpts);
                 await tx.wait();
                 logTx(`✅ 撤单成功！神兵已退回背包！`, "success", tx.hash);
                 refreshLootInventory();
@@ -1997,12 +1982,10 @@
             sfx.playPickup();
             logTx(`🛒 正在支付 ${ethers.formatEther(priceWei)} MON 购买【${name}】...`, "info");
             try {
-                const fee = await provider.getFeeData();
+                const feeOpts = await getOptimalMonadFee(140000n);
                 const tx = await contract.buyLoot(tokenId, {
                     value: BigInt(priceWei),
-                    gasLimit: 250000n,
-                    type: 0,
-                    gasPrice: fee.gasPrice || 105000000000n
+                    ...feeOpts
                 });
                 await tx.wait();
                 logTx(`🎉 购买成功！【${name}】已进入您的全链背包！`, "success", tx.hash);
