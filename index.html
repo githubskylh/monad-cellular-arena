@@ -1,27 +1,4 @@
-loots.forEach((item, index) => {
-                    const itemIcon = item.itemType === 0 ? '🗡️' : item.itemType === 1 ? '🛡️' : '📿';
-                    const isCoreNft = (index === 0);
-                    const row = document.createElement('div');
-                    row.className = `flex items-center justify-between p-1.5 rounded-lg bg-black/60 border ${isCoreNft ? 'border-yellow-500/50 ring-1 ring-yellow-500/30' : 'border-slate-800'}`;
-                    row.innerHTML = `
-                        <div class="flex items-center space-x-2 min-w-0">
-                            <div class="w-8 h-8 rounded ${isCoreNft ? 'bg-amber-950 border border-yellow-400' : 'bg-slate-900 border border-slate-700'} flex items-center justify-center text-base shadow shrink-0">
-                                ${itemIcon}
-                            </div>
-                            <div class="min-w-0 text-left">
-                                <div class="font-bold font-xy text-xs ${isCoreNft ? 'text-yellow-300' : 'text-slate-300'} truncate flex items-center space-x-1">
-                                    <span>${item.name}</span>
-                                    ${isCoreNft ? '<span class="text-[8px] bg-yellow-500/20 text-yellow-300 px-1 rounded border border-yellow-500/40">关底必铸</span>' : ''}
-                                </div>
-                                <div class="text-[9px] text-slate-400 font-mono">战力 +${item.power} • ${item.rarity || '名品灵宝'}</div>
-                            </div>
-                        </div>
-                        <span class="text-[9px] px-1.5 py-0.5 rounded ${isCoreNft ? 'bg-amber-950 text-amber-300 border border-amber-700/60 settleNftBadge' : 'bg-cyan-950 text-cyan-300 border border-cyan-800/60'} font-mono shrink-0">
-                            ${isCoreNft ? '⚡ 待铸造 NFT' : '🪙 熔炼为 $XYT'}
-                        </span>
-                    `;
-                    eqListEl.appendChild(row);
-                });<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
@@ -4615,22 +4592,26 @@ loots.forEach((item, index) => {
                         power: 75 + currentChapter * 25
                     }];
 
-                loots.forEach(item => {
-                    const itemIcon = item.itemType === 0 ? '🗡️' : item.itemType === 1 ? '🛡️' : '📿';
-                    const row = document.createElement('div');
-                    row.className = "flex items-center justify-between p-1.5 rounded-lg bg-black/60 border border-yellow-500/30";
+                loots.forEach((item, index) => {
+                    const itemIcon = item.itemType === 0 ? "🗡️" : item.itemType === 1 ? "🛡️" : "📿";
+                    const isCoreNft = (index === 0);
+                    const row = document.createElement("div");
+                    row.className = `flex items-center justify-between p-1.5 rounded-lg bg-black/60 border ${isCoreNft ? "border-yellow-500/50 ring-1 ring-yellow-500/30" : "border-slate-800"}`;
                     row.innerHTML = `
                         <div class="flex items-center space-x-2 min-w-0">
-                            <div class="w-8 h-8 rounded bg-amber-950 border border-yellow-400 flex items-center justify-center text-base shadow shrink-0">
+                            <div class="w-8 h-8 rounded ${isCoreNft ? "bg-amber-950 border border-yellow-400" : "bg-slate-900 border border-slate-700"} flex items-center justify-center text-base shadow shrink-0">
                                 ${itemIcon}
                             </div>
                             <div class="min-w-0 text-left">
-                                <div class="font-bold font-xy text-xs text-yellow-300 truncate">${item.name}</div>
-                                <div class="text-[9px] text-slate-300 font-mono">战力 +${item.power} • ${item.rarity || '名品灵宝'}</div>
+                                <div class="font-bold font-xy text-xs ${isCoreNft ? "text-yellow-300" : "text-slate-300"} truncate flex items-center space-x-1">
+                                    <span>${item.name}</span>
+                                    ${isCoreNft ? "<span class=\"text-[8px] bg-yellow-500/20 text-yellow-300 px-1 rounded border border-yellow-500/40\">关底必铸</span>" : ""}
+                                </div>
+                                <div class="text-[9px] text-slate-400 font-mono">战力 +${item.power} • ${item.rarity || "名品灵宝"}</div>
                             </div>
                         </div>
-                        <span class="text-[9px] px-1.5 py-0.5 rounded bg-amber-950 text-amber-300 font-mono border border-amber-700/60 shrink-0 settleNftBadge">
-                            ⚡ 待铸造 NFT
+                        <span class="text-[9px] px-1.5 py-0.5 rounded ${isCoreNft ? "bg-amber-950 text-amber-300 border border-amber-700/60 settleNftBadge" : "bg-cyan-950 text-cyan-300 border border-cyan-800/60"} font-mono shrink-0">
+                            ${isCoreNft ? "⚡ 待铸造 NFT" : "🪙 熔炼为 $XYT"}
                         </span>
                     `;
                     eqListEl.appendChild(row);
