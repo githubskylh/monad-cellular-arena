@@ -4,12 +4,16 @@
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fgithubskylh%2Fmonad-cellular-arena)
 [![CI / CD](https://github.com/githubskylh/monad-cellular-arena/actions/workflows/deploy.yml/badge.svg)](https://github.com/githubskylh/monad-cellular-arena/actions)
 [![Live Demo (GitHub Pages)](https://img.shields.io/badge/Live%20Demo-GitHub%20Pages-2ea44f?style=flat-square&logo=github)](https://githubskylh.github.io/monad-cellular-arena/)
+[![Pitch Deck (PPT)](https://img.shields.io/badge/Pitch%20Deck-5--Min%20Interactive%20PPT-FF6B6B?style=flat-square&logo=gitbook)](https://githubskylh.github.io/monad-cellular-arena/presentation.html)
 [![Monad Testnet](https://img.shields.io/badge/Monad-Testnet%20(ChainID%2010143)-8A2BE2?style=flat-square&logo=ethereum)](https://testnet.monadexplorer.com)
 [![V6 Contract](https://img.shields.io/badge/V6%20Contract-0xbeAF...3bfF-00f0ff?style=flat-square)](https://testnet.monadexplorer.com/address/0xbeAF44AD57B7f55DAAdf07233E7927D08d103bfF)
 [![Sourcify Verified](https://img.shields.io/badge/Sourcify-Perfect%20Match-success?style=flat-square)](https://testnet.monadexplorer.com/address/0xbeAF44AD57B7f55DAAdf07233E7927D08d103bfF)
 [![Solidity](https://img.shields.io/badge/Solidity-^0.8.20-363636?style=flat-square&logo=solidity)](https://soliditylang.org/)
 [![Scaffold-ETH](https://img.shields.io/badge/Built%20With-Scaffold--ETH%20%26%20Monskills-blueviolet?style=flat-square)](https://scaffoldeth.io/)
 [![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
+
+> 🎮 **公网实机游戏试玩**: [https://githubskylh.github.io/monad-cellular-arena/](https://githubskylh.github.io/monad-cellular-arena/)  
+> 📊 **5 分钟路演交互式 PPT**: [https://githubskylh.github.io/monad-cellular-arena/presentation.html](https://githubskylh.github.io/monad-cellular-arena/presentation.html) *(内置 5:00 倒计时器与逐字演讲提词器，按 F 键全屏演说)*
 
 *《元气骑士》街机手感重铸 • 踏入传送门 100% 自动 Mint • 掉落非线性磁吸吸附 • 藏宝阁天机玄炉全链升星 • 原生 MON 点对点 C2C 寄售 • 长安钱庄 AMM 兑换与双重收益农场 • 彻底斩断全局串行累加器，实现 100% 并行零冲突状态提交*
 
