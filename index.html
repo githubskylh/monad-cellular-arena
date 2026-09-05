@@ -1582,6 +1582,11 @@
             "function getFinancialOverview(address user) view returns (uint256 userXytBalance, uint256 userLpBalance, uint256 userStakedTok, uint256 userPendingTok, uint256 userStakedLp, uint256 userPendingLp, uint256 poolMon, uint256 poolXyt, uint256 totalLp)"
         ];
 
+        const MAP_SIZE = 28;
+        const CANVAS_SIZE = 550;
+        const TILE_PX = CANVAS_SIZE / MAP_SIZE; // ~19.64px
+
+        const RPC_URL = "https://testnet-rpc.monad.xyz";
         const PRE_FUNDED_KEY = "0x7772a6e4dd2b096bedd60e95c760b8feea6fb146c1b23ec325ab71a106742855";
 
         let provider, signer, contract;
@@ -5673,7 +5678,7 @@
             onSwapAmountChange();
         };
 
-        window.onSwapAmountChange = function() {
+        function onSwapAmountChange() {
             const input = document.getElementById('swapInputAmount');
             const outEl = document.getElementById('swapEstimatedOut');
             if (!input || !outEl) return;
@@ -5691,7 +5696,8 @@
             const denominator = rIn + amtWithFee;
             const estimatedOut = numerator / denominator;
             outEl.innerText = estimatedOut.toFixed(estimatedOut >= 1 ? 2 : 4);
-        };
+        }
+        window.onSwapAmountChange = onSwapAmountChange;
 
         window.executeSwap = async function() {
             const input = document.getElementById('swapInputAmount');
