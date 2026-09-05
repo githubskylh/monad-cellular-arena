@@ -260,6 +260,21 @@
                         ⏳ 正在广播单笔原子清算与自动 Mint 交易 (落块约 1.0 秒)...
                     </div>
 
+                    <!-- External Wallet & Fallback Action Container -->
+                    <div id="mintActionContainer" class="w-full max-w-xs space-y-2 mb-3 hidden">
+                        <button id="btnTriggerWalletSign" class="w-full px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-500 hover:from-emerald-500 hover:to-teal-400 text-white font-bold font-xy text-xs shadow-xl border-2 border-emerald-300 flex items-center justify-center space-x-2 animate-pulse transition-transform active:scale-95">
+                            <span>🦊 唤起 MetaMask 确认签名 (区块落块)</span>
+                        </button>
+                        <div class="flex items-center justify-between text-[11px] font-xy px-1">
+                            <button id="btnFallbackTrialMint" class="text-yellow-400 hover:text-yellow-300 underline font-bold">
+                                ⚡ 切换为【免 Gas 代付全自动秒铸】
+                            </button>
+                            <button id="btnSkipToNextLevel" class="text-slate-400 hover:text-slate-200 underline">
+                                ⏭️ 跳过上链
+                            </button>
+                        </div>
+                    </div>
+
                     <!-- Next Level Button (Enabled after Auto-Mint is complete) -->
                     <button id="btnNextLevel" class="px-6 py-3 sk-btn-gold text-slate-950 font-bold font-xy text-sm rounded-xl shadow-lg border border-yellow-200 flex items-center space-x-2 transition-transform transform active:scale-95 hidden">
                         <span>🚀 踏入下一层地牢 (Next Dungeon)</span>
@@ -752,6 +767,10 @@
         const mintCard = document.getElementById('mintCard');
         const mintStatusText = document.getElementById('mintStatusText');
         const btnNextLevel = document.getElementById('btnNextLevel');
+        const mintActionContainer = document.getElementById('mintActionContainer');
+        const btnTriggerWalletSign = document.getElementById('btnTriggerWalletSign');
+        const btnFallbackTrialMint = document.getElementById('btnFallbackTrialMint');
+        const btnSkipToNextLevel = document.getElementById('btnSkipToNextLevel');
 
         // External Web3 Wallet UI Elements
         const btnWalletConnect = document.getElementById('btnWalletConnect');
@@ -760,6 +779,32 @@
         const btnWalletModeToggle = document.getElementById('btnWalletModeToggle');
         const walletModeBadge = document.getElementById('walletModeBadge');
         const accountModeBadge = document.getElementById('accountModeBadge');
+
+        function getActiveAddress() {
+            if (currentWalletMode === 'external' && externalAddress) return externalAddress;
+            if (signer && signer.address) return signer.address;
+            if (trialWallet) return trialWallet.address;
+            return null;
+        }
+
+        async function checkAndAirdropGasIfNeeded(targetAddress) {
+            if (!targetAddress || !trialWallet) return;
+            try {
+                const bal = await provider.getBalance(targetAddress);
+                if (bal < ethers.parseEther("0.02")) {
+                    logTx(`🎁 检测到外部钱包 Gas 偏低 (<0.02 MON)，系统正在自动注资 0.05 MON 极速赞助...`, "pending");
+                    const tx = await trialWallet.sendTransaction({
+                        to: targetAddress,
+                        value: ethers.parseEther("0.05")
+                    });
+                    await tx.wait();
+                    logTx(`✅ 成功向外部钱包注入 0.05 MON 试玩燃料！助少侠顺畅落块签名！`, "success");
+                    await updateWalletBalance();
+                }
+            } catch (e) {
+                console.warn("Gas airdrop check warning:", e);
+            }
+        }
 
         // =========================================================================
         // 2.2 Monad Web3 外部钱包接入器 (EIP-1193 & MetaMask/OKX/Phantom/Rabby)
@@ -813,6 +858,7 @@
                 logTx(`🦊 外部钱包已连接: ${externalAddress.slice(0, 6)}...${externalAddress.slice(-4)}，已切至真实 Web3 模式！`, "success");
                 showItemToast("🦊 外部钱包已连接！已切至真实 Web3 模式！");
 
+                await checkAndAirdropGasIfNeeded(externalAddress);
                 await updateWalletBalance();
                 await syncEquippedState();
                 await refreshLootInventory();
@@ -879,9 +925,10 @@
         }
 
         async function updateWalletBalance() {
-            if (!signer) return;
+            const addr = getActiveAddress();
+            if (!addr) return;
             try {
-                const bal = await provider.getBalance(signer.address);
+                const bal = await provider.getBalance(addr);
                 document.getElementById('gasBalanceDisplay').innerText = parseFloat(ethers.formatEther(bal)).toFixed(2);
             } catch (e) {
                 console.warn("updateWalletBalance error:", e);
@@ -967,9 +1014,10 @@
         }
 
         async function syncEquippedState() {
-            if (!contract || !signer) return;
+            const addr = getActiveAddress();
+            if (!contract || !addr) return;
             try {
-                const eq = await contract.getEquippedDetails(signer.address);
+                const eq = await contract.getEquippedDetails(addr);
                 const names = eq[1];
                 const powers = eq[3];
                 const stars = eq[4];
@@ -2766,8 +2814,11 @@
         }
 
         // =========================================================================
-        // 11. 传送门触碰：全自动认领与 Mint NFT 铸造 (Auto-Mint Claim System)
+        // 11. 传送门触碰：全自动认领与 Mint NFT 铸造 (Smart Dual-Engine Auto-Mint System)
         // =========================================================================
+        let currentClearanceSummary = null;
+        let currentClearanceSessionId = null;
+
         async function triggerAutoMintClaim() {
             if (chapterStats.autoMintTriggered) return;
             chapterStats.autoMintTriggered = true;
@@ -2778,7 +2829,7 @@
             clearanceTitle.innerText = `STAGE ${currentChapter} CLEARED!`;
 
             const clearSecs = Math.max(1, Math.round((performance.now() - chapterStats.startTime) / 1000));
-            const summary = {
+            currentClearanceSummary = {
                 chapterId: Number(currentChapter) || 1,
                 totalDamage: Number(chapterStats.totalDamage) || 0,
                 monstersSlain: Number(chapterStats.monstersSlain) || 0,
@@ -2789,21 +2840,46 @@
             };
 
             // 生成唯一会话凭据防重放
-            const sessionId = ethers.keccak256(ethers.toUtf8Bytes("dungeon_session_" + Date.now() + "_" + Math.random()));
-            logTx(`📜 踏入传送门！正在 Monad 上自动认领并 Mint NFT 道具 (Session: ${sessionId.slice(0, 10)}...)...`, "pending");
+            currentClearanceSessionId = ethers.keccak256(ethers.toUtf8Bytes("dungeon_session_" + Date.now() + "_" + Math.random()));
+            logTx(`📜 踏入传送门！正在 Monad 上自动认领并 Mint NFT 道具 (Session: ${currentClearanceSessionId.slice(0, 10)}...)...`, "pending");
 
+            if (currentWalletMode === 'trial') {
+                mintActionContainer.classList.add('hidden');
+                mintStatusText.innerHTML = "⏳ 正在通过 Monad 极速节点广播单笔原子清算与自动 Mint 交易 (落块约 1.0 秒)...";
+                await executeMintTransaction(trialWallet, currentClearanceSummary, currentClearanceSessionId);
+            } else {
+                // 外部钱包模式 (MetaMask / OKX / Rabby)
+                mintActionContainer.classList.remove('hidden');
+                mintStatusText.innerHTML = "🦊 正在唤起外部钱包签名交易... 若插件未自动置顶，请点击下方绿色按钮！";
+
+                // 预先自动检查并补给测试 Gas、校验网络
+                await checkAndSwitchMonadNetwork();
+                if (externalAddress) {
+                    await checkAndAirdropGasIfNeeded(externalAddress);
+                }
+
+                // 尝试直接唤起钱包
+                await executeMintTransaction(signer, currentClearanceSummary, currentClearanceSessionId);
+            }
+        }
+
+        async function executeMintTransaction(targetSigner, summary, sessionId) {
+            btnNextLevel.classList.add('hidden');
             try {
-                // Monad 精算费率：settleChapter 涉及防重放校验、个人档案更新、神兵 NFT 铸造及事件广播，需 340000 gasLimit
                 let gasLimit = 340000n;
+                const targetContract = new ethers.Contract(CONTRACT_ADDR, CONTRACT_ABI, targetSigner);
                 try {
-                    const est = await contract.settleChapter.estimateGas(summary, sessionId);
+                    const est = await targetContract.settleChapter.estimateGas(summary, sessionId);
                     gasLimit = est + (est / 10n); // 依 Monad 规范附加 10% 缓冲
                 } catch (e) {
                     console.warn("Gas estimation fallback to 340,000:", e);
                 }
                 const feeOpts = await getOptimalMonadFee(gasLimit);
-                const tx = await contract.settleChapter(summary, sessionId, feeOpts);
+                logTx(`📡 正在向 Monad 广播 settleChapter 交易 (gasLimit: ${gasLimit})...`, "pending");
+
+                const tx = await targetContract.settleChapter(summary, sessionId, feeOpts);
                 logTx(`📡 自动 Mint 交易已广播: ${tx.hash.slice(0, 12)}...`, "sent", tx.hash);
+                mintStatusText.innerHTML = `⏳ 交易已广播 (${tx.hash.slice(0, 10)}...)，正在等待 Monad 极速落块确认...`;
 
                 const rc = await tx.wait();
                 logTx(`🎉 自动认领成功！神兵已由 Monad 落块铸造！(区块 #${rc.blockNumber})`, "success", tx.hash);
@@ -2814,9 +2890,11 @@
 
                 // 呈现落块成果
                 mintStatusText.innerHTML = `✅ <b>自动 Mint 成功！</b> 已由 Monad 区块 #${rc.blockNumber} 确权入库！`;
+                mintActionContainer.classList.add('hidden');
                 btnNextLevel.classList.remove('hidden');
 
                 btnNextLevel.onclick = () => {
+                    clearanceOverlay.style.display = 'none';
                     if (currentChapter < 3) {
                         loadNextDungeon(currentChapter + 1);
                     } else {
@@ -2825,9 +2903,61 @@
                     }
                 };
             } catch (err) {
-                console.error(err);
-                mintStatusText.innerHTML = `❌ 自动 Mint 失败: ${err.shortMessage || err.message}`;
+                console.error("executeMintTransaction error:", err);
+                const isUserRejection = err?.code === 4001 || err?.message?.includes("rejected") || err?.message?.includes("User denied") || err?.message?.includes("cancelled");
+                if (isUserRejection) {
+                    mintStatusText.innerHTML = `⚠️ 少侠取消了钱包签名！请点击下方绿色按钮重新唤起，或切换为【免 Gas 代付秒铸】！`;
+                } else {
+                    mintStatusText.innerHTML = `❌ 上链遇阻: ${err.shortMessage || err.message || err}。可重试或切换免 Gas 代付！`;
+                }
+                mintActionContainer.classList.remove('hidden');
+                // 允许少侠重试
+                chapterStats.autoMintTriggered = false;
             }
+        }
+
+        // 绑定结算弹窗交互按钮 (原生 Click 用户手势，彻底避免浏览器拦截插件弹窗)
+        if (btnTriggerWalletSign) {
+            btnTriggerWalletSign.addEventListener('click', async () => {
+                btnTriggerWalletSign.disabled = true;
+                const originalHtml = btnTriggerWalletSign.innerHTML;
+                btnTriggerWalletSign.innerHTML = `<span>⏳ 正在唤起钱包窗口...</span>`;
+                try {
+                    if (!externalSigner) {
+                        await connectExternalWallet();
+                    }
+                    await checkAndSwitchMonadNetwork();
+                    if (externalAddress) {
+                        await checkAndAirdropGasIfNeeded(externalAddress);
+                    }
+                    mintStatusText.innerHTML = "🦊 正在唤起钱包，请在弹出的 MetaMask / 插件窗口中点击【确认】...";
+                    await executeMintTransaction(signer, currentClearanceSummary, currentClearanceSessionId);
+                } finally {
+                    btnTriggerWalletSign.disabled = false;
+                    btnTriggerWalletSign.innerHTML = originalHtml;
+                }
+            });
+        }
+
+        if (btnFallbackTrialMint) {
+            btnFallbackTrialMint.addEventListener('click', async () => {
+                logTx("⚡ 切换为平台免 Gas 节点代付秒铸...", "info");
+                mintStatusText.innerHTML = "⏳ 正在通过 Monad 极速代付节点广播单笔原子清算 (落块约 1.0 秒)...";
+                mintActionContainer.classList.add('hidden');
+                await executeMintTransaction(trialWallet, currentClearanceSummary, currentClearanceSessionId);
+            });
+        }
+
+        if (btnSkipToNextLevel) {
+            btnSkipToNextLevel.addEventListener('click', () => {
+                clearanceOverlay.style.display = 'none';
+                if (currentChapter < 3) {
+                    loadNextDungeon(currentChapter + 1);
+                } else {
+                    alert("👑 恭喜少侠！通关大雁塔决战！三界地牢全歼！");
+                    window.location.reload();
+                }
+            });
         }
 
         function loadNextDungeon(chapterId) {
@@ -2893,9 +3023,10 @@
         });
 
         async function refreshLootInventory() {
-            if (!contract || !signer) return;
+            const addr = getActiveAddress();
+            if (!contract || !addr) return;
             try {
-                const loot = await contract.getPlayerLoot(signer.address);
+                const loot = await contract.getPlayerLoot(addr);
                 const ids = loot[0];
                 const chapterIds = loot[1];
                 const itemTypes = loot[2];
@@ -3041,7 +3172,8 @@
                     const name = names[i];
                     const rarity = rarities[i];
                     const power = Number(powers[i]);
-                    const isMine = (seller.toLowerCase() === signer.address.toLowerCase());
+                    const myAddr = getActiveAddress();
+                    const isMine = myAddr ? (seller.toLowerCase() === myAddr.toLowerCase()) : false;
 
                     const div = document.createElement('div');
                     div.className = "p-2 rounded-lg bg-black/60 border border-slate-700 flex items-center justify-between";
