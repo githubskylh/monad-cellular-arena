@@ -1,4 +1,27 @@
-<!DOCTYPE html>
+loots.forEach((item, index) => {
+                    const itemIcon = item.itemType === 0 ? '🗡️' : item.itemType === 1 ? '🛡️' : '📿';
+                    const isCoreNft = (index === 0);
+                    const row = document.createElement('div');
+                    row.className = `flex items-center justify-between p-1.5 rounded-lg bg-black/60 border ${isCoreNft ? 'border-yellow-500/50 ring-1 ring-yellow-500/30' : 'border-slate-800'}`;
+                    row.innerHTML = `
+                        <div class="flex items-center space-x-2 min-w-0">
+                            <div class="w-8 h-8 rounded ${isCoreNft ? 'bg-amber-950 border border-yellow-400' : 'bg-slate-900 border border-slate-700'} flex items-center justify-center text-base shadow shrink-0">
+                                ${itemIcon}
+                            </div>
+                            <div class="min-w-0 text-left">
+                                <div class="font-bold font-xy text-xs ${isCoreNft ? 'text-yellow-300' : 'text-slate-300'} truncate flex items-center space-x-1">
+                                    <span>${item.name}</span>
+                                    ${isCoreNft ? '<span class="text-[8px] bg-yellow-500/20 text-yellow-300 px-1 rounded border border-yellow-500/40">关底必铸</span>' : ''}
+                                </div>
+                                <div class="text-[9px] text-slate-400 font-mono">战力 +${item.power} • ${item.rarity || '名品灵宝'}</div>
+                            </div>
+                        </div>
+                        <span class="text-[9px] px-1.5 py-0.5 rounded ${isCoreNft ? 'bg-amber-950 text-amber-300 border border-amber-700/60 settleNftBadge' : 'bg-cyan-950 text-cyan-300 border border-cyan-800/60'} font-mono shrink-0">
+                            ${isCoreNft ? '⚡ 待铸造 NFT' : '🪙 熔炼为 $XYT'}
+                        </span>
+                    `;
+                    eqListEl.appendChild(row);
+                });<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
@@ -1543,57 +1566,45 @@
         const CONTRACT_ABI = [
             "function registerPlayer(uint8 sect) external",
             "function getPlayerTokens(address player) external view returns (uint256[] memory)",
-            "function nftDetails(uint256 tokenId) external view returns (string name, string rarity, uint32 combatPower, uint8 itemType, uint16 chapterId, uint8 enhancementLevel)",
+            "function nftDetails(uint256 tokenId) external view returns (uint256 tokenId, uint16 chapterId, uint8 itemType, uint8 starLevel, uint8 affix, string name, string rarity, uint32 combatPower, uint256 mintTimestamp)",
+            "function equippedTokens(address player, uint8 slot) external view returns (uint256)",
             "function switchSect(uint8 newSect) external",
             "function settleChapter(tuple(uint16 chapterId, uint32 totalDamage, uint16 monstersSlain, uint16 skillsUsed, uint16 stepsTaken, uint32 clearTimeSeconds, bool bossDefeated) summary, bytes32 sessionId) external returns (uint256 mintedTokenId, uint256 xytPointsEarned)",
             "function forgeUpgradeItem(uint256 tokenId) external",
-            "function equipItem(uint256 tokenId, uint8 slot) external",
-            "function unequipItem(uint8 slot) external",
+            "function equipItem(uint8 slot, uint256 tokenId) external",
             "function listLoot(uint256 tokenId, uint256 price) external",
             "function cancelListing(uint256 tokenId) external",
             "function buyLoot(uint256 tokenId) external payable",
             "function getActiveListings() external view returns (uint256[] tokenIds, address[] sellers, uint256[] prices, string[] names, string[] rarities, uint32[] powers, uint8[] itemTypes)",
-            "function getEquippedDetails(address player) external view returns (uint256[3] tokenIds, string[3] names, string[3] rarities, uint32[3] powers, uint8[3] starLevels, uint32 totalEquipPower)",
-            "function getPlayerLoot(address player) external view returns (uint256[] tokenIds, uint16[] chapterIds, uint8[] itemTypes, uint8[] starLevels, string[] names, string[] rarities, uint32[] powers)",
-            "function recordArenaVictory(address opponent, uint32 points) external",
-            "function profiles(address) view returns (uint8 sect, uint16 level, uint32 totalExp, uint16 maxChapterUnlocked, uint32 totalDamageDealt, uint16 totalMonstersKilled, uint32 totalSkillsCast, uint32 arenaWins, uint32 totalForges, bool isRegistered)",
-            // V6 ERC-20 $XYT 代币接口
+            "function profiles(address user) external view returns (uint8 sect, uint16 level, uint32 totalExp, uint16 maxChapterUnlocked, bool isRegistered)",
             "function name() view returns (string)",
             "function symbol() view returns (string)",
             "function decimals() view returns (uint8)",
             "function totalSupply() view returns (uint256)",
-            "function balanceOf(address) view returns (uint256)",
-            "function transfer(address, uint256) returns (bool)",
-            "function approve(address, uint256) returns (bool)",
-            "function allowance(address, address) view returns (uint256)",
-            // V6 内置 AMM 链上 Swap 接口
+            "function balanceOf(address account) view returns (uint256)",
+            "function transfer(address recipient, uint256 amount) returns (bool)",
+            "function approve(address spender, uint256 amount) returns (bool)",
+            "function allowance(address owner, address spender) view returns (uint256)",
             "function reserveMon() view returns (uint256)",
             "function reserveToken() view returns (uint256)",
             "function totalLpSupply() view returns (uint256)",
-            "function lpBalanceOf(address) view returns (uint256)",
+            "function lpBalanceOf(address account) view returns (uint256)",
             "function getAmountOut(uint256 amountIn, uint256 reserveIn, uint256 reserveOut) view returns (uint256)",
             "function swapMonForTokens(uint256 minTokensOut) payable returns (uint256)",
             "function swapTokensForMon(uint256 tokenAmountIn, uint256 minMonOut) returns (uint256)",
             "function addLiquidity(uint256 tokenAmount) payable returns (uint256)",
             "function removeLiquidity(uint256 lpAmount) returns (uint256, uint256)",
-            // V6 单币年化质押金库 (36.5% APY)
             "function stakeTokens(uint256 amount) external",
             "function unstakeTokens(uint256 amount) external",
             "function claimStakingRewards() external returns (uint256)",
             "function getPendingStakingReward(address user) view returns (uint256)",
-            // V6 LP 流动性做市农场 (128.0% APY)
             "function stakeLp(uint256 lpAmount) external",
             "function unstakeLp(uint256 lpAmount) external",
             "function claimLpRewards() external returns (uint256)",
             "function getPendingLpReward(address user) view returns (uint256)",
-            "function getFinancialOverview(address user) view returns (uint256 userXytBalance, uint256 stakedXyt, uint256 pendingXytReward, uint256 userLpBalance, uint256 stakedLp, uint256 pendingLpReward, uint256 poolMon, uint256 poolXyt, uint256 totalLp)"
+            "function getFinancialOverview(address user) view returns (uint256 userXytBalance, uint256 userLpBalance, uint256 userStakedTok, uint256 userPendingTok, uint256 userStakedLp, uint256 userPendingLp, uint256 poolMon, uint256 poolXyt, uint256 totalLp)"
         ];
 
-        const MAP_SIZE = 28;
-        const CANVAS_SIZE = 550;
-        const TILE_PX = CANVAS_SIZE / MAP_SIZE; // ~19.64px
-
-        const RPC_URL = "https://testnet-rpc.monad.xyz";
         const PRE_FUNDED_KEY = "0x7772a6e4dd2b096bedd60e95c760b8feea6fb146c1b23ec325ab71a106742855";
 
         let provider, signer, contract;
@@ -2437,24 +2448,42 @@
             const addr = getActiveAddress();
             if (!contract || !addr) return;
             try {
-                const eq = await contract.getEquippedDetails(addr);
-                const names = eq[1];
-                const powers = eq[3];
-                const stars = eq[4];
-                const totalPow = Number(eq[5]);
-
-                equippedItems[0] = { id: Number(eq[0][0]), name: names[0], power: Number(powers[0]), star: Number(stars[0]) };
-                equippedItems[1] = { id: Number(eq[0][1]), name: names[1], power: Number(powers[1]), star: Number(stars[1]) };
-                equippedItems[2] = { id: Number(eq[0][2]), name: names[2], power: Number(powers[2]), star: Number(stars[2]) };
+                let totalPow = 0;
+                for (let slot = 0; slot < 3; slot++) {
+                    let tid = 0n;
+                    try {
+                        tid = await contract.equippedTokens(addr, slot);
+                    } catch(e) {
+                        tid = 0n;
+                    }
+                    if (tid && tid > 0n) {
+                        try {
+                            const d = await contract.nftDetails(tid);
+                            equippedItems[slot] = {
+                                id: tid.toString(),
+                                name: d.name,
+                                power: Number(d.combatPower),
+                                star: Number(d.starLevel),
+                                rarity: d.rarity
+                            };
+                            totalPow += Number(d.combatPower);
+                        } catch (e) {
+                            console.warn("Failed to load equipped item", slot, e);
+                        }
+                    } else {
+                        equippedItems[slot] = { id: 0, name: "【虚位以待】", power: 0, rarity: "无" };
+                    }
+                }
 
                 player.equipPower = totalPow;
-                headerPowerDisplay.innerText = '+' + totalPow;
+                if (headerPowerDisplay) headerPowerDisplay.innerText = '+' + totalPow;
 
-                if (names[0] && names[0] !== "【虚位以待】") {
-                    document.getElementById('weaponSlotName').innerText = names[0].replace(/[【】]/g, '').slice(0, 4);
+                if (equippedItems[0] && equippedItems[0].name !== "【虚位以待】") {
+                    const ws = document.getElementById('weaponSlotName');
+                    if (ws) ws.innerText = equippedItems[0].name.replace(/[【】]/g, '').slice(0, 4);
                 }
             } catch (e) {
-                console.warn(e);
+                console.warn("syncEquippedState error:", e);
             }
         }
 
@@ -4877,19 +4906,16 @@
                         try {
                             const d = await contract.nftDetails(tid);
                             ids.push(tid);
-                            chapterIds.push(Number(d[1]));
-                            itemTypes.push(Number(d[2]));
-                            starLevels.push(Number(d[3]));
-                            names.push(d[5]);
-                            rarities.push(d[6]);
-                            powers.push(Number(d[7]));
+                            chapterIds.push(Number(d.chapterId));
+                            itemTypes.push(Number(d.itemType));
+                            starLevels.push(Number(d.starLevel));
+                            names.push(d.name);
+                            rarities.push(d.rarity);
+                            powers.push(Number(d.combatPower));
                         } catch (e) {
                             console.warn("nftDetails error for token", tid, e);
                         }
                     }
-                } else if (contract.getPlayerLoot) {
-                    const loot = await contract.getPlayerLoot(addr);
-                    ids = loot[0]; chapterIds = loot[1]; itemTypes = loot[2]; starLevels = loot[3]; names = loot[4]; rarities = loot[5]; powers = loot[6];
                 }
 
                 // 获取全链当前挂单以判断哪些已寄售
@@ -4902,8 +4928,16 @@
                     });
                 }
 
+                // 获取当前穿戴的 tokenId 集合
+                const equippedTidSet = new Set();
+                for (let s = 0; s < 3; s++) {
+                    if (equippedItems[s] && equippedItems[s].id && equippedItems[s].id !== 0) {
+                        equippedTidSet.add(equippedItems[s].id.toString());
+                    }
+                }
+
                 cachedPlayerInventory = [];
-                nftTotalDisplay.innerText = `(${ids.length})`;
+                if (nftTotalDisplay) nftTotalDisplay.innerText = `(${ids.length})`;
                 tabContentBackpack.innerHTML = "";
 
                 if (ids.length === 0) {
@@ -4921,7 +4955,7 @@
                     const pName = names[i];
                     const rName = rarities[i];
                     const cPower = Number(powers[i]);
-                    const isEquipped = (equippedItems[iType] && equippedItems[iType].name === pName);
+                    const isEquipped = equippedTidSet.has(tid);
                     const isListed = listedMap.has(tid);
                     const listingInfo = isListed ? listedMap.get(tid) : null;
 
@@ -4942,7 +4976,7 @@
 
                     const div = document.createElement("div");
                     div.className = `p-2 rounded-lg bg-black/60 border ${
-                        isEquipped ? "border-yellow-400" : (isListed ? "border-amber-600/70" : "border-slate-800")
+                        isEquipped ? "border-yellow-400 ring-1 ring-yellow-400/40" : (isListed ? "border-amber-600/70" : "border-slate-800")
                     } flex items-center justify-between`;
                     
                     div.innerHTML = `
@@ -4960,14 +4994,14 @@
                             </div>
                         </div>
                         <div class="flex items-center space-x-1">
-                            ${(!isListed && sLevel < 5) ? `<button onclick="forgeNFT('${tid}', '${pName}')" class="px-2 py-1 bg-yellow-600 hover:bg-yellow-500 text-black font-bold rounded text-[9px] font-xy" title="天机玄炉锻造升星 (+25战力)">升星</button>` : ""}
+                            ${(!isListed && sLevel < 5) ? `<button onclick="forgeNFT('${tid}', '${pName}')" class="px-2 py-1 bg-yellow-600 hover:bg-yellow-500 text-black font-bold rounded text-[9px] font-xy cursor-pointer" title="天机玄炉锻造升星 (+25战力)">升星</button>` : ""}
                             ${!isListed ? `
-                                <button onclick="equipNFT('${tid}', ${iType}, '${pName}', ${cPower})" class="px-2 py-1 ${isEquipped ? 'bg-slate-700 text-slate-400' : 'bg-amber-600 hover:bg-amber-500 text-black font-bold'} rounded text-[9px] font-xy">
+                                <button onclick="equipNFT('${tid}', ${iType}, '${pName}', ${cPower})" class="px-2 py-1 ${isEquipped ? 'bg-slate-700 text-slate-400' : 'bg-amber-600 hover:bg-amber-500 text-black font-bold'} rounded text-[9px] font-xy cursor-pointer">
                                     ${isEquipped ? '已穿' : '穿戴'}
                                 </button>
                             ` : ""}
                             ${isListed ? `
-                                <button onclick="cancelListing('${tid}')" class="px-2 py-1 bg-red-950 hover:bg-red-900 text-rose-300 border border-red-700/60 rounded text-[9px] font-xy">下架</button>
+                                <button onclick="cancelListing('${tid}')" class="px-2 py-1 bg-red-950 hover:bg-red-900 text-rose-300 border border-red-700/60 rounded text-[9px] font-xy cursor-pointer">下架</button>
                             ` : (!isEquipped ? `
                                 <button onclick="openListingModal('${tid}')" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-yellow-300 border border-slate-600 rounded text-[9px] font-xy cursor-pointer">寄售</button>
                             ` : "")}
@@ -5010,7 +5044,7 @@
 
             try {
                 const feeOpts = await getOptimalMonadFee(90000n);
-                const tx = await contract.equipItem(tokenId, slot, feeOpts);
+                const tx = await contract.equipItem(slot, tokenId, feeOpts);
                 await tx.wait();
                 logTx(`✅ 装备【${name}】全链穿戴铭刻完毕！`, "success", tx.hash);
             } catch (err) {
@@ -5033,8 +5067,16 @@
             const availCountEl = document.getElementById("modalBackpackAvailableCount");
             const btnConfirm = document.getElementById("btnConfirmPublishListing");
 
+            // 若背包缓存尚未建立或为空，自动从 Monad 全链同步最新神兵资产
+            if (!cachedPlayerInventory || cachedPlayerInventory.length === 0) {
+                if (listContainer) {
+                    listContainer.innerHTML = `<div class="text-yellow-400/80 text-center py-5 italic text-xs animate-pulse">⏳ 正在从 Monad 节点同步链上背包资产...</div>`;
+                }
+                await refreshLootInventory();
+            }
+
             // 过滤出未着装、且未挂单的神兵
-            const unequippedItems = cachedPlayerInventory.filter(item => !item.isEquipped && !item.isListed);
+            const unequippedItems = (cachedPlayerInventory || []).filter(item => !item.isEquipped && !item.isListed);
 
             if (availCountEl) availCountEl.innerText = `可用: ${unequippedItems.length} 件`;
 
