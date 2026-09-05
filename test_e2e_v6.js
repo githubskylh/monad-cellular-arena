@@ -27,6 +27,12 @@ async function main() {
     if (!html.includes("stakeTokens") || !html.includes("claimStakingRewards") || !html.includes("stakeLp")) {
         throw new Error("index.html 缺少单币质押与 LP 农场接口！");
     }
+    if (!html.includes("tabContentBazaar") || !html.includes("listLootModalOverlay") || !html.includes("bazaarListingsContainer")) {
+        throw new Error("index.html 缺少全链藏宝阁寄售行与上架神兵模态视窗！");
+    }
+    if (!html.includes("listLoot") || !html.includes("buyLoot") || !html.includes("cancelListing")) {
+        throw new Error("index.html 缺少全链寄售上架/购买/撤单核心合约接口！");
+    }
     console.log("   ✅ index.html 核心逻辑结构检查通过！(文件总大小: " + (html.length / 1024).toFixed(1) + " KB)");
 
     // 2. 检查 Vercel 与 Scaffold-ETH 规范配置
@@ -87,6 +93,13 @@ async function main() {
 
     const fin = await contract.getFinancialOverview(wallet.address);
     console.log(`   - 财务概览: XYT余额=${ethers.formatEther(fin[0])} | LP余额=${ethers.formatEther(fin[1])}`);
+
+    // 查阅藏宝阁活跃挂单
+    const market = await contract.getActiveListings();
+    console.log(`   - 藏宝阁当前全链有效挂单: ${market[0].length} 件 (已按 MON 标价)`);
+    for (let i = 0; i < market[0].length; i++) {
+        console.log(`     [挂单 #${market[0][i].toString().slice(-4)}] ${market[3][i]} 售价: ${ethers.formatEther(market[2][i])} MON | 卖家: ${market[1][i]}`);
+    }
 
     console.log("\n==========================================================");
     console.log("   🎉 梦幻西游 V6 全链金融旗舰版在 Monad 测试网与 CI/CD 规范下 100% 审计通过！");

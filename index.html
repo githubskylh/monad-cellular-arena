@@ -1166,8 +1166,42 @@
                 </div>
 
                 <!-- Tab 2: 全链寄售市场 -->
-                <div id="tabContentBazaar" class="space-y-2 max-h-56 overflow-y-auto pr-1 hidden">
-                    <!-- Populated dynamically -->
+                <div id="tabContentBazaar" class="space-y-2.5 max-h-[460px] overflow-y-auto pr-1 hidden font-xy text-xs">
+                    <!-- 寄售行顶部行动看板 (Bazaar Action Header) -->
+                    <div class="p-2.5 rounded-xl bg-gradient-to-r from-slate-900 via-amber-950/40 to-slate-900 border border-yellow-500/40 space-y-2">
+                        <div class="flex items-center justify-between border-b border-slate-700/60 pb-1.5">
+                            <div class="flex items-center space-x-1.5">
+                                <span class="text-base">🛒</span>
+                                <span class="font-bold text-yellow-300 text-xs">三界藏宝阁 • 寄售行</span>
+                                <span class="text-[9px] px-1.5 py-0.5 rounded bg-amber-950 text-yellow-300 border border-yellow-600/60 font-mono">MON 原生计价</span>
+                            </div>
+                            <button onclick="openListingModal()" class="px-2.5 py-1 rounded-lg bg-gradient-to-r from-amber-600 to-yellow-500 hover:from-amber-500 hover:to-yellow-400 text-slate-950 font-bold font-xy text-[10px] shadow-md border border-yellow-300 flex items-center space-x-1 cursor-pointer transition-transform active:scale-95 animate-pulse">
+                                <span>➕ 上架我的神兵</span>
+                            </button>
+                        </div>
+                        
+                        <!-- 市场指标与分类筛选标签 -->
+                        <div class="flex flex-wrap items-center justify-between gap-1 text-[10px] text-slate-300 pt-0.5">
+                            <div class="flex items-center space-x-1.5 font-mono">
+                                <span class="text-slate-400">在售:</span>
+                                <b id="bazaarActiveCount" class="text-yellow-400">0</b>
+                                <span class="text-slate-400 ml-1">结算:</span>
+                                <span class="text-emerald-400">1秒极速到账</span>
+                            </div>
+                            <div class="flex items-center space-x-1">
+                                <button onclick="setBazaarFilter('all')" id="filterBtnAll" class="px-1.5 py-0.5 rounded bg-amber-900/80 text-yellow-200 border border-yellow-500/70 text-[9px] cursor-pointer font-bold">全部</button>
+                                <button onclick="setBazaarFilter('weapon')" id="filterBtnWeapon" class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-600 text-[9px] hover:text-white cursor-pointer">🗡️武器</button>
+                                <button onclick="setBazaarFilter('armor')" id="filterBtnArmor" class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-600 text-[9px] hover:text-white cursor-pointer">🛡️宝甲</button>
+                                <button onclick="setBazaarFilter('relic')" id="filterBtnRelic" class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-600 text-[9px] hover:text-white cursor-pointer">📿法宝</button>
+                                <button onclick="setBazaarFilter('my')" id="filterBtnMy" class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-600 text-[9px] hover:text-white cursor-pointer">👑我的寄售</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 寄售列表动态容器 -->
+                    <div id="bazaarListingsContainer" class="space-y-1.5">
+                        <!-- Populated dynamically -->
+                    </div>
                 </div>
 
                 <!-- Tab 3: 灵石金库 (内置 AMM Swap 闪兑、36.5% 单币质押与 128.0% LP 做市农场) -->
@@ -1408,6 +1442,98 @@
             </div>
 
         </div>
+
+    
+    <!-- BAZAAR LISTING MODAL (全链藏宝阁 • 上架寄售神兵视窗) -->
+    <div id="listLootModalOverlay" class="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center p-3 z-50 transition-all duration-200" style="display: none;">
+        <div class="bg-[#111620] border-2 border-yellow-500/80 rounded-2xl p-4 sm:p-5 max-w-md w-full shadow-2xl space-y-3.5 relative overflow-hidden font-xy text-slate-200">
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between border-b border-slate-700/80 pb-2.5">
+                <div class="flex items-center space-x-2">
+                    <span class="text-xl">🏷️</span>
+                    <div>
+                        <h3 class="font-bold text-yellow-300 text-sm sm:text-base flex items-center space-x-1.5">
+                            <span>藏宝阁寄售行 • 上架我的神兵</span>
+                        </h3>
+                        <p class="text-[10px] text-slate-400 font-mono">自主以 MON 原生币标价挂售，全链去中心化买卖</p>
+                    </div>
+                </div>
+                <button onclick="closeListingModal()" class="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center font-bold text-sm cursor-pointer transition-colors">
+                    ✕
+                </button>
+            </div>
+
+            <!-- Step 1: 选择要寄售的神兵 -->
+            <div class="space-y-1.5">
+                <div class="flex items-center justify-between text-xs">
+                    <span class="font-bold text-yellow-200 flex items-center space-x-1">
+                        <span class="w-4 h-4 rounded-full bg-amber-900 text-yellow-300 flex items-center justify-center text-[10px] font-mono font-bold">1</span>
+                        <span>选择要寄售的 NFT 神兵:</span>
+                    </span>
+                    <span id="modalBackpackAvailableCount" class="text-[10px] font-mono text-emerald-400">可用: 0 件</span>
+                </div>
+                <div id="modalItemSelectorList" class="space-y-1.5 max-h-40 overflow-y-auto pr-1 bg-black/50 p-2 rounded-xl border border-slate-800">
+                    <!-- Populated dynamically: unequipped items -->
+                </div>
+            </div>
+
+            <!-- Step 2: 设定售价 (以 MON 计价) -->
+            <div class="space-y-2 bg-slate-900/60 p-3 rounded-xl border border-slate-800">
+                <div class="flex items-center justify-between text-xs">
+                    <span class="font-bold text-yellow-200 flex items-center space-x-1">
+                        <span class="w-4 h-4 rounded-full bg-amber-900 text-yellow-300 flex items-center justify-center text-[10px] font-mono font-bold">2</span>
+                        <span>设定售价 (单位: MON 原生代币):</span>
+                    </span>
+                    <span class="text-[10px] text-emerald-400 font-mono">1秒极速结算</span>
+                </div>
+
+                <div class="flex items-center space-x-2">
+                    <div class="relative flex-1">
+                        <input id="listPriceInput" type="number" step="0.001" min="0.001" placeholder="0.05" value="0.05" oninput="updateListingFeePreview()" class="w-full bg-black/80 border border-yellow-500/60 rounded-lg px-3 py-2 text-yellow-300 font-pixel text-base focus:outline-none focus:border-yellow-400 pr-16" />
+                        <span class="absolute right-3 top-2.5 text-xs text-yellow-400 font-mono font-bold">MON</span>
+                    </div>
+                </div>
+
+                <!-- 快捷标价按键 -->
+                <div class="flex items-center space-x-1.5 text-[10px] font-mono pt-0.5">
+                    <span class="text-slate-400 text-[9px]">快捷标价:</span>
+                    <button type="button" onclick="setPresetPrice('0.01')" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-yellow-300 border border-slate-700 cursor-pointer">0.01</button>
+                    <button type="button" onclick="setPresetPrice('0.02')" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-yellow-300 border border-slate-700 cursor-pointer">0.02</button>
+                    <button type="button" onclick="setPresetPrice('0.05')" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-yellow-300 border border-slate-700 cursor-pointer">0.05</button>
+                    <button type="button" onclick="setPresetPrice('0.10')" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-yellow-300 border border-slate-700 cursor-pointer">0.10</button>
+                    <button type="button" onclick="setPresetPrice('0.50')" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-yellow-300 border border-slate-700 cursor-pointer">0.50</button>
+                </div>
+
+                <!-- 费用与到账精算拆解 -->
+                <div class="p-2 rounded-lg bg-black/50 border border-yellow-500/20 text-[10px] space-y-1 font-mono">
+                    <div class="flex items-center justify-between text-slate-300">
+                        <span>标牌挂牌价:</span>
+                        <b id="previewGrossPrice" class="text-yellow-300">0.0500 MON</b>
+                    </div>
+                    <div class="flex items-center justify-between text-slate-400">
+                        <span>做市留存 (3%):</span>
+                        <span id="previewPlatformFee" class="text-slate-400">-0.0015 MON (注入 AMM 灵石池底)</span>
+                    </div>
+                    <div class="flex items-center justify-between border-t border-slate-800 pt-1 text-xs">
+                        <span class="font-bold text-slate-200">卖家成交实得:</span>
+                        <b id="previewNetProceeds" class="text-emerald-400 font-pixel text-sm">0.0485 MON</b>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Action Footer -->
+            <div class="flex items-center space-x-2 pt-1">
+                <button onclick="closeListingModal()" class="flex-1 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs cursor-pointer transition-colors">
+                    取消
+                </button>
+                <button id="btnConfirmPublishListing" onclick="confirmPublishListing()" class="flex-[2] py-2 rounded-xl bg-gradient-to-r from-amber-600 to-yellow-500 hover:from-amber-500 hover:to-yellow-400 text-slate-950 font-bold font-xy text-xs shadow-lg border border-yellow-300 flex items-center justify-center space-x-1 cursor-pointer transition-transform active:scale-95">
+                    <span>🏷️ 确认挂牌以 <span id="btnListingPriceLabel">0.05</span> MON 上架</span>
+                </button>
+            </div>
+            
+            <div id="listingModalStatusText" class="text-[10px] text-center font-mono text-cyan-400 min-h-[14px]"></div>
+        </div>
+    </div>
 
     </main>
 
@@ -4731,6 +4857,14 @@
             });
         }
 
+                // =========================================================================
+        // 12. 背包物品刷新与智能链上神兵解析 (Inventory & NFT Resolution)
+        // =========================================================================
+        let currentSelectedListingTokenId = null;
+        let bazaarFilter = "all";
+        let cachedPlayerInventory = [];
+        let cachedActiveListings = [];
+
         async function refreshLootInventory() {
             const addr = getActiveAddress();
             if (!contract || !addr) return;
@@ -4743,12 +4877,12 @@
                         try {
                             const d = await contract.nftDetails(tid);
                             ids.push(tid);
-                            names.push(d[0]);
-                            rarities.push(d[1]);
-                            powers.push(d[2]);
-                            itemTypes.push(d[3]);
-                            chapterIds.push(d[4]);
-                            starLevels.push(d[5]);
+                            chapterIds.push(Number(d[1]));
+                            itemTypes.push(Number(d[2]));
+                            starLevels.push(Number(d[3]));
+                            names.push(d[5]);
+                            rarities.push(d[6]);
+                            powers.push(Number(d[7]));
                         } catch (e) {
                             console.warn("nftDetails error for token", tid, e);
                         }
@@ -4758,19 +4892,29 @@
                     ids = loot[0]; chapterIds = loot[1]; itemTypes = loot[2]; starLevels = loot[3]; names = loot[4]; rarities = loot[5]; powers = loot[6];
                 }
 
+                // 获取全链当前挂单以判断哪些已寄售
+                const activeMarket = await contract.getActiveListings();
+                const listedMap = new Map();
+                for (let m = 0; m < activeMarket[0].length; m++) {
+                    listedMap.set(activeMarket[0][m].toString(), {
+                        price: activeMarket[2][m],
+                        seller: activeMarket[1][m]
+                    });
+                }
+
+                cachedPlayerInventory = [];
                 nftTotalDisplay.innerText = `(${ids.length})`;
-                tabContentBackpack.innerHTML = '';
+                tabContentBackpack.innerHTML = "";
 
                 if (ids.length === 0) {
                     tabContentBackpack.innerHTML = `<div class="text-slate-500 italic py-4 text-center font-xy">暂无神兵，通关地牢将自动 Mint 铸造！</div>`;
                     return;
                 }
 
-                const typeLabels = ["武器", "宝甲", "法宝"];
                 const typeIcons = ["🗡️", "🛡️", "📿"];
 
                 for (let i = ids.length - 1; i >= 0; i--) {
-                    const tid = Number(ids[i]);
+                    const tid = ids[i].toString();
                     const chId = Number(chapterIds[i]);
                     const iType = Number(itemTypes[i]);
                     const sLevel = Number(starLevels[i]);
@@ -4778,30 +4922,55 @@
                     const rName = rarities[i];
                     const cPower = Number(powers[i]);
                     const isEquipped = (equippedItems[iType] && equippedItems[iType].name === pName);
+                    const isListed = listedMap.has(tid);
+                    const listingInfo = isListed ? listedMap.get(tid) : null;
 
-                    const starsHtml = sLevel > 0 ? ('⭐'.repeat(sLevel)) : '0星';
+                    // 缓存到背包供上架弹窗读取
+                    cachedPlayerInventory.push({
+                        id: tid,
+                        name: pName,
+                        power: cPower,
+                        rarity: rName,
+                        itemType: iType,
+                        chapterId: chId,
+                        starLevel: sLevel,
+                        isEquipped: isEquipped,
+                        isListed: isListed
+                    });
 
-                    const div = document.createElement('div');
-                    div.className = `p-2 rounded-lg bg-black/60 border ${isEquipped ? 'border-yellow-400' : 'border-slate-800'} flex items-center justify-between`;
+                    const starsHtml = sLevel > 0 ? ("⭐".repeat(sLevel)) : "0星";
+
+                    const div = document.createElement("div");
+                    div.className = `p-2 rounded-lg bg-black/60 border ${
+                        isEquipped ? "border-yellow-400" : (isListed ? "border-amber-600/70" : "border-slate-800")
+                    } flex items-center justify-between`;
+                    
                     div.innerHTML = `
                         <div class="flex items-center space-x-2">
-                            <span class="text-base">${typeIcons[iType] || '🔱'}</span>
+                            <span class="text-base">${typeIcons[iType] || "🔱"}</span>
                             <div>
                                 <div class="font-bold font-xy text-yellow-300 text-xs flex items-center gap-1">
                                     <span>${pName}</span>
-                                    <span class="text-[9px] px-1 bg-amber-950 text-amber-300 rounded font-pixel">#${tid}</span>
+                                    <span class="text-[9px] px-1 bg-amber-950 text-amber-300 rounded font-pixel">#${tid.slice(-4)}</span>
                                     <span class="text-[9px] px-1 bg-yellow-950 text-yellow-400 rounded font-pixel font-bold">${starsHtml}</span>
-                                    ${isEquipped ? '<span class="text-[8px] bg-yellow-400 text-black px-1 rounded font-bold">已着装</span>' : ''}
+                                    ${isEquipped ? '<span class="text-[8px] bg-yellow-400 text-black px-1 rounded font-bold">已着装</span>' : ""}
+                                    ${isListed ? `<span class="text-[8px] bg-amber-950 text-yellow-300 border border-yellow-600 px-1 rounded font-mono">寄售中 (${ethers.formatEther(listingInfo.price)} MON)</span>` : ""}
                                 </div>
                                 <div class="text-[9px] text-slate-400 font-mono">第 ${chId} 层 • 战力 +${cPower} • ${rName}</div>
                             </div>
                         </div>
                         <div class="flex items-center space-x-1">
-                            ${sLevel < 5 ? `<button onclick="forgeNFT(${tid}, '${pName}')" class="px-2 py-1 bg-yellow-600 hover:bg-yellow-500 text-black font-bold rounded text-[9px] font-xy" title="天机玄炉锻造升星 (+25战力)">升星</button>` : ''}
-                            <button onclick="equipNFT(${tid}, ${iType}, '${pName}', ${cPower})" class="px-2 py-1 ${isEquipped ? 'bg-slate-700 text-slate-400' : 'bg-amber-600 hover:bg-amber-500 text-black font-bold'} rounded text-[9px] font-xy">
-                                ${isEquipped ? '已穿' : '穿戴'}
-                            </button>
-                            ${!isEquipped ? `<button onclick="promptListNFT(${tid}, '${pName}')" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-yellow-300 border border-slate-600 rounded text-[9px] font-xy">寄售</button>` : ''}
+                            ${(!isListed && sLevel < 5) ? `<button onclick="forgeNFT('${tid}', '${pName}')" class="px-2 py-1 bg-yellow-600 hover:bg-yellow-500 text-black font-bold rounded text-[9px] font-xy" title="天机玄炉锻造升星 (+25战力)">升星</button>` : ""}
+                            ${!isListed ? `
+                                <button onclick="equipNFT('${tid}', ${iType}, '${pName}', ${cPower})" class="px-2 py-1 ${isEquipped ? 'bg-slate-700 text-slate-400' : 'bg-amber-600 hover:bg-amber-500 text-black font-bold'} rounded text-[9px] font-xy">
+                                    ${isEquipped ? '已穿' : '穿戴'}
+                                </button>
+                            ` : ""}
+                            ${isListed ? `
+                                <button onclick="cancelListing('${tid}')" class="px-2 py-1 bg-red-950 hover:bg-red-900 text-rose-300 border border-red-700/60 rounded text-[9px] font-xy">下架</button>
+                            ` : (!isEquipped ? `
+                                <button onclick="openListingModal('${tid}')" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-yellow-300 border border-slate-600 rounded text-[9px] font-xy cursor-pointer">寄售</button>
+                            ` : "")}
                         </div>
                     `;
                     tabContentBackpack.appendChild(div);
@@ -4833,9 +5002,9 @@
             sfx.playPickup();
             equippedItems[slot] = { id: tokenId, name: name, power: power };
             player.equipPower = equippedItems.reduce((s, itm) => s + (itm ? itm.power : 0), 0);
-            headerPowerDisplay.innerText = '+' + player.equipPower;
+            headerPowerDisplay.innerText = "+" + player.equipPower;
 
-            if (slot === 0) document.getElementById('weaponSlotName').innerText = name.replace(/[【】]/g, '').slice(0, 4);
+            if (slot === 0) document.getElementById("weaponSlotName").innerText = name.replace(/[【】]/g, "").slice(0, 4);
             logTx(`🛡️ 穿戴【${name}】！全身战力提升至 +${player.equipPower}`, "info");
             refreshLootInventory();
 
@@ -4849,23 +5018,196 @@
             }
         };
 
-        window.promptListNFT = async function(tokenId, name) {
-            const priceStr = prompt(`请输入将【${name}】挂单至藏宝阁寄售行的售价 (单位: MON):`, "0.01");
-            if (!priceStr || isNaN(priceStr) || Number(priceStr) <= 0) return;
+        // =========================================================================
+        // 13. 全链藏宝阁寄售行与神兵挂牌交易系统 (Bazaar Marketplace & Listing System)
+        // =========================================================================
+        window.openListingModal = async function(preselectTid) {
+            const overlay = document.getElementById("listLootModalOverlay");
+            if (!overlay) return;
+            overlay.style.display = "flex";
+
+            const statusEl = document.getElementById("listingModalStatusText");
+            if (statusEl) statusEl.innerText = "";
+
+            const listContainer = document.getElementById("modalItemSelectorList");
+            const availCountEl = document.getElementById("modalBackpackAvailableCount");
+            const btnConfirm = document.getElementById("btnConfirmPublishListing");
+
+            // 过滤出未着装、且未挂单的神兵
+            const unequippedItems = cachedPlayerInventory.filter(item => !item.isEquipped && !item.isListed);
+
+            if (availCountEl) availCountEl.innerText = `可用: ${unequippedItems.length} 件`;
+
+            if (unequippedItems.length === 0) {
+                listContainer.innerHTML = `
+                    <div class="text-slate-400 text-center py-5 italic text-xs space-y-1.5">
+                        <div>🎒 当前背包中暂无可寄售的神兵！</div>
+                        <div class="text-[10px] text-slate-500">（已着装的神兵不可直接寄售，请先在背包中脱下）</div>
+                    </div>`;
+                if (btnConfirm) {
+                    btnConfirm.disabled = true;
+                    btnConfirm.classList.add("opacity-50", "cursor-not-allowed");
+                }
+                currentSelectedListingTokenId = null;
+                return;
+            }
+
+            if (btnConfirm) {
+                btnConfirm.disabled = false;
+                btnConfirm.classList.remove("opacity-50", "cursor-not-allowed");
+            }
+
+            // 默认选中传入的预选道具或第一件
+            let matchedId = preselectTid ? preselectTid.toString() : null;
+            if (!matchedId || !unequippedItems.some(it => it.id.toString() === matchedId)) {
+                matchedId = unequippedItems[0].id.toString();
+            }
+            currentSelectedListingTokenId = matchedId;
+
+            renderModalItemSelector(unequippedItems);
+            updateListingFeePreview();
+        };
+
+        function renderModalItemSelector(items) {
+            const listContainer = document.getElementById("modalItemSelectorList");
+            if (!listContainer) return;
+            listContainer.innerHTML = "";
+
+            const typeIcons = ["🗡️", "🛡️", "📿"];
+
+            items.forEach(item => {
+                const isSelected = (currentSelectedListingTokenId && item.id.toString() === currentSelectedListingTokenId.toString());
+                const card = document.createElement("div");
+                card.className = `p-2 rounded-lg cursor-pointer transition-all flex items-center justify-between border ${
+                    isSelected 
+                        ? "bg-amber-950/80 border-yellow-400 ring-1 ring-yellow-400 shadow-lg" 
+                        : "bg-black/60 border-slate-800 hover:border-slate-600"
+                }`;
+                card.onclick = () => {
+                    currentSelectedListingTokenId = item.id.toString();
+                    renderModalItemSelector(items);
+                    updateListingFeePreview();
+                };
+
+                const starsHtml = item.starLevel > 0 ? ("⭐".repeat(item.starLevel)) : "0星";
+
+                card.innerHTML = `
+                    <div class="flex items-center space-x-2.5 min-w-0">
+                        <div class="w-8 h-8 rounded-lg bg-black/80 border ${isSelected ? 'border-yellow-400' : 'border-slate-700'} flex items-center justify-center text-lg shrink-0">
+                            ${typeIcons[item.itemType] || "🔱"}
+                        </div>
+                        <div class="min-w-0">
+                            <div class="font-bold text-xs ${isSelected ? 'text-yellow-300' : 'text-slate-200'} truncate flex items-center space-x-1">
+                                <span>${item.name}</span>
+                                <span class="text-[9px] px-1 bg-black/60 text-yellow-400 rounded font-pixel">#${item.id.toString().slice(-4)}</span>
+                            </div>
+                            <div class="text-[10px] text-slate-400 font-mono">
+                                战力 +${item.power} • ${item.rarity} • ${starsHtml}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-right shrink-0">
+                        <span class="text-[10px] px-1.5 py-0.5 rounded font-mono ${
+                            isSelected ? 'bg-yellow-500 text-black font-bold' : 'bg-slate-800 text-slate-400'
+                        }">
+                            ${isSelected ? '✓ 已选中' : '选择'}
+                        </span>
+                    </div>
+                `;
+                listContainer.appendChild(card);
+            });
+        }
+
+        window.closeListingModal = function() {
+            const overlay = document.getElementById("listLootModalOverlay");
+            if (overlay) overlay.style.display = "none";
+        };
+
+        window.setPresetPrice = function(val) {
+            const input = document.getElementById("listPriceInput");
+            if (input) {
+                input.value = val;
+                updateListingFeePreview();
+            }
+        };
+
+        window.updateListingFeePreview = function() {
+            const input = document.getElementById("listPriceInput");
+            const grossEl = document.getElementById("previewGrossPrice");
+            const feeEl = document.getElementById("previewPlatformFee");
+            const netEl = document.getElementById("previewNetProceeds");
+            const btnLabel = document.getElementById("btnListingPriceLabel");
+
+            const price = Math.max(0.0001, parseFloat(input?.value) || 0.05);
+            const fee = price * 0.03;
+            const net = price - fee;
+
+            if (grossEl) grossEl.innerText = `${price.toFixed(4)} MON`;
+            if (feeEl) feeEl.innerText = `-${fee.toFixed(4)} MON (自动注入 AMM 灵石池底)`;
+            if (netEl) netEl.innerText = `${net.toFixed(4)} MON`;
+            if (btnLabel) btnLabel.innerText = price.toFixed(4);
+        };
+
+        window.confirmPublishListing = async function() {
+            if (!currentSelectedListingTokenId) {
+                alert("请先选择要寄售的神兵！");
+                return;
+            }
+            const input = document.getElementById("listPriceInput");
+            const price = parseFloat(input?.value) || 0;
+            if (price <= 0) {
+                alert("请输入有效的 MON 挂牌售价！");
+                return;
+            }
+
+            const statusEl = document.getElementById("listingModalStatusText");
+            const btnConfirm = document.getElementById("btnConfirmPublishListing");
+            if (btnConfirm) btnConfirm.disabled = true;
+            if (statusEl) statusEl.innerText = "⏳ 正在向 Monad 并行测试网广播挂单交易 (约 1.0 秒落块)...";
 
             sfx.playPickup();
-            logTx(`🏷️ 正在将【${name}】以 ${priceStr} MON 挂单至寄售行...`, "info");
+            logTx(`🏷️ 正在将神兵 #${currentSelectedListingTokenId.slice(-6)} 以 ${price.toFixed(4)} MON 挂单至全链藏宝阁...`, "pending");
+
             try {
-                const feeOpts = await getOptimalMonadFee(120000n);
-                const weiPrice = ethers.parseEther(priceStr);
-                const tx = await contract.listLoot(tokenId, weiPrice, feeOpts);
-                await tx.wait();
-                logTx(`🎉 挂单成功！【${name}】已进入全链集市！`, "success", tx.hash);
-                refreshLootInventory();
-                refreshBazaarListings();
-            } catch (e) {
-                logTx(`❌ 挂单失败: ${e.shortMessage || e.message}`, "error");
+                const feeOpts = await getOptimalMonadFee(320000n);
+                const weiPrice = ethers.parseEther(price.toString());
+                const tx = await contract.listLoot(currentSelectedListingTokenId, weiPrice, feeOpts);
+
+                logTx(`📡 挂单交易已广播: ${tx.hash.slice(0, 12)}...`, "sent", tx.hash);
+                if (statusEl) statusEl.innerText = "⚡ 交易已广播，正在等待 Monad 状态机落块...";
+
+                const rc = await tx.wait();
+                sfx.playVictory();
+                logTx(`🎉 挂单成功！神兵已上架藏宝阁，标价 ${price} MON (区块 #${rc.blockNumber})`, "success", tx.hash);
+                showItemToast("🎉 挂单成功！神兵已上架藏宝阁！");
+
+                closeListingModal();
+                switchTab("bazaar");
+                await refreshLootInventory();
+                await refreshBazaarListings();
+            } catch (err) {
+                console.error("List loot error:", err);
+                if (statusEl) statusEl.innerText = `❌ 挂单失败: ${err.shortMessage || err.message}`;
+                logTx(`❌ 挂单失败: ${err.shortMessage || err.message}`, "error");
+            } finally {
+                if (btnConfirm) btnConfirm.disabled = false;
             }
+        };
+
+        window.setBazaarFilter = function(filter) {
+            bazaarFilter = filter;
+            const filterIds = ["all", "weapon", "armor", "relic", "my"];
+            filterIds.forEach(id => {
+                const btn = document.getElementById(`filterBtn${id.charAt(0).toUpperCase() + id.slice(1)}`);
+                if (btn) {
+                    if (id === filter) {
+                        btn.className = "px-1.5 py-0.5 rounded bg-amber-900/90 text-yellow-200 border border-yellow-500/80 text-[9px] cursor-pointer font-bold";
+                    } else {
+                        btn.className = "px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-600 text-[9px] hover:text-white cursor-pointer";
+                    }
+                }
+            });
+            renderBazaarListings();
         };
 
         async function refreshBazaarListings() {
@@ -4880,75 +5222,170 @@
                 const powers = market[5];
                 const types = market[6];
 
-                bazaarCountBadge.innerText = `(${ids.length})`;
-                tabContentBazaar.innerHTML = '';
-
-                if (ids.length === 0) {
-                    tabContentBazaar.innerHTML = `<div class="text-slate-500 italic py-4 text-center font-xy">全链集市暂无挂单，少侠可在背包中寄售神兵！</div>`;
-                    return;
-                }
-
+                cachedActiveListings = [];
                 for (let i = 0; i < ids.length; i++) {
-                    const tid = Number(ids[i]);
-                    const seller = sellers[i];
-                    const priceMon = ethers.formatEther(prices[i]);
-                    const name = names[i];
-                    const rarity = rarities[i];
-                    const power = Number(powers[i]);
-                    const myAddr = getActiveAddress();
-                    const isMine = myAddr ? (seller.toLowerCase() === myAddr.toLowerCase()) : false;
-
-                    const div = document.createElement('div');
-                    div.className = "p-2 rounded-lg bg-black/60 border border-slate-700 flex items-center justify-between";
-                    div.innerHTML = `
-                        <div>
-                            <div class="font-bold font-xy text-yellow-300 text-xs">${name} <span class="font-mono text-slate-400">#${tid}</span></div>
-                            <div class="text-[9px] text-slate-400 font-mono">战力 +${power} • ${rarity}</div>
-                        </div>
-                        <div class="flex items-center space-x-1.5">
-                            <span class="text-yellow-400 font-pixel text-sm">${priceMon} MON</span>
-                            ${isMine ? 
-                                `<button onclick="cancelListing(${tid})" class="px-2 py-0.5 bg-red-950 text-rose-300 border border-red-700 rounded text-[9px]">撤单</button>` :
-                                `<button onclick="buyBazaarItem(${tid}, '${prices[i]}', '${name}')" class="px-2 py-0.5 bg-yellow-500 hover:bg-yellow-400 text-black font-bold rounded text-[9px]">购买</button>`
-                            }
-                        </div>
-                    `;
-                    tabContentBazaar.appendChild(div);
+                    cachedActiveListings.push({
+                        id: ids[i].toString(),
+                        seller: sellers[i],
+                        priceWei: prices[i].toString(),
+                        priceMon: parseFloat(ethers.formatEther(prices[i])),
+                        name: names[i],
+                        rarity: rarities[i],
+                        power: Number(powers[i]),
+                        itemType: Number(types[i])
+                    });
                 }
+
+                const countEl = document.getElementById("bazaarActiveCount");
+                if (countEl) countEl.innerText = cachedActiveListings.length;
+                if (bazaarCountBadge) bazaarCountBadge.innerText = `(${cachedActiveListings.length})`;
+
+                renderBazaarListings();
             } catch (e) {
-                console.warn(e);
+                console.error("Failed to refresh bazaar listings:", e);
             }
         }
 
+        function renderBazaarListings() {
+            const container = document.getElementById("bazaarListingsContainer");
+            if (!container) return;
+            container.innerHTML = "";
+
+            const myAddr = getActiveAddress()?.toLowerCase();
+
+            // 根据分类筛选
+            const filtered = cachedActiveListings.filter(item => {
+                if (bazaarFilter === "all") return true;
+                if (bazaarFilter === "weapon") return item.itemType === 0;
+                if (bazaarFilter === "armor") return item.itemType === 1;
+                if (bazaarFilter === "relic") return item.itemType === 2;
+                if (bazaarFilter === "my") return myAddr && item.seller.toLowerCase() === myAddr;
+                return true;
+            });
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="p-6 rounded-xl bg-black/50 border border-slate-800 text-center space-y-2">
+                        <span class="text-3xl block">🛒</span>
+                        <div class="font-bold text-yellow-300 text-xs">全链藏宝阁暂无此类神兵挂单！</div>
+                        <p class="text-[10px] text-slate-400 max-w-xs mx-auto font-mono">
+                            少侠可以成为三界第一个大掌柜，将背包中的神兵以 MON 标价上架销售！
+                        </p>
+                        <button onclick="openListingModal()" class="mt-2 px-3 py-1.5 rounded-lg bg-gradient-to-r from-amber-600 to-yellow-500 hover:from-amber-500 hover:to-yellow-400 text-slate-950 font-bold font-xy text-xs shadow cursor-pointer">
+                            ➕ 立即上架我的神兵
+                        </button>
+                    </div>`;
+                return;
+            }
+
+            const typeIcons = ["🗡️", "🛡️", "📿"];
+            const typeLabels = ["武器", "宝甲", "法宝"];
+
+            filtered.forEach(item => {
+                const isMine = myAddr && (item.seller.toLowerCase() === myAddr);
+                const div = document.createElement("div");
+                div.className = `p-2 rounded-xl bg-black/60 border ${
+                    isMine ? "border-amber-500/70 shadow-[0_0_10px_rgba(245,158,11,0.15)]" : "border-slate-800 hover:border-slate-700"
+                } flex items-center justify-between transition-all`;
+
+                div.innerHTML = `
+                    <div class="flex items-center space-x-2.5 min-w-0">
+                        <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-slate-900 to-black border ${
+                            isMine ? "border-amber-400" : "border-slate-700"
+                        } flex items-center justify-center text-lg shrink-0">
+                            ${typeIcons[item.itemType] || "🔱"}
+                        </div>
+                        <div class="min-w-0">
+                            <div class="font-bold font-xy text-xs ${isMine ? "text-yellow-300" : "text-slate-200"} truncate flex items-center space-x-1">
+                                <span>${item.name}</span>
+                                <span class="text-[9px] px-1 bg-amber-950 text-amber-300 rounded font-pixel">#${item.id.slice(-4)}</span>
+                                ${isMine ? '<span class="text-[8px] px-1 rounded bg-yellow-400 text-black font-bold">我的挂单</span>' : ""}
+                            </div>
+                            <div class="text-[10px] text-slate-400 font-mono flex items-center space-x-1.5">
+                                <span class="text-yellow-500/90">${typeLabels[item.itemType] || "装备"}</span>
+                                <span>•</span>
+                                <span class="text-emerald-400">战力 +${item.power}</span>
+                                <span>•</span>
+                                <span>${item.rarity}</span>
+                            </div>
+                            <div class="text-[9px] text-slate-500 font-mono">
+                                卖家: ${item.seller.slice(0, 6)}...${item.seller.slice(-4)}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center space-x-2 shrink-0">
+                        <div class="text-right">
+                            <div class="font-pixel text-yellow-300 text-sm sm:text-base flex items-center justify-end space-x-1">
+                                <span>💎</span>
+                                <span>${item.priceMon.toFixed(3)}</span>
+                                <span class="text-[9px] text-yellow-500 font-mono">MON</span>
+                            </div>
+                            <div class="text-[9px] text-slate-500 font-mono">
+                                约 ${(item.priceMon * 1000).toFixed(0)} XYT
+                            </div>
+                        </div>
+                        <div>
+                            ${isMine ? `
+                                <button onclick="cancelListing('${item.id}')" class="px-2.5 py-1.5 rounded-lg bg-red-950 hover:bg-red-900 text-rose-300 border border-red-700/80 font-bold font-xy text-[10px] shadow cursor-pointer transition-transform active:scale-95">
+                                    ❌ 下架
+                                </button>
+                            ` : `
+                                <button onclick="buyBazaarItem('${item.id}', '${item.priceWei}', '${item.name}')" class="px-3 py-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-400 hover:to-yellow-300 text-slate-950 font-bold font-xy text-[10px] shadow-md border border-yellow-200 cursor-pointer transition-transform active:scale-95">
+                                    🛒 购买
+                                </button>
+                            `}
+                        </div>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
         window.cancelListing = async function(tokenId) {
-            logTx(`⏳ 正在撤销 #${tokenId} 的寄售单...`, "info");
+            sfx.playSlash();
+            logTx(`⏳ 正在向 Monad 链上撤销神兵 #${tokenId.toString().slice(-4)} 的寄售挂单...`, "pending");
             try {
-                const feeOpts = await getOptimalMonadFee(90000n);
+                const feeOpts = await getOptimalMonadFee(200000n);
                 const tx = await contract.cancelListing(tokenId, feeOpts);
-                await tx.wait();
-                logTx(`✅ 撤单成功！神兵已退回背包！`, "success", tx.hash);
-                refreshLootInventory();
-                refreshBazaarListings();
+                logTx(`📡 撤单交易已广播: ${tx.hash.slice(0, 12)}...`, "sent", tx.hash);
+                const rc = await tx.wait();
+                sfx.playPickup();
+                showItemToast("✅ 撤单成功！神兵已退回您的背包！");
+                logTx(`✅ 撤销寄售成功！神兵已安全解除锁定退回背包 (区块 #${rc.blockNumber})`, "success", tx.hash);
+                await refreshLootInventory();
+                await refreshBazaarListings();
             } catch (e) {
-                console.error(e);
+                console.error("Cancel listing error:", e);
                 logTx(`❌ 撤单失败: ${e.shortMessage || e.message}`, "error");
             }
         };
 
         window.buyBazaarItem = async function(tokenId, priceWei, name) {
+            const priceMon = ethers.formatEther(priceWei);
+            if (!confirm(`确认支付 ${priceMon} MON 购买神兵【${name}】吗？\n（交易将通过 Monad 状态机 1 秒原子清算）`)) {
+                return;
+            }
+
             sfx.playPickup();
-            logTx(`🛒 正在支付 ${ethers.formatEther(priceWei)} MON 购买【${name}】...`, "info");
+            logTx(`🛒 正在支付 ${priceMon} MON 购买【${name}】...`, "pending");
+
             try {
-                const feeOpts = await getOptimalMonadFee(140000n);
+                const feeOpts = await getOptimalMonadFee(350000n);
                 const tx = await contract.buyLoot(tokenId, {
                     value: BigInt(priceWei),
                     ...feeOpts
                 });
-                await tx.wait();
-                logTx(`🎉 购买成功！【${name}】已进入您的全链背包！`, "success", tx.hash);
-                refreshLootInventory();
-                refreshBazaarListings();
+                logTx(`📡 购买交易已广播: ${tx.hash.slice(0, 12)}...`, "sent", tx.hash);
+                const rc = await tx.wait();
+                sfx.playVictory();
+                showItemToast(`🎉 购买成功！【${name}】已进入您的神兵背包！`);
+                logTx(`🎉 购买成功！神兵【${name}】已全链过户归您所有 (区块 #${rc.blockNumber})`, "success", tx.hash);
+                await refreshLootInventory();
+                await refreshBazaarListings();
+                await updateWalletBalance();
             } catch (e) {
+                console.error("Buy loot error:", e);
                 logTx(`❌ 购买失败: ${e.shortMessage || e.message}`, "error");
             }
         };
