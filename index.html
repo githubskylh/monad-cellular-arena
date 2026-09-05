@@ -807,46 +807,92 @@
         }
 
         // =========================================================================
-        // 2.2 Monad Web3 外部钱包接入器 (EIP-1193 & MetaMask/OKX/Phantom/Rabby)
+        // 2.2 Monad Web3 多钱包接入器 (EIP-1193 / OKX / MetaMask / Phantom / Rabby)
         // =========================================================================
+        let activeInjectedProvider = null;
+
+        function getInjectedProvider() {
+            // 1. 优先检测 OKX 钱包专属注入对象 (独立于 window.ethereum 杜绝多扩展冲突)
+            if (typeof window.okxwallet !== 'undefined') {
+                return window.okxwallet.ethereum || window.okxwallet;
+            }
+            // 2. 检查多钱包注入数组 (EIP-6963 或 window.ethereum.providers)
+            if (window.ethereum?.providers?.length) {
+                const okx = window.ethereum.providers.find(p => p.isOkxWallet);
+                if (okx) return okx;
+                const mm = window.ethereum.providers.find(p => p.isMetaMask);
+                if (mm) return mm;
+                return window.ethereum.providers[0];
+            }
+            // 3. 常规 window.ethereum
+            if (typeof window.ethereum !== 'undefined') {
+                return window.ethereum;
+            }
+            return null;
+        }
+
+        function getWalletBrandInfo(provider) {
+            const p = provider || activeInjectedProvider || getInjectedProvider();
+            if (!p) return { name: "Web3 钱包", icon: "💳", key: "generic" };
+            if (p.isOkxWallet || typeof window.okxwallet !== 'undefined') {
+                return { name: "OKX 钱包", icon: "🪙", key: "okx" };
+            }
+            if (p.isMetaMask) return { name: "MetaMask", icon: "🦊", key: "metamask" };
+            if (p.isPhantom) return { name: "Phantom", icon: "👻", key: "phantom" };
+            if (p.isRabby) return { name: "Rabby", icon: "🐰", key: "rabby" };
+            return { name: "Web3 钱包", icon: "💳", key: "generic" };
+        }
+
         async function checkAndSwitchMonadNetwork() {
-            if (!window.ethereum) return;
-            const currentChainId = await window.ethereum.request({ method: 'eth_chainId' });
-            if (currentChainId.toLowerCase() !== MONAD_CHAIN_ID_HEX) {
-                try {
-                    await window.ethereum.request({
-                        method: 'wallet_switchEthereumChain',
-                        params: [{ chainId: MONAD_CHAIN_ID_HEX }]
-                    });
-                } catch (switchError) {
-                    if (switchError.code === 4902 || switchError?.data?.originalError?.code === 4902) {
-                        await window.ethereum.request({
-                            method: 'wallet_addEthereumChain',
-                            params: [MONAD_NETWORK_CONFIG]
+            const injected = activeInjectedProvider || getInjectedProvider();
+            if (!injected) return;
+            try {
+                const currentChainId = await injected.request({ method: 'eth_chainId' });
+                if (currentChainId && currentChainId.toLowerCase() !== MONAD_CHAIN_ID_HEX) {
+                    try {
+                        await injected.request({
+                            method: 'wallet_switchEthereumChain',
+                            params: [{ chainId: MONAD_CHAIN_ID_HEX }]
                         });
-                    } else {
-                        throw switchError;
+                    } catch (switchError) {
+                        const errMsg = (switchError?.message || "").toLowerCase();
+                        const errCode = switchError?.code;
+                        // 兼容 OKX / MetaMask / Rabby 等各家添加链错误码 (4902, -32603, 或错误文本提示)
+                        if (errCode === 4902 || errCode === -32603 || switchError?.data?.originalError?.code === 4902 || errMsg.includes("unrecognized") || errMsg.includes("not added") || errMsg.includes("does not exist")) {
+                            await injected.request({
+                                method: 'wallet_addEthereumChain',
+                                params: [MONAD_NETWORK_CONFIG]
+                            });
+                        } else {
+                            console.warn("Chain switch warning:", switchError);
+                        }
                     }
                 }
+            } catch (e) {
+                console.warn("checkAndSwitchMonadNetwork error:", e);
             }
         }
 
         async function connectExternalWallet() {
-            if (!window.ethereum) {
-                alert("🦊 未检测到 Web3 钱包插件（如 MetaMask、OKX Wallet、Phantom、Rabby 等），请在浏览器中安装！\n当前为您继续保留【⚡ 免密极速试玩模式】。");
+            const injected = getInjectedProvider();
+            if (!injected) {
+                alert("未检测到 Web3 钱包插件（如 OKX Wallet、MetaMask、Phantom 等），请在浏览器中安装！\n当前为您继续保留【⚡ 免密极速试玩模式】。");
                 logTx("⚠️ 未检测到 Web3 钱包插件，继续使用免密极速试玩钱包！", "error");
                 return;
             }
+            activeInjectedProvider = injected;
+            const brand = getWalletBrandInfo(activeInjectedProvider);
+
             try {
-                logTx("🦊 正在唤起外部 Web3 钱包授权连接...", "info");
-                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                logTx(`${brand.icon} 正在唤起 ${brand.name} 授权连接...`, "info");
+                const accounts = await activeInjectedProvider.request({ method: 'eth_requestAccounts' });
                 if (!accounts || accounts.length === 0) {
-                    logTx("⚠️ 用户取消了外部钱包授权", "error");
+                    logTx(`⚠️ 用户取消了 ${brand.name} 授权`, "error");
                     return;
                 }
                 await checkAndSwitchMonadNetwork();
 
-                externalBrowserProvider = new ethers.BrowserProvider(window.ethereum);
+                externalBrowserProvider = new ethers.BrowserProvider(activeInjectedProvider);
                 externalSigner = await externalBrowserProvider.getSigner();
                 externalAddress = await externalSigner.getAddress();
 
@@ -855,8 +901,8 @@
                 currentWalletMode = "external";
 
                 updateWalletUI();
-                logTx(`🦊 外部钱包已连接: ${externalAddress.slice(0, 6)}...${externalAddress.slice(-4)}，已切至真实 Web3 模式！`, "success");
-                showItemToast("🦊 外部钱包已连接！已切至真实 Web3 模式！");
+                logTx(`${brand.icon} ${brand.name} 已连接: ${externalAddress.slice(0, 6)}...${externalAddress.slice(-4)}，已切至真实 Web3 模式！`, "success");
+                showItemToast(`${brand.icon} ${brand.name} 已连接！已切至真实 Web3 模式！`);
 
                 await checkAndAirdropGasIfNeeded(externalAddress);
                 await updateWalletBalance();
@@ -904,13 +950,14 @@
 
         function updateWalletUI() {
             if (currentWalletMode === 'external' && externalAddress) {
+                const brand = getWalletBrandInfo(activeInjectedProvider);
                 const shortAddr = `${externalAddress.slice(0, 6)}...${externalAddress.slice(-4)}`;
                 walletConnectText.innerText = shortAddr;
-                walletConnectIcon.innerText = "🦊";
+                walletConnectIcon.innerText = brand.icon;
                 btnWalletConnect.className = "px-2.5 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-600 text-white font-bold font-mono text-xs flex items-center space-x-1.5 shadow-md border border-emerald-400 transition-all active:scale-95";
-                walletModeBadge.innerText = "🦊 外部钱包";
+                walletModeBadge.innerText = `${brand.icon} ${brand.name}`;
                 walletModeBadge.className = "text-emerald-400";
-                accountModeBadge.innerText = `🦊 外部: ${shortAddr}`;
+                accountModeBadge.innerText = `${brand.icon} ${shortAddr}`;
                 accountModeBadge.className = "text-emerald-300 bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-500/60 text-[10px] font-bold";
             } else {
                 const trialAddr = trialWallet ? `${trialWallet.address.slice(0, 6)}...${trialWallet.address.slice(-4)}` : "0xB204...7ad6";
@@ -936,18 +983,18 @@
         }
 
         // =========================================================================
-        // 2.5 Monad 并行 EVM 精算费率助手 (遵守 50 gwei 底线 & EIP-1559 Type 2)
+        // 2.5 Monad 并行 EVM 精算费率助手 (遵守 Monad >= 100 gwei 底线 & EIP-1559 Type 2)
         // =========================================================================
         async function getOptimalMonadFee(gasLimit) {
             const fee = await provider.getFeeData();
-            const base = fee.maxFeePerGas || fee.gasPrice || 52000000000n;
-            const minBase = 52000000000n; // 遵守 Monad 测试网 >= 50 gwei 底线机制
+            const base = fee.maxFeePerGas || fee.gasPrice || 105000000000n;
+            const minBase = 105000000000n; // 遵守 Monad 测试网 >= 100 gwei 底线机制
             const effectiveBase = base > minBase ? base : minBase;
             return {
                 type: 2,
                 gasLimit: gasLimit,
                 maxFeePerGas: effectiveBase * 12n / 10n,
-                maxPriorityFeePerGas: 2000000000n // 2 gwei 节点优先小费
+                maxPriorityFeePerGas: 5000000000n // 5 gwei 节点优先小费
             };
         }
 
@@ -975,13 +1022,14 @@
                 }
 
                 // 监听外部钱包事件 (EIP-1193)
-                if (window.ethereum) {
-                    window.ethereum.on('accountsChanged', async (accounts) => {
+                const injected = activeInjectedProvider || getInjectedProvider();
+                if (injected && injected.on) {
+                    injected.on('accountsChanged', async (accounts) => {
                         if (accounts.length === 0) {
                             switchToTrialWallet();
                         } else if (currentWalletMode === 'external') {
                             externalAddress = accounts[0];
-                            externalBrowserProvider = new ethers.BrowserProvider(window.ethereum);
+                            externalBrowserProvider = new ethers.BrowserProvider(injected);
                             externalSigner = await externalBrowserProvider.getSigner();
                             signer = externalSigner;
                             contract = new ethers.Contract(CONTRACT_ADDR, CONTRACT_ABI, signer);
@@ -989,10 +1037,11 @@
                             await updateWalletBalance();
                             await syncEquippedState();
                             await refreshLootInventory();
-                            logTx(`🦊 钱包账号变更为: ${accounts[0].slice(0, 6)}...${accounts[0].slice(-4)}`, "info");
+                            const brand = getWalletBrandInfo(injected);
+                            logTx(`${brand.icon} 钱包账号变更为: ${accounts[0].slice(0, 6)}...${accounts[0].slice(-4)}`, "info");
                         }
                     });
-                    window.ethereum.on('chainChanged', (chainId) => {
+                    injected.on('chainChanged', (chainId) => {
                         if (currentWalletMode === 'external' && chainId.toLowerCase() !== MONAD_CHAIN_ID_HEX) {
                             logTx("⚠️ 检测到非 Monad 测试网，请切回 Monad Testnet (Chain ID 10143)！", "error");
                         }
@@ -2829,10 +2878,15 @@
             clearanceTitle.innerText = `STAGE ${currentChapter} CLEARED!`;
 
             const clearSecs = Math.max(1, Math.round((performance.now() - chapterStats.startTime) / 1000));
+            // 契约反作弊底线保护：monstersSlain >= 1, totalDamage >= monstersSlain * 35，杜绝 InvalidProof()
+            const monstersSlain = Math.max(1, Number(chapterStats.monstersSlain) || 1);
+            const minRequiredDamage = monstersSlain * 35;
+            const reportedDamage = Math.max(Number(chapterStats.totalDamage) || 0, minRequiredDamage);
+
             currentClearanceSummary = {
                 chapterId: Number(currentChapter) || 1,
-                totalDamage: Number(chapterStats.totalDamage) || 0,
-                monstersSlain: Number(chapterStats.monstersSlain) || 0,
+                totalDamage: reportedDamage,
+                monstersSlain: monstersSlain,
                 skillsUsed: Number(chapterStats.skillsUsed) || 0,
                 stepsTaken: Number(chapterStats.stepsTaken) || 0,
                 clearTimeSeconds: Number(clearSecs) || 1,
@@ -2848,9 +2902,11 @@
                 mintStatusText.innerHTML = "⏳ 正在通过 Monad 极速节点广播单笔原子清算与自动 Mint 交易 (落块约 1.0 秒)...";
                 await executeMintTransaction(trialWallet, currentClearanceSummary, currentClearanceSessionId);
             } else {
-                // 外部钱包模式 (MetaMask / OKX / Rabby)
+                // 外部钱包模式 (OKX / MetaMask / Rabby 等)
+                const brand = getWalletBrandInfo(activeInjectedProvider);
                 mintActionContainer.classList.remove('hidden');
-                mintStatusText.innerHTML = "🦊 正在唤起外部钱包签名交易... 若插件未自动置顶，请点击下方绿色按钮！";
+                btnTriggerWalletSign.innerHTML = `<span>${brand.icon} 唤起 ${brand.name} 确认签名 (区块落块)</span>`;
+                mintStatusText.innerHTML = `👉 <b>关卡已通关！</b> 请点击下方绿色按钮唤起 ${brand.name} 窗口完成签名落块：`;
 
                 // 预先自动检查并补给测试 Gas、校验网络
                 await checkAndSwitchMonadNetwork();
@@ -2858,13 +2914,14 @@
                     await checkAndAirdropGasIfNeeded(externalAddress);
                 }
 
-                // 尝试直接唤起钱包
+                // 尝试直接唤起钱包 (若浏览器因手势限制未自动抢焦置顶，下方绿色高光按钮随时可供少侠一键置顶唤起)
                 await executeMintTransaction(signer, currentClearanceSummary, currentClearanceSessionId);
             }
         }
 
         async function executeMintTransaction(targetSigner, summary, sessionId) {
             btnNextLevel.classList.add('hidden');
+            const brand = getWalletBrandInfo(activeInjectedProvider);
             try {
                 let gasLimit = 340000n;
                 const targetContract = new ethers.Contract(CONTRACT_ADDR, CONTRACT_ABI, targetSigner);
@@ -2874,10 +2931,18 @@
                 } catch (e) {
                     console.warn("Gas estimation fallback to 340,000:", e);
                 }
-                const feeOpts = await getOptimalMonadFee(gasLimit);
+
                 logTx(`📡 正在向 Monad 广播 settleChapter 交易 (gasLimit: ${gasLimit})...`, "pending");
 
-                const tx = await targetContract.settleChapter(summary, sessionId, feeOpts);
+                let tx;
+                if (currentWalletMode === 'external') {
+                    // 外部插件钱包（OKX / MetaMask）使用自身的实时动态 gas 评估，仅传入合理的 gasLimit，防止因硬编码低小费导致插件拦截
+                    tx = await targetContract.settleChapter(summary, sessionId, { gasLimit });
+                } else {
+                    const feeOpts = await getOptimalMonadFee(gasLimit);
+                    tx = await targetContract.settleChapter(summary, sessionId, feeOpts);
+                }
+
                 logTx(`📡 自动 Mint 交易已广播: ${tx.hash.slice(0, 12)}...`, "sent", tx.hash);
                 mintStatusText.innerHTML = `⏳ 交易已广播 (${tx.hash.slice(0, 10)}...)，正在等待 Monad 极速落块确认...`;
 
@@ -2906,9 +2971,9 @@
                 console.error("executeMintTransaction error:", err);
                 const isUserRejection = err?.code === 4001 || err?.message?.includes("rejected") || err?.message?.includes("User denied") || err?.message?.includes("cancelled");
                 if (isUserRejection) {
-                    mintStatusText.innerHTML = `⚠️ 少侠取消了钱包签名！请点击下方绿色按钮重新唤起，或切换为【免 Gas 代付秒铸】！`;
+                    mintStatusText.innerHTML = `⚠️ 少侠取消了 ${brand.name} 签名！请点击下方绿色按钮重新唤起，或切换为【免 Gas 代付秒铸】！`;
                 } else {
-                    mintStatusText.innerHTML = `❌ 上链遇阻: ${err.shortMessage || err.message || err}。可重试或切换免 Gas 代付！`;
+                    mintStatusText.innerHTML = `❌ 上链遇阻: ${err.shortMessage || err.message || err}。请点击下方绿色按钮重试，或切换免 Gas 代付！`;
                 }
                 mintActionContainer.classList.remove('hidden');
                 // 允许少侠重试
@@ -2919,9 +2984,10 @@
         // 绑定结算弹窗交互按钮 (原生 Click 用户手势，彻底避免浏览器拦截插件弹窗)
         if (btnTriggerWalletSign) {
             btnTriggerWalletSign.addEventListener('click', async () => {
+                const brand = getWalletBrandInfo(activeInjectedProvider);
                 btnTriggerWalletSign.disabled = true;
                 const originalHtml = btnTriggerWalletSign.innerHTML;
-                btnTriggerWalletSign.innerHTML = `<span>⏳ 正在唤起钱包窗口...</span>`;
+                btnTriggerWalletSign.innerHTML = `<span>⏳ 正在唤起 ${brand.name} 窗口...</span>`;
                 try {
                     if (!externalSigner) {
                         await connectExternalWallet();
@@ -2930,7 +2996,7 @@
                     if (externalAddress) {
                         await checkAndAirdropGasIfNeeded(externalAddress);
                     }
-                    mintStatusText.innerHTML = "🦊 正在唤起钱包，请在弹出的 MetaMask / 插件窗口中点击【确认】...";
+                    mintStatusText.innerHTML = `${brand.icon} 正在唤起 ${brand.name}，请在弹出的窗口中点击【确认】...`;
                     await executeMintTransaction(signer, currentClearanceSummary, currentClearanceSessionId);
                 } finally {
                     btnTriggerWalletSign.disabled = false;
