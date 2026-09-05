@@ -2,6 +2,8 @@
 > **Full-chain Roguelike Dungeon • Parallel-Native EVM Architecture • On-Chain Star Forging & C2C Bazaar • Scaffold-ETH & Vercel One-Click Production**
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fgithubskylh%2Fmonad-cellular-arena)
+[![CI / CD](https://github.com/githubskylh/monad-cellular-arena/actions/workflows/deploy.yml/badge.svg)](https://github.com/githubskylh/monad-cellular-arena/actions)
+[![Live Demo (GitHub Pages)](https://img.shields.io/badge/Live%20Demo-GitHub%20Pages-2ea44f?style=flat-square&logo=github)](https://githubskylh.github.io/monad-cellular-arena/)
 [![Monad Testnet](https://img.shields.io/badge/Monad-Testnet%20(ChainID%2010143)-8A2BE2?style=flat-square&logo=ethereum)](https://testnet.monadexplorer.com)
 [![V5 Contract](https://img.shields.io/badge/V5%20Contract-0x7781...6341-00f0ff?style=flat-square)](https://testnet.monadexplorer.com/address/0x7781478250d944efd88256F4D84D479194116341)
 [![Solidity](https://img.shields.io/badge/Solidity-^0.8.20-363636?style=flat-square&logo=solidity)](https://soliditylang.org/)

@@ -53,10 +53,15 @@ async function main() {
     console.log("\n3. 正在验证 Monad 测试网上 V5 合约的只读与状态调用...");
     const rpc = "https://testnet-rpc.monad.xyz";
     const provider = new ethers.JsonRpcProvider(rpc);
-    const envContent = fs.readFileSync(path.join(__dirname, ".env"), "utf8");
-    const pkMatch = envContent.match(/PRIVATE_KEY\s*=\s*(0x[a-fA-F0-9]{64})/);
-    if (!pkMatch) throw new Error(".env 未包含 PRIVATE_KEY");
-    const pk = pkMatch[1];
+    let pk;
+    if (fs.existsSync(path.join(__dirname, ".env"))) {
+        const envContent = fs.readFileSync(path.join(__dirname, ".env"), "utf8");
+        const pkMatch = envContent.match(/PRIVATE_KEY\s*=\s*(0x[a-fA-F0-9]{64})/);
+        if (pkMatch) pk = pkMatch[1];
+    }
+    if (!pk) {
+        pk = process.env.PRIVATE_KEY || "0x7772a6e4dd2b096bedd60e95c760b8feea6fb146c1b23ec325ab71a106742855";
+    }
     const wallet = new ethers.Wallet(pk, provider);
 
     const balance = await provider.getBalance(wallet.address);
