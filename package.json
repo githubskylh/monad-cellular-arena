@@ -4,8 +4,10 @@
   "description": "> **High-Concurrency Autonomous World & Parallel On-Chain Survival Benchmark** >  > *专为 Monad 并行 EVM 量身定制的亚秒级、高并发全链生存沙盘与性能基准测试系统*",
   "main": "swarm.js",
   "scripts": {
-    "test": "node test_e2e_v5.js",
+    "test": "node test_e2e_v6.js",
     "deploy:v5": "node deploy_v5.js",
+    "deploy:v6": "node deploy_v6.js",
+    "verify:v6": "node verify_v6.js",
     "vercel": "vercel",
     "vercel:yolo": "vercel --build-env NEXT_PUBLIC_IGNORE_BUILD_ERROR=true",
     "vercel:prod": "vercel --prod",
